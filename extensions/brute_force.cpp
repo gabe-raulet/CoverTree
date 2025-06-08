@@ -74,6 +74,7 @@ void brute_force_knn_query(double *P, double *q, double *dists, int64_t *inds, i
 
 void brute_force_query_(double *P, double *X, double *dists, int64_t *inds, int64_t n, int64_t d, int64_t m, int64_t k)
 {
+    #pragma omp parallel for
     for (uint64_t i = 0; i < m; ++i)
     {
         brute_force_knn_query(P, &X[i*d], &dists[i*k], &inds[i*k], n, d, k);
@@ -104,7 +105,7 @@ void brute_force_query(py::array_t<double> P_py, py::array_t<double> X_py, py::a
     double *dists = static_cast<double*>(distsinfo.ptr);
     int64_t *inds = static_cast<int64_t*>(indsinfo.ptr);
 
-    omp_set_num_threads(1);
+    omp_set_num_threads(num_threads);
 
     brute_force_query_(P, X, dists, inds, n, d, m, k);
 }
