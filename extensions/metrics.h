@@ -3,7 +3,7 @@
 
 struct EuclideanDistance
 {
-    float operator()(const float *p, const float *q, int d)
+    float operator()(const float *p, const float *q, int d) const
     {
         float val = 0;
 
@@ -19,7 +19,7 @@ struct EuclideanDistance
 
 struct ManhattanDistance
 {
-    float operator()(const float *p, const float *q, int d)
+    float operator()(const float *p, const float *q, int d) const
     {
         float val = 0;
 
@@ -34,7 +34,7 @@ struct ManhattanDistance
 
 struct CosineDistance
 {
-    float operator()(const float *p, const float *q, int d)
+    float operator()(const float *p, const float *q, int d) const
     {
         float val = 0;
 
@@ -47,7 +47,7 @@ struct CosineDistance
 
 struct ChebyshevDistance
 {
-    float operator()(const float *p, const float *q, int d)
+    float operator()(const float *p, const float *q, int d) const
     {
         float val = 0;
 
