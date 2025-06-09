@@ -13,6 +13,13 @@
 
 namespace py = pybind11;
 
+template <class T>
+static inline T* npmem(py::array_t<T> numpy_array)
+{
+    py::buffer_info info = numpy_array.request();
+    return static_cast<T*>(info.ptr);
+}
+
 struct EuclideanDistance
 {
     double operator()(const double *p, const double *q, int d)
@@ -31,26 +38,25 @@ struct EuclideanDistance
 
 class BruteForce
 {
+    private:
+
+        int64_t n, d;
+
     public:
 
         BruteForce(py::array_t<double> points_py)
         {
             py::buffer_info info = points_py.request();
-            num_points = info.shape[0];
-            dim = info.shape[1];
-
-            double *data = static_cast<double*>(info.ptr);
-            points.assign(data, data + num_points*dim);
+            n = info.shape[0], d = info.shape[1];
         }
 
-        std::tuple<std::vector<int64_t>, std::vector<int64_t>, std::vector<double>>
-        radius_neighbors_graph(double radius, int num_threads)
+        std::tuple<std::vector<double>, std::vector<int64_t>, std::vector<int64_t>>
+        radius_neighbors_graph(const double *points, double radius, int num_threads) const
         {
             static EuclideanDistance distance;
 
             omp_set_num_threads(num_threads);
 
-            int64_t n = num_points;
             std::vector<int64_t> rowptrs(n+1), w(n,0), colids;
             std::vector<double> dists;
 
@@ -66,7 +72,7 @@ class BruteForce
                 {
                     for (int64_t j = 0; j < n; ++j)
                     {
-                        double dist = distance(&points[j*dim], &points[i*dim], dim);
+                        double dist = distance(&points[j*d], &points[i*d], d);
 
                         if (dist <= radius)
                         {
@@ -102,20 +108,15 @@ class BruteForce
                 dists[p] = dist;
             }
 
-            return std::make_tuple(rowptrs, colids, dists);
+            return std::make_tuple(dists, colids, rowptrs);
         }
-
-    private:
-
-        int64_t num_points, dim;
-        std::vector<double> points;
 };
 
 PYBIND11_MODULE(brute_force, m)
 {
-    py::class_<BruteForce>(m, "_BruteForce")
+    py::class_<BruteForce>(m, "brute_force")
         .def(py::init<py::array_t<double>>())
-        .def("_radius_neighbors_graph", &BruteForce::radius_neighbors_graph);
+        .def("radius_neighbors_graph", [](const BruteForce& bf, py::array_t<double> points_py, double radius, int num_threads) { return bf.radius_neighbors_graph(npmem(points_py), radius, num_threads); });
 }
 
 /*
