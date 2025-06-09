@@ -16,28 +16,28 @@
 
 namespace py = pybind11;
 
+template <class Distance>
 class brute_force
 {
+    static inline constexpr Distance distance = Distance();
+
     private:
 
         int64_t n, d;
-        std::string metric;
 
     public:
 
-        brute_force(py::array_t<float> points_py, std::string metric) : metric(metric)
+        brute_force(py::array_t<float> points_py)
         {
             py::buffer_info info = points_py.request();
             n = info.shape[0], d = info.shape[1];
         }
 
-        std::string get_metric() const { return metric; }
-
-        template <class DistanceFunctor>
         std::tuple<std::vector<float>, std::vector<int64_t>, std::vector<int64_t>>
-        radius_neighbors_graph(const float *points, float radius, int num_threads) const
+        radius_neighbors_graph(py::array_t<float> points_py, float radius, int num_threads) const
         {
-            static DistanceFunctor distance;
+            py::buffer_info info = points_py.request();
+            float *points = static_cast<float*>(info.ptr);
 
             omp_set_num_threads(num_threads);
 
@@ -98,22 +98,21 @@ class brute_force
 
 PYBIND11_MODULE(brute_force, m)
 {
-    py::class_<brute_force>(m, "brute_force")
-        .def(py::init<py::array_t<float>, std::string>())
-        .def("radius_neighbors_graph",
-                [](const brute_force& bf, py::array_t<float> points_py, float radius, int num_threads)
-                  {
-                      std::string metric = bf.get_metric();
+    py::class_<brute_force<EuclideanDistance>>(m, "brute_force_euclidean")
+        .def(py::init<py::array_t<float>>())
+        .def("radius_neighbors_graph",  &brute_force<EuclideanDistance>::radius_neighbors_graph);
 
-                      if (metric == "euclidean" || metric == "l2") return bf.radius_neighbors_graph<EuclideanDistance>(npmem(points_py), radius, num_threads);
-                      else if (metric == "manhattan" || metric == "l1") return bf.radius_neighbors_graph<ManhattanDistance>(npmem(points_py), radius, num_threads);
-                      else if (metric == "chebyshev" || metric == "infinity") return bf.radius_neighbors_graph<ChebyshevDistance>(npmem(points_py), radius, num_threads);
-                      else if (metric == "cosine") return bf.radius_neighbors_graph<CosineDistance>(npmem(points_py), radius, num_threads);
-                      else if (metric == "angular") return bf.radius_neighbors_graph<AngularDistance>(npmem(points_py), radius, num_threads);
-                      else throw std::runtime_error("Invalid metric!");
-                  }
-            );
-        /* .def("radius_neighbors_graph", [](const brute_force& bf, py::array_t<float> points_py, float radius, int num_threads) { return bf.radius_neighbors_graph(npmem(points_py), radius, num_threads); }); */
+    py::class_<brute_force<ManhattanDistance>>(m, "brute_force_manhattan")
+        .def(py::init<py::array_t<float>>())
+        .def("radius_neighbors_graph",  &brute_force<ManhattanDistance>::radius_neighbors_graph);
+
+    py::class_<brute_force<ChebyshevDistance>>(m, "brute_force_chebyshev")
+        .def(py::init<py::array_t<float>>())
+        .def("radius_neighbors_graph",  &brute_force<ChebyshevDistance>::radius_neighbors_graph);
+
+    py::class_<brute_force<AngularDistance>>(m, "brute_force_angular")
+        .def(py::init<py::array_t<float>>())
+        .def("radius_neighbors_graph",  &brute_force<AngularDistance>::radius_neighbors_graph);
 }
 
 /*

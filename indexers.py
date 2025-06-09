@@ -5,15 +5,19 @@ from scipy.sparse import csr_array
 
 import cppimport
 import cppimport.import_hook
-from extensions.brute_force import brute_force
+from extensions.brute_force import brute_force_euclidean, brute_force_manhattan, brute_force_chebyshev, brute_force_angular
 from extensions.cover_tree import cover_tree_euclidean, cover_tree_manhattan, cover_tree_chebyshev, cover_tree_angular
 
 class BruteForce(object):
 
     def __init__(self, points, metric):
+        assert metric in ("euclidean", "manhattan", "chebyshev", "angular")
         self.metric = metric
         self.points = points
-        self.bf = brute_force(self.points, self.metric)
+        if self.metric == "euclidean": self.bf = brute_force_euclidean(self.points)
+        elif self.metric == "manhattan": self.bf = brute_force_manhattan(self.points)
+        elif self.metric == "chebyshev": self.bf = brute_force_chebyshev(self.points)
+        elif self.metric == "angular": self.bf = brute_force_angular(self.points)
 
     def radius_neighbors_graph(self, radius, num_threads=1):
         dists, colids, rowptrs = self.bf.radius_neighbors_graph(self.points, radius, num_threads)
