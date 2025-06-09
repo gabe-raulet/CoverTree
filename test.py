@@ -21,11 +21,15 @@ def csr_nng(neighs):
 class RadiusNeighborsGraph(object):
 
     def __init__(self, points, method="balltree", metric="euclidean"):
-        assert metric in ("euclidean", "cosine", "manhattan", 'l1', "l2")
+        assert metric in ("euclidean", "cosine", "manhattan", 'l1', "l2", "chebyshev", "infinity")
         assert method in ("balltree", "kdtree", "covertree", "bruteforce")
         self.points = points
         self.method = method
         self.metric = metric
+        if self.method == "balltree":
+            assert self.metric in BallTree.valid_metrics
+        elif self.method == "kdtree":
+            assert self.metric in KDTree.valid_metrics
 
     def build_index(self, **kwargs):
         if self.method == "balltree":
@@ -44,21 +48,21 @@ class RadiusNeighborsGraph(object):
             return self.index.radius_neighbors_graph(radius, num_threads)
 
 
-n, d = 1000, 16
+n, d = 5000, 16
 points = np.random.uniform(0,1, size=(n,d))
 
-rng_balltree = RadiusNeighborsGraph(points, "balltree", "euclidean")
+rng_balltree = RadiusNeighborsGraph(points, "balltree", "chebyshev")
 rng_balltree.build_index()
 
-rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "euclidean")
+rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "infinity")
 rng_kdtree.build_index()
 
-rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "euclidean")
+rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "infinity")
 rng_bruteforce.build_index()
 
-neighs_balltree = rng_balltree.radius_neighbors_graph(1.1)
-neighs_kdtree = rng_kdtree.radius_neighbors_graph(1.1)
-neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(1.1)
+neighs_balltree = rng_balltree.radius_neighbors_graph(0.5)
+neighs_kdtree = rng_kdtree.radius_neighbors_graph(0.5)
+neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(0.5, num_threads=12)
 
 print(np.allclose(neighs_balltree.todense(), neighs_kdtree.todense()))
 print(np.allclose(neighs_balltree.todense(), neighs_bruteforce.todense()))

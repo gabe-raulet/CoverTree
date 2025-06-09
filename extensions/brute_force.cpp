@@ -4,6 +4,7 @@
 #include <pybind11/stl.h>
 #include <stdexcept>
 #include <stdio.h>
+#include <string>
 #include <array>
 #include <tuple>
 #include <vector>
@@ -36,24 +37,71 @@ struct EuclideanDistance
     }
 };
 
+struct ManhattanDistance
+{
+    double operator()(const double *p, const double *q, int d)
+    {
+        double val = 0;
+
+        for (int i = 0; i < d; ++i)
+        {
+            val += std::abs(p[i] - q[i]);
+        }
+
+        return val;
+    }
+};
+
+struct CosineDistance
+{
+    double operator()(const double *p, const double *q, int d)
+    {
+        double val = 0;
+
+        for (int i = 0; i < d; ++i)
+            val += p[i]*q[i];
+
+        return 1.0 - val;
+    }
+};
+
+struct ChebyshevDistance
+{
+    double operator()(const double *p, const double *q, int d)
+    {
+        double val = 0;
+
+        for (int i = 0; i < d; ++i)
+        {
+            val = std::max(val, std::abs(p[i] - q[i]));
+        }
+
+        return val;
+    }
+};
+
 class BruteForce
 {
     private:
 
         int64_t n, d;
+        std::string metric;
 
     public:
 
-        BruteForce(py::array_t<double> points_py)
+        BruteForce(py::array_t<double> points_py, std::string metric) : metric(metric)
         {
             py::buffer_info info = points_py.request();
             n = info.shape[0], d = info.shape[1];
         }
 
+        std::string get_metric() const { return metric; }
+
+        template <class DistanceFunctor>
         std::tuple<std::vector<double>, std::vector<int64_t>, std::vector<int64_t>>
         radius_neighbors_graph(const double *points, double radius, int num_threads) const
         {
-            static EuclideanDistance distance;
+            static DistanceFunctor distance;
 
             omp_set_num_threads(num_threads);
 
@@ -115,8 +163,20 @@ class BruteForce
 PYBIND11_MODULE(brute_force, m)
 {
     py::class_<BruteForce>(m, "brute_force")
-        .def(py::init<py::array_t<double>>())
-        .def("radius_neighbors_graph", [](const BruteForce& bf, py::array_t<double> points_py, double radius, int num_threads) { return bf.radius_neighbors_graph(npmem(points_py), radius, num_threads); });
+        .def(py::init<py::array_t<double>, std::string>())
+        .def("radius_neighbors_graph",
+                [](const BruteForce& bf, py::array_t<double> points_py, double radius, int num_threads)
+                  {
+                      std::string metric = bf.get_metric();
+
+                      if (metric == "euclidean" || metric == "l2") return bf.radius_neighbors_graph<EuclideanDistance>(npmem(points_py), radius, num_threads);
+                      else if (metric == "manhattan" || metric == "l1") return bf.radius_neighbors_graph<ManhattanDistance>(npmem(points_py), radius, num_threads);
+                      else if (metric == "chebyshev" || metric == "infinity") return bf.radius_neighbors_graph<ChebyshevDistance>(npmem(points_py), radius, num_threads);
+                      else if (metric == "cosine") return bf.radius_neighbors_graph<CosineDistance>(npmem(points_py), radius, num_threads);
+                      else throw std::runtime_error("Invalid metric!");
+                  }
+            );
+        /* .def("radius_neighbors_graph", [](const BruteForce& bf, py::array_t<double> points_py, double radius, int num_threads) { return bf.radius_neighbors_graph(npmem(points_py), radius, num_threads); }); */
 }
 
 /*
