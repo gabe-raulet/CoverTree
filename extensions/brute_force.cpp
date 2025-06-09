@@ -11,76 +11,12 @@
 #include <algorithm>
 #include <assert.h>
 #include <omp.h>
+#include "utils.h"
+#include "metrics.h"
 
 namespace py = pybind11;
 
-template <class T>
-static inline T* npmem(py::array_t<T> numpy_array)
-{
-    py::buffer_info info = numpy_array.request();
-    return static_cast<T*>(info.ptr);
-}
-
-struct EuclideanDistance
-{
-    float operator()(const float *p, const float *q, int d)
-    {
-        float val = 0;
-
-        for (int i = 0; i < d; ++i)
-        {
-            float delta = p[i] - q[i];
-            val += delta * delta;
-        }
-
-        return std::sqrt(val);
-    }
-};
-
-struct ManhattanDistance
-{
-    float operator()(const float *p, const float *q, int d)
-    {
-        float val = 0;
-
-        for (int i = 0; i < d; ++i)
-        {
-            val += std::abs(p[i] - q[i]);
-        }
-
-        return val;
-    }
-};
-
-struct CosineDistance
-{
-    float operator()(const float *p, const float *q, int d)
-    {
-        float val = 0;
-
-        for (int i = 0; i < d; ++i)
-            val += p[i]*q[i];
-
-        return 1.0 - val;
-    }
-};
-
-struct ChebyshevDistance
-{
-    float operator()(const float *p, const float *q, int d)
-    {
-        float val = 0;
-
-        for (int i = 0; i < d; ++i)
-        {
-            val = std::max(val, std::abs(p[i] - q[i]));
-        }
-
-        return val;
-    }
-};
-
-class BruteForce
+class brute_force
 {
     private:
 
@@ -89,7 +25,7 @@ class BruteForce
 
     public:
 
-        BruteForce(py::array_t<float> points_py, std::string metric) : metric(metric)
+        brute_force(py::array_t<float> points_py, std::string metric) : metric(metric)
         {
             py::buffer_info info = points_py.request();
             n = info.shape[0], d = info.shape[1];
@@ -162,10 +98,10 @@ class BruteForce
 
 PYBIND11_MODULE(brute_force, m)
 {
-    py::class_<BruteForce>(m, "brute_force")
+    py::class_<brute_force>(m, "brute_force")
         .def(py::init<py::array_t<float>, std::string>())
         .def("radius_neighbors_graph",
-                [](const BruteForce& bf, py::array_t<float> points_py, float radius, int num_threads)
+                [](const brute_force& bf, py::array_t<float> points_py, float radius, int num_threads)
                   {
                       std::string metric = bf.get_metric();
 
@@ -176,7 +112,7 @@ PYBIND11_MODULE(brute_force, m)
                       else throw std::runtime_error("Invalid metric!");
                   }
             );
-        /* .def("radius_neighbors_graph", [](const BruteForce& bf, py::array_t<float> points_py, float radius, int num_threads) { return bf.radius_neighbors_graph(npmem(points_py), radius, num_threads); }); */
+        /* .def("radius_neighbors_graph", [](const brute_force& bf, py::array_t<float> points_py, float radius, int num_threads) { return bf.radius_neighbors_graph(npmem(points_py), radius, num_threads); }); */
 }
 
 /*
