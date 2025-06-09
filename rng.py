@@ -33,7 +33,7 @@ class RadiusNeighborsGraph(object):
         elif self.method == "sklearn_pairwise":
             assert self.metric in distance_metrics()
 
-    def build_index(self, **kwargs):
+    def build_index(self, num_threads=1, **kwargs):
         if self.method == "balltree":
             self.index = BallTree(self.points, metric=self.metric, **kwargs)
         elif self.method == "kdtree":
@@ -41,7 +41,7 @@ class RadiusNeighborsGraph(object):
         elif self.method == "bruteforce":
             self.index = BruteForce(self.points, metric=self.metric, **kwargs)
         elif self.method == "covertree":
-            self.index = CoverTree(self.points, metric=self.metric, **kwargs)
+            self.index = CoverTree(self.points, metric=self.metric, num_threads=num_threads, **kwargs)
         elif self.method == "sklearn_pairwise":
             pass
 
@@ -58,38 +58,38 @@ class RadiusNeighborsGraph(object):
             return radius_neighbors_graph(self.points, radius, mode="distance", metric=self.metric, include_self=True, n_jobs=num_threads)
 
 
-n, d = 5000, 16
-points = np.random.uniform(0,1, size=(n,d)).astype("float32")
+#  n, d = 5000, 16
+#  points = np.random.uniform(0,1, size=(n,d)).astype("float32")
 
-rng_balltree = RadiusNeighborsGraph(points, "balltree", "euclidean")
-rng_balltree.build_index()
+#  rng_balltree = RadiusNeighborsGraph(points, "balltree", "euclidean")
+#  rng_balltree.build_index()
 
-rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "euclidean")
-rng_kdtree.build_index()
+#  rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "euclidean")
+#  rng_kdtree.build_index()
 
-rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "euclidean")
-rng_bruteforce.build_index()
+#  rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "euclidean")
+#  rng_bruteforce.build_index()
 
-rng_pairwise = RadiusNeighborsGraph(points, "sklearn_pairwise", "euclidean")
-rng_pairwise.build_index()
+#  rng_pairwise = RadiusNeighborsGraph(points, "sklearn_pairwise", "euclidean")
+#  rng_pairwise.build_index()
 
-rng_covertree = RadiusNeighborsGraph(points, "covertree", "euclidean")
-rng_covertree.build_index()
+#  rng_covertree = RadiusNeighborsGraph(points, "covertree", "euclidean")
+#  rng_covertree.build_index()
 
-radius = 0.8
+#  radius = 0.8
 
-neighs_balltree = rng_balltree.radius_neighbors_graph(radius)
-neighs_kdtree = rng_kdtree.radius_neighbors_graph(radius)
-neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(radius, num_threads=12)
-neighs_pairwise = rng_pairwise.radius_neighbors_graph(radius, num_threads=12)
-neighs_covertree = rng_covertree.radius_neighbors_graph(radius, num_threads=12)
+#  neighs_balltree = rng_balltree.radius_neighbors_graph(radius)
+#  neighs_kdtree = rng_kdtree.radius_neighbors_graph(radius)
+#  neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(radius, num_threads=12)
+#  neighs_pairwise = rng_pairwise.radius_neighbors_graph(radius, num_threads=12)
+#  neighs_covertree = rng_covertree.radius_neighbors_graph(radius, num_threads=12)
 
-graphs = []
-graphs.append(neighs_balltree.sorted_indices())
-graphs.append(neighs_kdtree.sorted_indices())
-graphs.append(neighs_bruteforce.sorted_indices())
-graphs.append(neighs_pairwise.sorted_indices())
-graphs.append(neighs_covertree.sorted_indices())
+#  graphs = []
+#  graphs.append(neighs_balltree.sorted_indices())
+#  graphs.append(neighs_kdtree.sorted_indices())
+#  graphs.append(neighs_bruteforce.sorted_indices())
+#  graphs.append(neighs_pairwise.sorted_indices())
+#  graphs.append(neighs_covertree.sorted_indices())
 
-for g1, g2 in combinations(graphs, 2):
-    print(np.all(g1.indptr == g2.indptr) and np.all(g1.indices == g2.indices))
+#  for g1, g2 in combinations(graphs, 2):
+    #  print(np.all(g1.indptr == g2.indptr) and np.all(g1.indices == g2.indices))
