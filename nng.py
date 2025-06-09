@@ -73,3 +73,10 @@ if __name__ == "__main__":
 
     sys.stdout.write(f"[time={t:.3f}] built near neighbor graph [edges={graph.nnz},density={graph.nnz/n:.3f}]\n")
     sys.stdout.flush()
+
+    if outfile:
+        t = -time.perf_counter()
+        mmwrite(outfile, graph.sorted_indices(), field="pattern", symmetry="symmetric")
+        t += time.perf_counter()
+        sys.stdout.write(f"[time={t:.3f}] wrote graph to file '{outfile}'\n")
+        sys.stdout.flush()
