@@ -21,7 +21,7 @@ def csr_nng(neighs):
 class RadiusNeighborsGraph(object):
 
     def __init__(self, points, method="balltree", metric="euclidean"):
-        assert metric in ("euclidean", "cosine", "manhattan", 'l1', "l2", "chebyshev", "infinity")
+        assert metric in ("euclidean", "cosine", "manhattan", 'l1', "l2", "chebyshev", "infinity", "angular")
         assert method in ("balltree", "kdtree", "covertree", "bruteforce", "sklearn_pairwise")
         self.points = points
         self.method = method

@@ -109,6 +109,7 @@ PYBIND11_MODULE(brute_force, m)
                       else if (metric == "manhattan" || metric == "l1") return bf.radius_neighbors_graph<ManhattanDistance>(npmem(points_py), radius, num_threads);
                       else if (metric == "chebyshev" || metric == "infinity") return bf.radius_neighbors_graph<ChebyshevDistance>(npmem(points_py), radius, num_threads);
                       else if (metric == "cosine") return bf.radius_neighbors_graph<CosineDistance>(npmem(points_py), radius, num_threads);
+                      else if (metric == "angular") return bf.radius_neighbors_graph<AngularDistance>(npmem(points_py), radius, num_threads);
                       else throw std::runtime_error("Invalid metric!");
                   }
             );

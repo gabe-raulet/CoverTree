@@ -18,7 +18,7 @@ method="sklearn_pairwise"
 def usage():
     global start, count, outfile, num_threads, metric, method
     sys.stderr.write(f"Usage: {sys.argv[0]} [options] -i <points> -r <radius>\n")
-    sys.stderr.write(f"Options: -m STR  metric name [{metric}] (valid: euclidean, manhattan, chebyshev)\n")
+    sys.stderr.write(f"Options: -m STR  metric name [{metric}] (valid: euclidean, manhattan, chebyshev, angular)\n")
     sys.stderr.write(f"         -A STR  method name [{method}] (valid: sklearn_pairwise, covertree, bruteforce, balltree, kdtree)\n")
     sys.stderr.write(f"         -n INT  number of points [{'all' if not count else str(count)}]\n")
     sys.stderr.write(f"         -s INT  start offset [{start}]\n")

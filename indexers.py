@@ -6,7 +6,7 @@ from scipy.sparse import csr_array
 import cppimport
 import cppimport.import_hook
 from extensions.brute_force import brute_force
-from extensions.cover_tree import cover_tree_euclidean, cover_tree_manhattan, cover_tree_chebyshev
+from extensions.cover_tree import cover_tree_euclidean, cover_tree_manhattan, cover_tree_chebyshev, cover_tree_angular
 
 class BruteForce(object):
 
@@ -22,12 +22,13 @@ class BruteForce(object):
 class CoverTree(object):
 
     def __init__(self, points, metric, cover=1.3, leaf_size=30, num_threads=1):
-        assert metric in ("euclidean", "manhattan", "chebyshev")
+        assert metric in ("euclidean", "manhattan", "chebyshev", "angular")
         self.metric = metric
         self.points = points
         if self.metric == "euclidean": self.tree = cover_tree_euclidean(self.points)
         elif self.metric == "manhattan": self.tree = cover_tree_manhattan(self.points)
         elif self.metric == "chebyshev": self.tree = cover_tree_chebyshev(self.points)
+        elif self.metric == "angular": self.tree = cover_tree_angular(self.points)
         self.tree.build_index(self.points, cover, leaf_size, num_threads)
 
     def radius_neighbors_graph(self, radius, num_threads=1):

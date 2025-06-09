@@ -1,6 +1,8 @@
 #ifndef METRICS_H_
 #define METRICS_H_
 
+#include <cmath>
+
 struct EuclideanDistance
 {
     float operator()(const float *p, const float *q, int d) const
@@ -42,6 +44,28 @@ struct CosineDistance
             val += p[i]*q[i];
 
         return 1.0 - val;
+    }
+};
+
+struct AngularDistance
+{
+    float operator()(const float *p, const float *q, int d) const
+    {
+        float pq = 0, pp = 0, qq = 0;
+
+        for (int i = 0; i < d; ++i)
+        {
+            pq += p[i]*q[i];
+            pp += p[i]*p[i];
+            qq += q[i]*q[i];
+        }
+
+
+        if (pp*qq == 0)
+            return 0;
+
+        float val = pq / std::sqrt(pp*qq);
+        return acos(val) / M_PI;
     }
 };
 
