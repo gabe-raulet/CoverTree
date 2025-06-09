@@ -163,24 +163,36 @@ brute_force_query_radius_neighbors(py::array_t<double> P_py, py::array_t<double>
     double *P = static_cast<double*>(Pinfo.ptr);
     double *X = static_cast<double*>(Xinfo.ptr);
 
-    /* omp_set_num_threads(num_threads); */
+    omp_set_num_threads(num_threads);
 
     std::vector<int64_t> rowptrs(m+1), w(m,0), colids;
     std::vector<double> dists;
 
     std::vector<std::tuple<int64_t, int64_t, double>> tuples;
+    int64_t *wptr = w.data();
 
-    for (int64_t i = 0; i < m; ++i)
+    #pragma omp parallel shared(w, tuples)
     {
-        for (int64_t j = 0; j < n; ++j)
-        {
-            double dist = distance(&P[j*d], &X[i*d], d);
+        std::vector<std::tuple<int64_t, int64_t, double>> mytuples;
 
-            if (dist <= radius)
+        #pragma omp for nowait reduction(+:wptr[:m])
+        for (int64_t i = 0; i < m; ++i)
+        {
+            for (int64_t j = 0; j < n; ++j)
             {
-                tuples.emplace_back(i, j, dist);
-                w[i]++;
+                double dist = distance(&P[j*d], &X[i*d], d);
+
+                if (dist <= radius)
+                {
+                    mytuples.emplace_back(i, j, dist);
+                    w[i]++;
+                }
             }
+        }
+
+        #pragma omp critical
+        {
+            std::copy(mytuples.begin(), mytuples.end(), std::back_inserter(tuples));
         }
     }
 
@@ -205,44 +217,6 @@ brute_force_query_radius_neighbors(py::array_t<double> P_py, py::array_t<double>
     }
 
     return std::make_tuple(rowptrs, colids, dists);
-
-
-    /* #pragma omp parallel shared(rowptrs, colids) */
-    /* { */
-        /* std::vector<std::pair<int64_t, int64_t>> tuples; */
-
-        /* #pragma omp for reduction(+:rowptrs[:m]) */
-        /* for (int64_t i = 0; i < m; ++i) */
-        /* { */
-            /* for (int64_t j = 0; j < n; ++j) */
-            /* { */
-                /* if (distance(&P[j*d], &X[i*d], d) <= radius) */
-                /* { */
-                    /* tuples.emplace_back(i, j); */
-                    /* rowptrs[i]++; */
-                /* } */
-            /* } */
-        /* } */
-
-        /* #pragma omp single */
-        /* { */
-
-        /* } */
-    /* } */
-
-    /* #pragma omp parallel for */
-    /* for (int64_t i = 0; i < m; ++i) */
-    /* { */
-        /* int64_t count = 0; */
-
-        /* for (int64_t j = 0; j < n; ++j) */
-            /* if (distance(&P[j*d], &X[i*d], d) <= radius) */
-                /* count++; */
-
-        /* counts(i) = count; */
-    /* } */
-
-    /* return counts_py; */
 }
 
 PYBIND11_MODULE(brute_force, m)
