@@ -1,8 +1,9 @@
 import time
 import numpy as np
 import sklearn
+from itertools import combinations
 from sklearn.neighbors import KDTree, BallTree, radius_neighbors_graph
-from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import distance_metrics
 from scipy.sparse import csr_array
 from scipy.io import mmwrite, mmread
 from BruteForce import BruteForce
@@ -22,7 +23,7 @@ class RadiusNeighborsGraph(object):
 
     def __init__(self, points, method="balltree", metric="euclidean"):
         assert metric in ("euclidean", "cosine", "manhattan", 'l1', "l2", "chebyshev", "infinity")
-        assert method in ("balltree", "kdtree", "covertree", "bruteforce")
+        assert method in ("balltree", "kdtree", "covertree", "bruteforce", "sklearn_pairwise")
         self.points = points
         self.method = method
         self.metric = metric
@@ -30,6 +31,8 @@ class RadiusNeighborsGraph(object):
             assert self.metric in BallTree.valid_metrics
         elif self.method == "kdtree":
             assert self.metric in KDTree.valid_metrics
+        elif self.method == "sklearn_pairwise":
+            assert self.metric in distance_metrics()
 
     def build_index(self, **kwargs):
         if self.method == "balltree":
@@ -38,6 +41,8 @@ class RadiusNeighborsGraph(object):
             self.index = KDTree(self.points, metric=self.metric, **kwargs)
         elif self.method == "bruteforce":
             self.index = BruteForce(self.points, metric=self.metric, **kwargs)
+        elif self.method == "sklearn_pairwise":
+            pass
 
     def radius_neighbors_graph(self, radius, num_threads=1):
         if self.method == "balltree":
@@ -46,24 +51,38 @@ class RadiusNeighborsGraph(object):
             return csr_nng(self.index.query_radius(self.points, return_distance=True, r=radius))
         elif self.method == "bruteforce":
             return self.index.radius_neighbors_graph(radius, num_threads)
+        elif self.method == "sklearn_pairwise":
+            return radius_neighbors_graph(self.points, radius, mode="distance", metric=self.metric, include_self=True, n_jobs=num_threads)
 
 
 n, d = 5000, 16
 points = np.random.uniform(0,1, size=(n,d))
 
-rng_balltree = RadiusNeighborsGraph(points, "balltree", "chebyshev")
+rng_balltree = RadiusNeighborsGraph(points, "balltree", "manhattan")
 rng_balltree.build_index()
 
-rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "infinity")
+rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "manhattan")
 rng_kdtree.build_index()
 
-rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "infinity")
+rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "manhattan")
 rng_bruteforce.build_index()
 
-neighs_balltree = rng_balltree.radius_neighbors_graph(0.5)
-neighs_kdtree = rng_kdtree.radius_neighbors_graph(0.5)
-neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(0.5, num_threads=12)
+rng_pairwise = RadiusNeighborsGraph(points, "sklearn_pairwise", "manhattan")
+rng_pairwise.build_index()
 
-print(np.allclose(neighs_balltree.todense(), neighs_kdtree.todense()))
-print(np.allclose(neighs_balltree.todense(), neighs_bruteforce.todense()))
-print(np.allclose(neighs_kdtree.todense(), neighs_bruteforce.todense()))
+radius = 2.5
+
+neighs_balltree = rng_balltree.radius_neighbors_graph(radius)
+neighs_kdtree = rng_kdtree.radius_neighbors_graph(radius)
+neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(radius, num_threads=12)
+neighs_pairwise = rng_pairwise.radius_neighbors_graph(radius, num_threads=12)
+
+graphs = []
+graphs.append(neighs_balltree)
+graphs.append(neighs_kdtree)
+graphs.append(neighs_bruteforce)
+graphs.append(neighs_pairwise)
+
+
+for g1, g2 in combinations(graphs, 2):
+    print(np.allclose(g1.todense(), g2.todense()))
