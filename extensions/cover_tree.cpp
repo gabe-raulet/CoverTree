@@ -96,6 +96,12 @@ PYBIND11_MODULE(cover_tree, m)
         .def("build_index", &cover_tree<ManhattanDistance>::build_index)
         .def("range_query", &cover_tree<ManhattanDistance>::range_query)
         .def("radius_neighbors_graph", &cover_tree<ManhattanDistance>::radius_neighbors_graph);
+
+    py::class_<cover_tree<ChebyshevDistance>>(m, "cover_tree_chebyshev")
+        .def(py::init<py::array_t<Real>>())
+        .def("build_index", &cover_tree<ChebyshevDistance>::build_index)
+        .def("range_query", &cover_tree<ChebyshevDistance>::range_query)
+        .def("radius_neighbors_graph", &cover_tree<ChebyshevDistance>::radius_neighbors_graph);
 }
 
 /*
