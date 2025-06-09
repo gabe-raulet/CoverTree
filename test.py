@@ -56,21 +56,21 @@ class RadiusNeighborsGraph(object):
 
 
 n, d = 5000, 16
-points = np.random.uniform(0,1, size=(n,d))
+points = np.random.uniform(0,1, size=(n,d)).astype("float32")
 
-rng_balltree = RadiusNeighborsGraph(points, "balltree", "manhattan")
+rng_balltree = RadiusNeighborsGraph(points, "balltree", "euclidean")
 rng_balltree.build_index()
 
-rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "manhattan")
+rng_kdtree = RadiusNeighborsGraph(points, "kdtree", "euclidean")
 rng_kdtree.build_index()
 
-rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "manhattan")
+rng_bruteforce = RadiusNeighborsGraph(points, "bruteforce", "euclidean")
 rng_bruteforce.build_index()
 
-rng_pairwise = RadiusNeighborsGraph(points, "sklearn_pairwise", "manhattan")
+rng_pairwise = RadiusNeighborsGraph(points, "sklearn_pairwise", "euclidean")
 rng_pairwise.build_index()
 
-radius = 2.5
+radius = 0.8
 
 neighs_balltree = rng_balltree.radius_neighbors_graph(radius)
 neighs_kdtree = rng_kdtree.radius_neighbors_graph(radius)
@@ -78,11 +78,10 @@ neighs_bruteforce = rng_bruteforce.radius_neighbors_graph(radius, num_threads=12
 neighs_pairwise = rng_pairwise.radius_neighbors_graph(radius, num_threads=12)
 
 graphs = []
-graphs.append(neighs_balltree)
-graphs.append(neighs_kdtree)
-graphs.append(neighs_bruteforce)
-graphs.append(neighs_pairwise)
-
+graphs.append(neighs_balltree.sorted_indices())
+graphs.append(neighs_kdtree.sorted_indices())
+graphs.append(neighs_bruteforce.sorted_indices())
+graphs.append(neighs_pairwise.sorted_indices())
 
 for g1, g2 in combinations(graphs, 2):
-    print(np.allclose(g1.todense(), g2.todense()))
+    print(np.all(g1.indptr == g2.indptr) and np.all(g1.indices == g2.indices))
