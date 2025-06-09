@@ -110,7 +110,7 @@ void brute_force_query(py::array_t<double> P_py, py::array_t<double> X_py, py::a
     brute_force_query_(P, X, dists, inds, n, d, m, k);
 }
 
-py::array_t<int64_t> brute_force_query_radius(py::array_t<double> P_py, py::array_t<double> X_py, double radius, int num_threads)
+py::array_t<int64_t> brute_force_query_radius_count_only(py::array_t<double> P_py, py::array_t<double> X_py, double radius, int num_threads)
 {
     static EuclideanDistance distance;
 
@@ -146,12 +146,111 @@ py::array_t<int64_t> brute_force_query_radius(py::array_t<double> P_py, py::arra
     return counts_py;
 }
 
+std::tuple<std::vector<int64_t>, std::vector<int64_t>, std::vector<double>>
+brute_force_query_radius_neighbors(py::array_t<double> P_py, py::array_t<double> X_py, double radius, int num_threads)
+{
+    static EuclideanDistance distance;
+
+    py::buffer_info Pinfo = P_py.request();
+    py::buffer_info Xinfo = X_py.request();
+
+    int64_t n = Pinfo.shape[0];
+    int64_t d = Pinfo.shape[1];
+    int64_t m = Xinfo.shape[0];
+
+    if (d != Xinfo.shape[1]) throw std::runtime_error("error: P.shape[1] != X.shape[1]");
+
+    double *P = static_cast<double*>(Pinfo.ptr);
+    double *X = static_cast<double*>(Xinfo.ptr);
+
+    /* omp_set_num_threads(num_threads); */
+
+    std::vector<int64_t> rowptrs(m+1), w(m,0), colids;
+    std::vector<double> dists;
+
+    std::vector<std::tuple<int64_t, int64_t, double>> tuples;
+
+    for (int64_t i = 0; i < m; ++i)
+    {
+        for (int64_t j = 0; j < n; ++j)
+        {
+            double dist = distance(&P[j*d], &X[i*d], d);
+
+            if (dist <= radius)
+            {
+                tuples.emplace_back(i, j, dist);
+                w[i]++;
+            }
+        }
+    }
+
+    int64_t nz = 0;
+
+    for (int64_t i = 0; i < m; ++i)
+    {
+        rowptrs[i] = nz;
+        nz += w[i];
+        w[i] = rowptrs[i];
+    }
+
+    rowptrs[m] = nz;
+    colids.resize(nz);
+    dists.resize(nz);
+
+    for (const auto& [i, j, dist] : tuples)
+    {
+        int64_t p;
+        colids[p = w[i]++] = j;
+        dists[p] = dist;
+    }
+
+    return std::make_tuple(rowptrs, colids, dists);
+
+
+    /* #pragma omp parallel shared(rowptrs, colids) */
+    /* { */
+        /* std::vector<std::pair<int64_t, int64_t>> tuples; */
+
+        /* #pragma omp for reduction(+:rowptrs[:m]) */
+        /* for (int64_t i = 0; i < m; ++i) */
+        /* { */
+            /* for (int64_t j = 0; j < n; ++j) */
+            /* { */
+                /* if (distance(&P[j*d], &X[i*d], d) <= radius) */
+                /* { */
+                    /* tuples.emplace_back(i, j); */
+                    /* rowptrs[i]++; */
+                /* } */
+            /* } */
+        /* } */
+
+        /* #pragma omp single */
+        /* { */
+
+        /* } */
+    /* } */
+
+    /* #pragma omp parallel for */
+    /* for (int64_t i = 0; i < m; ++i) */
+    /* { */
+        /* int64_t count = 0; */
+
+        /* for (int64_t j = 0; j < n; ++j) */
+            /* if (distance(&P[j*d], &X[i*d], d) <= radius) */
+                /* count++; */
+
+        /* counts(i) = count; */
+    /* } */
+
+    /* return counts_py; */
+}
 
 PYBIND11_MODULE(brute_force, m)
 {
     m.def("distance_matrix", &distance_matrix, py::arg("P_py"), py::arg("num_threads") = 4);
     m.def("brute_force_query", &brute_force_query);
-    m.def("brute_force_query_radius", &brute_force_query_radius);
+    m.def("brute_force_query_radius_count_only", &brute_force_query_radius_count_only);
+    m.def("brute_force_query_radius_neighbors", &brute_force_query_radius_neighbors);
 }
 
 /*
