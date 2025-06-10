@@ -46,10 +46,13 @@ class CoverTreeWrapper
         std::tuple<RealVector, IndexVector>
         knn_query(const Atom *query, Index k) const
         {
-            IndexVector neighbors;
-            RealVector dists;
+            IndexVector neighbors(k);
+            RealVector dists(k);
 
-            tree.knn_query(points, query, k, neighbors, dists);
+            Index found = tree.knn_query(points, query, k, neighbors.data(), dists.data());
+
+            neighbors.resize(found);
+            dists.resize(found);
 
             return std::make_tuple(dists, neighbors);
         }
@@ -89,6 +92,45 @@ class CoverTreeWrapper
             return std::make_tuple(data, colids, rowptrs);
         }
 
+        std::tuple<RealVector, IndexVector, IndexVector>
+        kneighbors_graph(Index k, int num_threads) const
+        {
+            IndexVector neighbors;
+            RealVector dists;
+            IndexVector found;
+
+            Index nz = tree.kneighbors_graph(points, k, neighbors, dists, found, num_threads);
+
+            Index n = tree.num_points();
+
+            RealVector data(nz);
+            IndexVector rowptrs(n+1), colids(nz);
+
+            auto neigh_itr = neighbors.begin();
+            auto dists_itr = dists.begin();
+            auto data_itr = data.begin();
+            auto colids_itr = colids.begin();
+
+            for (Index i = 0; i < n; ++i)
+            {
+                rowptrs[i] = data_itr - data.begin();
+                Index count = found[i];
+
+                std::copy(neigh_itr, neigh_itr + count, colids_itr);
+                std::copy(dists_itr, dists_itr + count, data_itr);
+
+                neigh_itr += k;
+                dists_itr += k;
+
+                colids_itr += count;
+                data_itr += count;
+            }
+
+            rowptrs[n] = nz;
+
+            return std::make_tuple(data, colids, rowptrs);
+        }
+
         CoverTree<Distance, Real, Atom> tree;
         const Atom *points;
 };
@@ -104,6 +146,7 @@ void bind_cover_tree_wrapper(py::module_& m, const std::string& name)
         .def("radius_query", [](const Tree& tree, py::array_t<Atom> query, Real radius) { return tree.radius_query(npmem(query), radius); })
         .def("radius_neighbors_graph", &Tree::radius_neighbors_graph)
         .def("knn_query", [](const Tree& tree, py::array_t<Atom> query, int k) { return tree.knn_query(npmem(query), k); })
+        .def("kneighbors_graph", &Tree::kneighbors_graph)
         .def("vertex_point", [](const Tree& tree, Index vertex) { return tree.tree.vertex_point(vertex); })
         .def("vertex_level", [](const Tree& tree, Index vertex) { return tree.tree.vertex_level(vertex); })
         .def("vertex_radius", [](const Tree& tree, Index vertex) { return tree.tree.vertex_radius(vertex); })

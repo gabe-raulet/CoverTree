@@ -43,7 +43,8 @@ class CoverTree
         Index radius_query(const Atom *points, const Atom *query, Real radius, IndexVector& neighbors, RealVector& dists) const;
         Index radius_neighbors_graph(const Atom *points, Real radius, std::vector<IndexVector>& neighbors, std::vector<RealVector>& dists, int num_threads) const;
 
-        Index knn_query(const Atom *points, const Atom *query, Index k, IndexVector& neighbors, RealVector& dists) const;
+        Index knn_query(const Atom *points, const Atom *query, Index k, Index *neighbors, Real *dists) const;
+        Index kneighbors_graph(const Atom *points, Index k, IndexVector& neighbors, RealVector& dists, IndexVector& found, int num_threads) const;
 
         Index num_points() const { return n; }
         Index num_dimensions() const { return d; }

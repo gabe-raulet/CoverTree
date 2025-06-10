@@ -62,6 +62,10 @@ class CoverTree(object):
         dists, colids, rowptrs = self.tree.radius_neighbors_graph(radius, num_threads)
         return csr_array((dists, colids, rowptrs), shape=(len(rowptrs)-1, len(rowptrs)-1))
 
+    def kneighbors_graph(self, k=10, num_threads=1):
+        dists, colids, rowptrs = self.tree.kneighbors_graph(k, num_threads)
+        return csr_array((dists, colids, rowptrs), shape=(len(rowptrs)-1, len(rowptrs)-1))
+
 def random_word(d):
     return "".join([random.choice("ACTG") for i in range(d)])
 
@@ -70,16 +74,22 @@ def random_word(d):
 #  for i in range(n):
     #  points.append(random_word(d))
 
-n, d = 10000, 32
+n, d = 10000, 16
 points = np.random.uniform(-1,1, size=(n,d)).astype(np.float32)
 
-tree = CoverTree(points, metric="euclidean")
+tree = CoverTree(points, metric="manhattan")
 tree.build_index()
 
-from sklearn.neighbors import KDTree
+from sklearn.neighbors import KDTree, kneighbors_graph
 
-kdtree = KDTree(points)
+#  kdtree = KDTree(points)
 
-for k in range(3,15):
-    print(list(kdtree.query(points[[k]], k=k, return_distance=False)[0]))
-    print(tree.knn_query(points[k], k=k))
+
+graph1 = kneighbors_graph(points,10, metric="manhattan", include_self = True)
+graph2 = tree.kneighbors_graph(k=10, num_threads=12)
+
+graph1.sort_indices()
+graph2.sort_indices()
+
+assert np.all(graph1.indices == graph2.indices)
+assert np.all(graph1.indptr == graph2.indptr)

@@ -146,7 +146,7 @@ void CoverTree<Distance, Real, Atom>::build(const Atom *points, Real cover, Inde
 }
 
 template <class Distance, class Real, class Atom>
-Index CoverTree<Distance, Real, Atom>::knn_query(const Atom *points, const Atom *query, Index k, IndexVector& neighbors, RealVector& dists) const
+Index CoverTree<Distance, Real, Atom>::knn_query(const Atom *points, const Atom *query, Index k, Index *neighbors, Real *dists) const
 {
     using QueueItem = std::tuple<Real, Real, Index>;
     using NeighborItem = std::tuple<Real, Index>;
@@ -214,13 +214,15 @@ Index CoverTree<Distance, Real, Atom>::knn_query(const Atom *points, const Atom 
     std::for_each(neighbor_queue.begin(), neighbor_queue.end(), [](auto& item) { std::get<0>(item) *= -1; });
     std::sort(neighbor_queue.begin(), neighbor_queue.end());
 
+    Index found = 0;
+
     for (const auto& [dist, neigh] : neighbor_queue)
     {
-        dists.push_back(dist);
-        neighbors.push_back(neigh);
+        dists[found] = dist;
+        neighbors[found++] = neigh;
     }
 
-    return dists.size();
+    return found;
 }
 
 template <class Distance, class Real, class Atom>
@@ -271,6 +273,27 @@ Index CoverTree<Distance, Real, Atom>::radius_neighbors_graph(const Atom *points
     for (Index i = 0; i < n; ++i)
     {
         nz += radius_query(points, &points[i*d], radius, neighbors[i], dists[i]);
+    }
+
+    return nz;
+}
+
+template <class Distance, class Real, class Atom>
+Index CoverTree<Distance, Real, Atom>::kneighbors_graph(const Atom *points, Index k, IndexVector& neighbors, RealVector& dists, IndexVector& found, int num_threads) const
+{
+    omp_set_num_threads(num_threads);
+
+    neighbors.resize(n*k);
+    dists.resize(n*k);
+    found.resize(n);
+
+    Index nz = 0;
+
+    #pragma omp parallel for reduction(+:nz)
+    for (Index i = 0; i < n; ++i)
+    {
+        found[i] = knn_query(points, &points[i*d], k, &neighbors[i*k], &dists[i*k]);
+        nz += found[i];
     }
 
     return nz;
