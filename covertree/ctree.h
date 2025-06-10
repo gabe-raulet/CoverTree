@@ -49,16 +49,17 @@ class CoverTree
         Index num_points() const { return n; }
         Index num_dimensions() const { return d; }
         Index num_vertices() const { return vertices.size(); }
+        Index max_level() const { return maxlevel; }
 
         Index vertex_point(Index vertex) const { return vertices[vertex].index; }
-        Index vertex_level(Index vertex) const { return vertices[vertex].level; }
+        Index vertex_level(Index vertex) const { return maxlevel - vertices[vertex].level; }
         Real vertex_radius(Index vertex) const { return vertices[vertex].radius; }
         IndexVector vertex_children(Index vertex) const { return vertices[vertex].children; }
         IndexVector vertex_leaves(Index vertex) const { return vertices[vertex].leaves; }
 
     private:
 
-        Index n, d;
+        Index n, d, maxlevel;
         VertexVector vertices;
 };
 

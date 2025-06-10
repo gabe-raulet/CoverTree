@@ -1,13 +1,43 @@
 import time
 import numpy as np
+import math
 import random
 import sklearn
+from collections import namedtuple
 from scipy.sparse import csr_array
 from heapq import heappush, heappop
 
 import cppimport
 import cppimport.import_hook
 from covertree.ctree import cover_tree_l1, cover_tree_l2, cover_tree_linf, cover_tree_angular, cover_tree_jaccard, cover_tree_hamming
+
+def manhattan_distance(p, q):
+    return sum([abs(x-y) for x,y in zip(p,q)])
+
+def euclidean_distance(p, q):
+    return np.linalg.norm(p-q)
+
+def angular_distance(p, q):
+    pq = np.dot(p,q)
+    pp = np.dot(p,p)
+    qq = np.dot(q,q)
+    if pp*qq == 0: return 0
+    val = pq / math.sqrt(pp*qq)
+    return math.acos(val) / math.pi
+
+def chebyshev_distance(p, q):
+    return max([abs(x-y) for x,y in zip(p,q)])
+
+def jaccard_distance(p, q):
+    both = sum([1 for x,y in zip(p,q) if x == y and x != 0])
+    either = sum([1 for x,y in zip(p,q) if x != y])
+    if either == 0: return 0
+    return 1 - (both/either)
+
+def hamming_distance(p, q):
+    return sum([1 for x,y in zip(p,q) if x != y]) / len(p)
+
+Vertex = namedtuple("Vertex", ["vertex", "center", "level", "radius", "children", "leaves"])
 
 class CoverTree(object):
 
@@ -17,36 +47,43 @@ class CoverTree(object):
             assert points.dtype == np.float32
             self.points = points
             self.convert = lambda p: p
+            self.pydist = manhattan_distance
             self.tree = cover_tree_l1(self.points)
         elif self.metric in ("euclidean", "l2"):
             assert points.dtype == np.float32
             self.points = points
             self.convert = lambda p: p
+            self.pydist = euclidean_distance
             self.tree = cover_tree_l2(self.points)
         elif self.metric in ("chebyshev", "infinity"):
             assert points.dtype == np.float32
             self.points = points
             self.convert = lambda p: p
+            self.pydist = chebyshev_distance
             self.tree = cover_tree_linf(self.points)
         elif self.metric in ("angular"):
             assert points.dtype == np.float32
             self.points = points
             self.convert = lambda p: p
+            self.pydist = angular_distance
             self.tree = cover_tree_angular(self.points)
         elif self.metric in ("jaccard"):
             assert points.dtype == np.uint8
             self.convert = lambda p: p
+            self.pydist = jaccard_distance
             self.tree = cover_tree_jaccard(self.points)
         elif self.metric in ("hamming"):
             assert type(points) == list and type(points[0] == str)
             d = len(points[0])
             assert set([len(s) for s in points]).pop() == d
             self.convert = lambda p : np.frombuffer("".join(p).encode("ascii"), dtype=np.uint8)
+            self.pydist = hamming_distance
             self.points = np.frombuffer("".join(points).encode("ascii"), dtype=np.uint8).reshape(len(points),-1)
             self.tree = cover_tree_hamming(self.points)
 
     def build_index(self, cover=1.3, leaf_size=40, num_threads=1):
         self.tree.build_index(cover, leaf_size, num_threads)
+        self.cover = cover
 
     def radius_query(self, query, radius, return_distance=False):
         dists, neighs = self.tree.radius_query(self.convert(query), radius)
@@ -67,22 +104,35 @@ class CoverTree(object):
         return csr_array((dists, colids, rowptrs), shape=(len(rowptrs)-1, len(rowptrs)-1))
 
     def get_vertex(self, vertex):
-        return {"center" : self.tree.vertex_point(vertex),
-                "radius" : self.tree.vertex_radius(vertex),
-                "level" : self.tree.vertex_level(vertex),
-                "children" : self.tree.vertex_children(vertex),
-                "leaves" : self.tree.vertex_leaves(vertex)}
+        return Vertex._make(self.tree.get_vertex(vertex))
+
+    def bfs(self, root):
+        queue = [self.get_vertex(root)]
+        while queue:
+            v = queue.pop(0)
+            yield v
+            for child in v.children:
+                queue.append(self.get_vertex(child))
+
+    def dfs(self, root):
+        stack = [self.get_vertex(root)]
+        while stack:
+            v = stack.pop()
+            yield v
+            for child in reversed(v.children):
+                stack.append(self.get_vertex(child))
 
     def __getitem__(self, vertex):
         return self.get_vertex(vertex)
 
-n, d = 100, 16
+n, d = 2000, 6
 points = np.random.uniform(-1,1, size=(n,d)).astype(np.float32)
 
 tree = CoverTree(points, metric="euclidean")
 tree.build_index(cover=1.3, leaf_size=5)
 
-from sklearn.neighbors import KDTree, kneighbors_graph
+from sklearn.neighbors import kneighbors_graph
+from scipy.spatial import KDTree
 
 kdtree = KDTree(points)
 

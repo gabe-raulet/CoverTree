@@ -143,6 +143,8 @@ void CoverTree<Distance, Real, Atom>::build(const Atom *points, Real cover, Inde
             }
         }
     }
+
+    maxlevel = std::ceil(std::log(maxdist)/std::log(cover));
 }
 
 template <class Distance, class Real, class Atom>

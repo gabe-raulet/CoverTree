@@ -131,6 +131,12 @@ class CoverTreeWrapper
             return std::make_tuple(data, colids, rowptrs);
         }
 
+        std::tuple<Index, Index, Index, Real, IndexVector, IndexVector>
+        get_vertex(Index vertex) const
+        {
+            return std::make_tuple(vertex, tree.vertex_point(vertex), tree.vertex_level(vertex), tree.vertex_radius(vertex), tree.vertex_children(vertex), tree.vertex_leaves(vertex));
+        }
+
         CoverTree<Distance, Real, Atom> tree;
         const Atom *points;
 };
@@ -147,6 +153,7 @@ void bind_cover_tree_wrapper(py::module_& m, const std::string& name)
         .def("radius_neighbors_graph", &Tree::radius_neighbors_graph)
         .def("knn_query", [](const Tree& tree, py::array_t<Atom> query, int k) { return tree.knn_query(npmem(query), k); })
         .def("kneighbors_graph", &Tree::kneighbors_graph)
+        .def("get_vertex", &Tree::get_vertex)
         .def("vertex_point", [](const Tree& tree, Index vertex) { return tree.tree.vertex_point(vertex); })
         .def("vertex_level", [](const Tree& tree, Index vertex) { return tree.tree.vertex_level(vertex); })
         .def("vertex_radius", [](const Tree& tree, Index vertex) { return tree.tree.vertex_radius(vertex); })
