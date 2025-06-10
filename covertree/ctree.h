@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <queue>
 #include <assert.h>
 #include <omp.h>
 #include "metrics.h"
@@ -41,6 +42,8 @@ class CoverTree
         void build(const Atom *points, Real cover, Index leaf_size, int num_threads);
         Index radius_query(const Atom *points, const Atom *query, Real radius, IndexVector& neighbors, RealVector& dists) const;
         Index radius_neighbors_graph(const Atom *points, Real radius, std::vector<IndexVector>& neighbors, std::vector<RealVector>& dists, int num_threads) const;
+
+        Index knn_query(const Atom *points, const Atom *query, Index k, IndexVector& neighbors, RealVector& dists) const;
 
         Index num_points() const { return n; }
         Index num_dimensions() const { return d; }

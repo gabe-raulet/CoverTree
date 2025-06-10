@@ -146,6 +146,84 @@ void CoverTree<Distance, Real, Atom>::build(const Atom *points, Real cover, Inde
 }
 
 template <class Distance, class Real, class Atom>
+Index CoverTree<Distance, Real, Atom>::knn_query(const Atom *points, const Atom *query, Index k, IndexVector& neighbors, RealVector& dists) const
+{
+    using QueueItem = std::tuple<Real, Real, Index>;
+    using NeighborItem = std::tuple<Real, Index>;
+
+    auto queue_cmp = [](const QueueItem& lhs, const QueueItem& rhs) { return std::get<0>(lhs) > std::get<0>(rhs); };
+    auto neighbor_cmp = [](const NeighborItem& lhs, const NeighborItem& rhs) { return std::get<0>(lhs) > std::get<0>(rhs); };
+
+    std::vector<QueueItem> queue;
+    std::vector<NeighborItem> neighbor_queue;
+
+    Real distance_upper_bound = std::numeric_limits<Real>::max();
+    Real dist_to_ctr = distance(&points[0*d], query, d);
+    Real min_distance = std::max(Real(0), dist_to_ctr - vertices[0].radius);
+
+    queue.emplace_back(min_distance, dist_to_ctr, 0);
+    std::make_heap(queue.begin(), queue.end(), queue_cmp);
+
+    Real dist;
+
+    while (!queue.empty())
+    {
+        auto [min_distance, dist_to_ctr, node] = queue.front(); std::pop_heap(queue.begin(), queue.end(), queue_cmp); queue.pop_back();
+        Index node_point = vertices[node].index;
+
+        for (Index child : vertices[node].children)
+        {
+            Index child_point = vertices[child].index;
+
+            if (child_point == node_point) dist = dist_to_ctr;
+            else dist = distance(query, &points[child_point*d], d);
+
+            min_distance = std::max(Real(0), dist - vertices[child].radius);
+
+            if (min_distance <= distance_upper_bound)
+            {
+                queue.emplace_back(min_distance, dist, child);
+                std::push_heap(queue.begin(), queue.end(), queue_cmp);
+            }
+        }
+
+        for (Index leaf : vertices[node].leaves)
+        {
+            if (leaf == node_point) dist = dist_to_ctr;
+            else dist = distance(query, &points[leaf*d], d);
+
+            if (dist <= distance_upper_bound)
+            {
+                if (neighbor_queue.size() == k)
+                {
+                    std::pop_heap(neighbor_queue.begin(), neighbor_queue.end(), neighbor_cmp);
+                    neighbor_queue.pop_back();
+                }
+
+                neighbor_queue.emplace_back(-dist, leaf);
+                std::push_heap(neighbor_queue.begin(), neighbor_queue.end(), neighbor_cmp);
+
+                if (neighbor_queue.size() == k)
+                {
+                    distance_upper_bound = -std::get<0>(neighbor_queue.front());
+                }
+            }
+        }
+    }
+
+    std::for_each(neighbor_queue.begin(), neighbor_queue.end(), [](auto& item) { std::get<0>(item) *= -1; });
+    std::sort(neighbor_queue.begin(), neighbor_queue.end());
+
+    for (const auto& [dist, neigh] : neighbor_queue)
+    {
+        dists.push_back(dist);
+        neighbors.push_back(neigh);
+    }
+
+    return dists.size();
+}
+
+template <class Distance, class Real, class Atom>
 Index CoverTree<Distance, Real, Atom>::radius_query(const Atom *points, const Atom *query, Real radius, IndexVector& neighbors, RealVector& dists) const
 {
     Index neighs = 0;

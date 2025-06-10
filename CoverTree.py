@@ -3,6 +3,7 @@ import numpy as np
 import random
 import sklearn
 from scipy.sparse import csr_array
+from heapq import heappush, heappop
 
 import cppimport
 import cppimport.import_hook
@@ -52,6 +53,11 @@ class CoverTree(object):
         if return_distance: return dists, neighs
         else: return neighs
 
+    def knn_query(self, query, k=10, return_distance=False):
+        dists, neighs = self.tree.knn_query(self.convert(query), k)
+        if return_distance: return dists, neighs
+        else: return neighs
+
     def radius_neighbors_graph(self, radius, num_threads=1):
         dists, colids, rowptrs = self.tree.radius_neighbors_graph(radius, num_threads)
         return csr_array((dists, colids, rowptrs), shape=(len(rowptrs)-1, len(rowptrs)-1))
@@ -59,13 +65,21 @@ class CoverTree(object):
 def random_word(d):
     return "".join([random.choice("ACTG") for i in range(d)])
 
-n, d = 10000, 31
-points = []
-for i in range(n):
-    points.append(random_word(d))
+#  n, d = 10000, 31
+#  points = []
+#  for i in range(n):
+    #  points.append(random_word(d))
 
-#  points = np.random.uniform(-1,1, size=(n,d)).astype(np.float32)
+n, d = 10000, 32
+points = np.random.uniform(-1,1, size=(n,d)).astype(np.float32)
 
-tree = CoverTree(points, metric="hamming")
+tree = CoverTree(points, metric="euclidean")
 tree.build_index()
 
+from sklearn.neighbors import KDTree
+
+kdtree = KDTree(points)
+
+for k in range(3,15):
+    print(list(kdtree.query(points[[k]], k=k, return_distance=False)[0]))
+    print(tree.knn_query(points[k], k=k))
