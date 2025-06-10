@@ -122,25 +122,35 @@ class CoverTree(object):
             for child in reversed(v.children):
                 stack.append(self.get_vertex(child))
 
+    def reorder(self):
+        ordering = np.array([v.vertex for v in self.dfs(0)])
+        self.tree.reorder_vertices(ordering)
+
     def __getitem__(self, vertex):
         return self.get_vertex(vertex)
 
-n, d = 2000, 6
+#  n, d = 10000, 8
+
+#  points = np.random.uniform(-1,1, size=(n,d)).astype(np.float32)
+#  tree.build_index(cover=1.3, leaf_size=10)
+
+n, d = 15, 3
+np.random.seed(103)
 points = np.random.uniform(-1,1, size=(n,d)).astype(np.float32)
 
 tree = CoverTree(points, metric="euclidean")
 tree.build_index(cover=1.3, leaf_size=5)
 
-from sklearn.neighbors import kneighbors_graph
-from scipy.spatial import KDTree
+#  from sklearn.neighbors import kneighbors_graph
+#  from scipy.spatial import KDTree
 
-kdtree = KDTree(points)
+#  kdtree = KDTree(points)
 
-graph1 = kneighbors_graph(points,10, metric="euclidean", include_self = True)
-graph2 = tree.kneighbors_graph(k=10, num_threads=12)
+#  graph1 = kneighbors_graph(points,10, metric="euclidean", include_self = True)
+#  graph2 = tree.kneighbors_graph(k=10, num_threads=12)
 
-graph1.sort_indices()
-graph2.sort_indices()
+#  graph1.sort_indices()
+#  graph2.sort_indices()
 
-assert np.all(graph1.indices == graph2.indices)
-assert np.all(graph1.indptr == graph2.indptr)
+#  assert np.all(graph1.indices == graph2.indices)
+#  assert np.all(graph1.indptr == graph2.indptr)

@@ -57,6 +57,8 @@ class CoverTree
         IndexVector vertex_children(Index vertex) const { return vertices[vertex].children; }
         IndexVector vertex_leaves(Index vertex) const { return vertices[vertex].leaves; }
 
+        void reorder_vertices(const Index *ordering);
+
     private:
 
         Index n, d, maxlevel;

@@ -300,3 +300,27 @@ Index CoverTree<Distance, Real, Atom>::kneighbors_graph(const Atom *points, Inde
 
     return nz;
 }
+
+template <class Distance, class Real, class Atom>
+void CoverTree<Distance, Real, Atom>::reorder_vertices(const Index *dfs_ordering)
+{
+    Index m = num_vertices();
+    VertexVector new_vertices;
+
+    IndexVector old_to_new(m);
+    new_vertices.reserve(m);
+
+    for (Index i = 0; i < m; ++i)
+    {
+        Vertex v = vertices[dfs_ordering[i]];
+        old_to_new[dfs_ordering[i]] = i;
+        new_vertices.push_back(v);
+    }
+
+    for (auto& v : new_vertices)
+    {
+        std::for_each(v.children.begin(), v.children.end(), [&](Index& id) { id = old_to_new[id]; });
+    }
+
+    std::swap(vertices, new_vertices);
+}
