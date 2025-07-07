@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include <mpi4py/mpi4py.h>
 #include <stdexcept>
 #include <string>
 #include <sstream>
@@ -120,6 +121,18 @@ void bind_metric(py::module_& m, const std::string& name)
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors_dist", [](const BruteForce<Metric>& bf, Real radius, py::object py_comm, bool return_distance) -> py::object
+                                   {
+                                       MPI_Comm *comm_ptr = PyMPIComm_Get(py_comm.ptr());
+
+                                       if (!comm_ptr) throw py::error_already_set();
+
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       bf.radius_neighbors(radius, neighs, dists, ptrs, *comm_ptr);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("radius"), py::arg("py_comm"), py::arg("return_distance") = true
             );
 }
 
@@ -138,6 +151,8 @@ void bind_metrics(py::module_& m, const std::string& atom_name)
 
 PYBIND11_MODULE(metricspace, m)
 {
+    if (import_mpi4py() < 0) throw py::error_already_set();
+
     bind_metrics<float>(m, "Float");
     bind_metrics<double>(m, "Double");
 }

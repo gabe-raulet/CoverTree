@@ -42,6 +42,8 @@ class BruteForce
         Index radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const { return radius_neighbors(metric.point(0), num_points(), radius, neighs, dists, ptrs, num_threads); }
 
+        Index radius_neighbors(Real radius, IndexVector& myneighs, RealVector& mydists, IndexVector& myptrs, MPI_Comm comm) const;
+
         Index num_points() const { return metric.num_points(); }
         Index num_dimensions() const { return metric.num_dimensions(); }
 

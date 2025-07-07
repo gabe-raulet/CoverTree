@@ -1,3 +1,4 @@
+from mpi4py import MPI
 import sys
 import numpy as np
 import os
@@ -109,6 +110,37 @@ def read_file(fname: str, start: int=0, count: int=None) -> np.ndarray:
     elif fname.endswith(".fbin"): return read_fbin(fname, start, count)
     elif fname.endswith(".fvecs"): return read_fvecs(fname, start, count)
     else: raise ValueError(f"cannot read file '{fname}': unknown extension")
+
+def read_file_dist(fname: str, comm: MPI.Intracomm, start: int=0, count: int=None) -> tuple[np.ndarray, int, int, int, str]:
+    """
+    Read a file of points and distribute to processors in the communicator `comm`.
+    Currently only accepts files with the extensions *.{u8bin, fbin, fvecs}.
+    Returns a 2-d numpy array whose rows are contiguously partitioned block
+    of points points assigned in order of communicator rank, as well as
+    other info.
+
+    `start` provides specifies an offset to read from (in the number of points),
+    and defaults to 0, the first point in the file.
+
+    `count` specifies the number of points to read from the file. If it
+    is None (the default), then it reads until the end of the file.
+
+    Returns a tuple[np.ndarray, int, int, int, str] where:
+
+        np.ndarray: local partition of points
+        int:        local rank's index offset
+        int:        total number of points across all ranks (equals `count`)
+        int:        dimension of points
+        str:        atom type (e.g. np.flaot32, np.uint8, etc.)
+    """
+    myrank = comm.Get_rank()
+    nprocs = comm.Get_size()
+    n, d, filesize, kind = info_file(fname)
+    n = (n - start) if count is None else count
+    mysize = n//nprocs if myrank != nprocs-1 else n - (nprocs-1)*(n//nprocs)
+    myoffset = (n//nprocs)*myrank + start
+    mypoints = read_file(fname, myoffset, mysize)
+    return mypoints, myoffset, n, d, kind
 
 def write_file(fname: str, points: np.ndarray):
     """
