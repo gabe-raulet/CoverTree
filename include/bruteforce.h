@@ -37,6 +37,9 @@ class BruteForce
         Index radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const;
         Index radius_query(Index query, Real radius, IndexVector& neighs, RealVector& dists) const { return radius_query(metric[query], radius, neighs, dists); }
 
+        Index radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const;
+        Index radius_neighbors(Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const { return radius_neighbors(metric.point(0), num_points(), radius, neighs, dists, ptrs); }
+
         Index num_points() const { return metric.num_points(); }
         Index num_dimensions() const { return metric.num_dimensions(); }
 
@@ -47,26 +50,6 @@ class BruteForce
         Metric metric;
 };
 
-template <class Metric>
-typename Metric::index_type
-BruteForce<Metric>::radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const
-{
-    Index found = 0;
-    Index n = metric.num_points();
-
-    for (Index i = 0; i < n; ++i)
-    {
-        Real dist = metric.distance(i, query);
-
-        if (dist <= radius)
-        {
-            neighs.push_back(i);
-            dists.push_back(dist);
-            found++;
-        }
-    }
-
-    return found;
-}
+#include "bruteforce.hpp"
 
 #endif

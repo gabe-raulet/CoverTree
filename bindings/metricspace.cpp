@@ -87,7 +87,25 @@ void bind_metric(py::module_& m, const std::string& name)
 
                                    if (return_distance) return py::cast(std::make_tuple(dists, neighs));
                                    else return py::cast(neighs);
-                               }, py::arg("query"), py::arg("radius"), py::arg("return_distance") = false
+                               }, py::arg("query"), py::arg("radius"), py::arg("return_distance") = true
+            )
+        .def("radius_neighbors", [](const BruteForce<Metric>& bf, NumpyArray queries, Real radius, bool return_distance) -> py::object
+                                   {
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       Index num_queries = queries.shape()[0];
+                                       if (queries.shape()[1] != bf.num_dimensions()) throw std::runtime_error("Incompatible buffer format!");
+                                       bf.radius_neighbors(queries.data(), num_queries, radius, neighs, dists, ptrs);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true
+            )
+        .def("radius_neighbors", [](const BruteForce<Metric>& bf, Real radius, bool return_distance) -> py::object
+                                   {
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       bf.radius_neighbors(radius, neighs, dists, ptrs);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("radius"), py::arg("return_distance") = true
             );
 }
 
