@@ -37,10 +37,10 @@ class BruteForce
         Index radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const;
         Index radius_query(Index query, Real radius, IndexVector& neighs, RealVector& dists) const { return radius_query(metric[query], radius, neighs, dists); }
 
-        Index radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const;
-        Index radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const;
-        Index radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const;
-        Index radius_neighbors(Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const { return radius_neighbors(metric.point(0), num_points(), radius, neighs, dists, ptrs); }
+        Index radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
+        Index radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
+        Index radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
+        Index radius_neighbors(Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const { return radius_neighbors(metric.point(0), num_points(), radius, neighs, dists, ptrs, num_threads); }
 
         Index num_points() const { return metric.num_points(); }
         Index num_dimensions() const { return metric.num_dimensions(); }
