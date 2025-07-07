@@ -22,22 +22,31 @@ BruteForce<Metric>::radius_query(const Atom *query, Real radius, IndexVector& ne
 
 template <class Metric>
 typename Metric::index_type
-BruteForce<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const
+BruteForce<Metric>::radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const
 {
     neighs.clear();
     dists.clear();
     ptrs.resize(num_queries+1);
 
-    Index i;
-    Index d = num_dimensions();
-    const Atom *query = queries;
-
-    for (i = 0; i < num_queries; ++i, query += d)
+    for (Index i = 0; i < num_queries; ++i)
     {
         ptrs[i] = neighs.size();
-        radius_query(query, radius, neighs, dists);
+        radius_query(queries[i], radius, neighs, dists);
     }
 
     ptrs[num_queries] = neighs.size();
     return ptrs[num_queries];
+}
+
+template <class Metric>
+typename Metric::index_type
+BruteForce<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const
+{
+    Index d = num_dimensions();
+    std::vector<const Atom*> query_ptrs(num_queries);
+
+    for (Index i = 0; i < num_queries; ++i, queries += d)
+        query_ptrs[i] = queries;
+
+    return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs);
 }
