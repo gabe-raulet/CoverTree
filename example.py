@@ -16,3 +16,6 @@ points = read_file("scratch/datasets/deep.fbin")
 n, d = points.shape
 
 metric = EuclideanSpaceFloat(points)
+bf = BruteForceEuclideanSpaceFloat(metric)
+
+

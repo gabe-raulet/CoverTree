@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
+#include "bruteforce.h"
 #include "metricspace/metricspace.h"
 
 namespace py = pybind11;
@@ -72,6 +73,22 @@ void bind_metric(py::module_& m, const std::string& name)
                           return py::buffer_info(ptr, itemsize, format, ndim, shape, strides);
                       }
                    );
+
+    std::string bf_name = std::string("BruteForce") + name;
+
+    py::class_<BruteForce<Metric>>(m, bf_name.c_str())
+        .def(py::init<const Metric&>())
+        .def("num_points", &BruteForce<Metric>::num_points)
+        .def("num_dimensions", &BruteForce<Metric>::num_dimensions)
+        .def("radius_query", [](const BruteForce<Metric>& bf, Index query, Real radius, bool return_distance) -> py::object
+                               {
+                                   IndexVector neighs; RealVector dists;
+                                   bf.radius_query(query, radius, neighs, dists);
+
+                                   if (return_distance) return py::cast(std::make_tuple(dists, neighs));
+                                   else return py::cast(neighs);
+                               }, py::arg("query"), py::arg("radius"), py::arg("return_distance") = false
+            );
 }
 
 template <class Atom>
