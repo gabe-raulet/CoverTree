@@ -50,3 +50,16 @@ BruteForce<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Rea
 
     return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs);
 }
+
+template <class Metric>
+typename Metric::index_type
+BruteForce<Metric>::radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs) const
+{
+    Index num_queries = queries.size();
+    std::vector<const Atom*> query_ptrs(num_queries);
+
+    for (Index i = 0; i < num_queries; ++i)
+        query_ptrs[i] = metric[i];
+
+    return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs);
+}
