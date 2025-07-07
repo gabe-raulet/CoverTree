@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
-#include "bruteforce.h"
+#include "bruteforce/bruteforce.h"
 #include "metricspace/metricspace.h"
 
 namespace py = pybind11;
