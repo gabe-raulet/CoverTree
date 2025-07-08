@@ -87,7 +87,7 @@ void CoverTree<Metric>::build(Real cover, Index leaf_size)
     hubs.emplace_back();
     Hub& root_hub = hubs.back();
 
-    Index n = Base::num_points();
+    Index n = num_points();
 
     root_hub.sites.assign({0});
     root_hub.ids.resize(n);
@@ -99,7 +99,7 @@ void CoverTree<Metric>::build(Real cover, Index leaf_size)
     for (Index i = 0; i < n; ++i)
     {
         root_hub.ids[i] = i;
-        root_hub.dists[i] = Base::metric.distance(0, i);
+        root_hub.dists[i] = metric.distance(0, i);
 
         if (root_hub.dists[i] > root_hub.radius)
         {
@@ -117,7 +117,7 @@ void CoverTree<Metric>::build(Real cover, Index leaf_size)
     {
         Hub hub = hubs.front(); hubs.pop_front();
 
-        hub.compute_child_hubs(Base::metric, cover, leaf_size, maxdist);
+        hub.compute_child_hubs(metric, cover, leaf_size, maxdist);
 
         for (Hub& child : hub.children)
         {
@@ -163,7 +163,7 @@ CoverTree<Metric>::radius_query(const Atom *query, Real radius, RealVector& dist
 
         for (Index leaf : u_vtx.leaves)
         {
-            Real d = Base::metric.distance(leaf, query);
+            Real d = metric.distance(leaf, query);
 
             if (d <= radius)
             {
@@ -177,7 +177,7 @@ CoverTree<Metric>::radius_query(const Atom *query, Real radius, RealVector& dist
         {
             const Vertex& v_vtx = vertices[v];
 
-            if (Base::metric.distance(v_vtx.index, query) <= v_vtx.radius + radius)
+            if (metric.distance(v_vtx.index, query) <= v_vtx.radius + radius)
                 queue.push_back(v);
         }
     }
