@@ -121,17 +121,16 @@ NearestNeighbors<Metric>::radius_neighbors(Real radius, RealVector& mydists, Ind
         Index curoffset = alloffsets[cur];
         Index cursize = allsizes[cur];
 
-        /* TODO: fix this */
-        for (Index i = 0; i < mysize; ++i)
-            for (Index j = 0; j < cursize; ++j)
-            {
-                Real dij = metric.distance(i, &curpoints[j*dim]);
+        Index m = numsend;
+        radius_neighbors(curpoints.data(), m, radius, dists, neighs, ptrs, 1);
 
-                if (dij <= radius)
-                {
-                    mytriples.emplace_back(i, j+curoffset, dij);
-                    w[i]++;
-                }
+        for (Index j = 0; j < cursize; ++j)
+            for (Index p = ptrs[j]; p < ptrs[j+1]; ++p)
+            {
+                Index i = neighs[p];
+                Real dij = dists[p];
+                mytriples.emplace_back(i, j+curoffset, dij);
+                w[i]++;
             }
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);

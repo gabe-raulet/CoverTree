@@ -18,7 +18,7 @@ comm = MPI.COMM_WORLD
 myrank = comm.Get_rank()
 nprocs = comm.Get_size()
 
-mypoints, myoffset, totsize, d, kind = read_file_dist("scratch/datasets/corel.fvecs", comm)
+mypoints, myoffset, totsize, d, kind = read_file_dist("scratch/datasets/corel.fvecs", comm, count=10000)
 
 #  print(f"[myrank={myrank},mysize={len(mypoints)},myoffset={myoffset},totsize={totsize},d={d},kind={kind}]")
 
