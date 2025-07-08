@@ -11,6 +11,7 @@ from datetime import datetime
 from scipy.io import mmwrite
 from scipy.sparse import csr_array
 from neighbors import MetricSpace, BruteForce, CoverTree
+from sklearn.neighbors import NearestNeighbors
 
 start=0
 count=None
@@ -25,7 +26,7 @@ def usage():
     global start, count, outfile, num_threads, metric, method, cover, leaf_size
     sys.stderr.write(f"Usage: {sys.argv[0]} [options] -i <points> -r <radius>\n")
     sys.stderr.write(f"Options: -m STR   metric name [{metric}] (valid: euclidean, manhattan, chebyshev)\n")
-    sys.stderr.write(f"         -A STR   method name [{method}] (valid: bruteforce, covertree)\n")
+    sys.stderr.write(f"         -A STR   method name [{method}] (valid: bruteforce, covertree, scikit)\n")
     sys.stderr.write(f"         -n INT   number of points [{'all' if not count else str(count)}]\n")
     sys.stderr.write(f"         -s INT   start offset [{start}]\n")
     sys.stderr.write(f"         -t INT   number of threads [{num_threads}]\n")
@@ -99,10 +100,21 @@ if __name__ == "__main__":
         nz = len(neighs)
         runtime = t
 
+    elif method == "scikit":
+
+        t = -time.perf_counter()
+        nn = NearestNeighbors(algorithm="ball_tree").fit(points)
+        graph = nn.radius_neighbors_graph(X=points, radius=radius, mode="distance")
+        dists, neighs, ptrs = graph.data, graph.indices, graph.indptr
+        t += time.perf_counter()
+
+        nz = len(neighs)
+        runtime = t
+
     else:
         raise Exception("Method not implemented")
 
-    sys.stdout.write(f"[time={runtime:.3f}] built near neighbor graph [edges={nz},density={nz/n:.3f}]\n")
+    sys.stdout.write(f"[time={runtime:.3f}] built near neighbor graph [edges={nz},density={nz/n:.3f},method={method}]\n")
     sys.stdout.flush()
 
     if outfile:
