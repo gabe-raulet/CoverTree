@@ -94,7 +94,7 @@ class NearestNeighbors
         Index radius_neighbors(const Atom *queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(const Index *queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const { return radius_neighbors(metric.data(), num_points(), radius, dists, neighs, ptrs, num_threads); }
-        /* Index radius_neighbors(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const; */
+        Index radius_neighbors(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const;
 
         Index num_points() const { return metric.num_points(); }
         Index num_dimensions() const { return metric.num_dimensions(); }
