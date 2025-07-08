@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <omp.h>
 #include <mpi.h>
-#include "metricspace/metricspace.h"
+#include "metricspace.h"
 
 template <class Metric>
 class BruteForce
