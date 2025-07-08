@@ -56,6 +56,7 @@ void bind_metric(py::module_& m, const std::string& name)
             )
         .def("num_points", &Metric::num_points)
         .def("num_dimensions", &Metric::num_dimensions)
+        .def("metric", [](const Metric& metric) { return std::string(metric.metric()); })
         .def_buffer([](Metric& metric) -> py::buffer_info
                       {
                           void *ptr = metric.data();

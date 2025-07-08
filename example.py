@@ -26,21 +26,25 @@ def MetricSpace(points, metric="euclidean"):
     else:
         raise Exception("Not implemented")
 
-#  def BruteForce(points, metric="euclidean"):
-    #  if metric == "euclidean":
-        #  if points.dtype == "float32": return EuclideanSpaceFloat(points)
-        #  elif points.dtype == "float64": return EuclideanSpaceDouble(points)
-        #  else: raise Exception("Not implemented")
-    #  elif metric == "chebyshev":
-        #  if points.dtype == "float32": return ChebyshevSpaceFloat(points)
-        #  elif points.dtype == "float64": return ChebyshevSpaceDouble(points)
-        #  else: raise Exception("Not implemented")
-    #  else:
-        #  raise Exception("Not implemented")
+def BruteForce(space):
+    kind = str(np.array(space, copy=False).dtype)
+    metric = space.metric()
+    if metric == "euclidean":
+        if kind == "float32": return BruteForceEuclideanFloat(space)
+        elif kind == "float64": return BruteForceEuclideanDouble(space)
+        else: raise Exception("Not implemented")
+    elif metric == "chebyshev":
+        if kind == "float32": return BruteForceChebyshevFloat(space)
+        elif kind == "float64": return BruteForceChebyshevDouble(space)
+        else: raise Exception("Not implemented")
+    else:
+        raise Exception("Not implemented")
 
-points = read_file("scratch/datasets/corel.fvecs", count=1000)
-metric = MetricSpace(points.astype("float32"), "chebyshev")
-bf = BruteForceChebyshevFloat(metric)
+#  points = read_file("scratch/datasets/corel.fvecs", count=1000)
+points = read_file("scratch/datasets/covtype.fvecs")
+metric = MetricSpace(points.astype("float64"), "euclidean")
+bf = BruteForce(metric)
+#  bf = BruteForceChebyshevFloat(metric)
 
 #  comm = MPI.COMM_WORLD
 #  myrank = comm.Get_rank()
