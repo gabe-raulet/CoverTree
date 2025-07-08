@@ -95,6 +95,7 @@ if __name__ == "__main__":
 
         mynz = len(myneighs)
 
+        mytime = t
         t = comm.reduce(t, op=MPI.MAX, root=0)
         nz = comm.reduce(mynz, op=MPI.SUM)
 
@@ -108,6 +109,7 @@ if __name__ == "__main__":
         myverts = tree.num_vertices()
         mymaxlevel = tree.max_level()
 
+        mytime = t
         t = comm.reduce(t, op=MPI.MAX, root=0)
         verts = comm.reduce(myverts, op=MPI.SUM, root=0)
         maxlevel = comm.reduce(mymaxlevel, op=MPI.MAX, root=0)
@@ -130,6 +132,7 @@ if __name__ == "__main__":
 
         mynz = len(myneighs)
 
+        mytime += t
         t = comm.reduce(t, op=MPI.MAX, root=0)
         nz = comm.reduce(mynz, op=MPI.SUM)
 
@@ -143,3 +146,36 @@ if __name__ == "__main__":
             for rank in range(nprocs):
                 sys.stdout.write(f"[rank={rank},myedges={alledges[rank]},mydensity={alledges[rank]/allsizes[rank]:.3f}]\n")
                 sys.stdout.flush()
+
+    if outfile:
+
+        maxtime = comm.allreduce(mytime, op=MPI.MAX)
+
+        cmd = " ".join(sys.argv)
+        comment = f"datetime: {datetime.now().strftime('%m/%d/%Y %I:%M:%S %p')}\n"
+        comment += f"command: '{cmd}'\n"
+        comment += f"metric: '{metric}'\n"
+        comment += f"method: '{method}'\n"
+        comment += f"infile: '{infile}'\n"
+        comment += f"num: {n}\n"
+        comment += f"dim: {d}\n"
+        comment += f"type: {kind}\n"
+        comment += f"start: {start}\n"
+        comment += f"radius: {radius:.4f}\n"
+        comment += f"myoffset: {myoffset}\n"
+        comment += f"myrank: {myrank}\n"
+        comment += f"nprocs: {nprocs}\n"
+        comment += f"mytime: {mytime:.4f} seconds\n"
+        comment += f"maxtime: {maxtime:.4f} seconds\n"
+
+        t = -MPI.Wtime()
+        mygraph = csr_array((mydists, myneighs, myptrs), shape=(mysize,n))
+        mmwrite(f"{outfile}.rank{myrank+1}", mygraph.sorted_indices(), comment=comment, field="pattern", symmetry="symmetric")
+        t += MPI.Wtime()
+
+        t = comm.reduce(t, op=MPI.MAX, root=0)
+
+        if myrank == 0:
+            sys.stdout.write(f"[time={t:.3f}] wrote graph to file '{outfile}.rank[..]'\n")
+            sys.stdout.flush()
+
