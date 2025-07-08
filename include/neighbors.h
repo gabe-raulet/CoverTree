@@ -33,13 +33,42 @@ class NearestNeighbors
      * by the `Metric` type. The indices are returned by reference through `neighs` and the corresponding
      * distances through `dists`.
      *
-     * A number of other non-virtual routines are implemented that use the pure virtual `radius_query` implementation:
+     *  - radius_query(const Atom*, Real, RealVector&, IndexVector&):
+     *
+     *      - Queries the point `query` against `metric`. The passed references `dists` and `neighs` should
+     *        NOT be cleared by the implementation. The number of neighbors found is returned directly.
      *
      *  - radius_query(Index, Real, RealVector&, IndexVector&):
      *
-     *     - Queries the local point in `metric` with index `query`
+     *      - Queries the local point in `metric` with index `query`.
      *
-     *  - radius_neighbors(const Atom**, Index, Real, RealVector&, IndexVector&, IndexVector&,
+     *  - radius_neighbors(const Atom**, Index, Real, RealVector&, IndexVector&, IndexVector&, int):
+     *
+     *      - Queries multiple passed points against using `radius_query` and returns a CSR sparse matrix
+     *        where (1) each row correspond to a query point (2) each column corresponds to a point in `metric`
+     *        and (3) nonzeros are the distances to those points in `metric` that are within the radius
+     *        threshold of a given query. The matrix is returned by reference with nonzero "values" (distances)
+     *        stored in `dists`, column indices (neighbor indices) stored in `neighs`, and row pointers stored
+     *        in `ptrs`. The algorithm supports OpenMP multithreading and the number of threads is passed
+     *        as a parameter `num_threads`.
+     *
+     *      - Queries are passed as an array of `num_queries` pointers `queries` so that the other `radius_neighbors`
+     *        variants can be implemented easily using this version as the main subroutine.
+     *
+     *  - radius_neighbors(const Atom*, Index, Real, RealVector&, IndexVector&, IndexVector&, int):
+     *
+     *      - Queries are stored contiguously one after the other starting from the pointer `queries`.
+     *
+     *  - radius_neighbors(const Index*, Index, Real, RealVector&, IndexVector&, IndexVector&, int):
+     *
+     *      - Queries the local points with indices stored in `queries`. The observant reader may notice
+     *        that there is a potential problem if Atom and Index are the same type, as then the function above
+     *        has the same type signature. This is currently avoided by statically asserting in the Metric class
+     *        that this should not occur.
+     *
+     *  - radius_neighbors(Real, RealVector&, IndexVector&, IndexVector&, int):
+     *
+     *      - Queries all local points.
      */
 
     public:
@@ -63,9 +92,9 @@ class NearestNeighbors
 
         Index radius_neighbors(const Atom **queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(const Atom *queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const;
-        Index radius_neighbors(const IndexVector& queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const;
+        Index radius_neighbors(const Index *queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const { return radius_neighbors(metric.data(), num_points(), radius, dists, neighs, ptrs, num_threads); }
-        Index radius_neighbors(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const;
+        /* Index radius_neighbors(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const; */
 
         Index num_points() const { return metric.num_points(); }
         Index num_dimensions() const { return metric.num_dimensions(); }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
+#include <type_traits>
 
 template <class Index, class Real, class Atom>
 class MetricSpace
@@ -28,6 +29,8 @@ class MetricSpace
      */
 
     public:
+
+        static_assert(!std::is_same<Index, Atom>::value, "Index cannot equal Atom at this time, as it complicates some function implementations and should be rare anyways.");
 
         using index_type = Index;
         using real_type = Real;
