@@ -1,5 +1,5 @@
 template <class Metric> typename Metric::index_type
-NearestNeighbors<Metric>::radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
+NearestNeighbors<Metric>::radius_neighbors(const Atom **queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const
 {
     neighs.clear();
     dists.clear();
@@ -10,7 +10,7 @@ NearestNeighbors<Metric>::radius_neighbors(const Atom **queries, Index num_queri
         for (Index i = 0; i < num_queries; ++i)
         {
             ptrs[i] = neighs.size();
-            radius_query(queries[i], radius, neighs, dists);
+            radius_query(queries[i], radius, dists, neighs);
         }
 
         ptrs[num_queries] = neighs.size();
@@ -25,7 +25,7 @@ NearestNeighbors<Metric>::radius_neighbors(const Atom **queries, Index num_queri
         #pragma omp parallel for reduction(+:nz) num_threads(num_threads)
         for (Index i = 0; i < num_queries; ++i)
         {
-            Index count = radius_query(queries[i], radius, neighs_vector[i], dists_vector[i]);
+            Index count = radius_query(queries[i], radius, dists_vector[i], neighs_vector[i]);
             nz += count;
         }
 
@@ -47,7 +47,7 @@ NearestNeighbors<Metric>::radius_neighbors(const Atom **queries, Index num_queri
 }
 
 template <class Metric> typename Metric::index_type
-NearestNeighbors<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
+NearestNeighbors<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const
 {
     Index d = num_dimensions();
     std::vector<const Atom*> query_ptrs(num_queries);
@@ -55,11 +55,11 @@ NearestNeighbors<Metric>::radius_neighbors(const Atom *queries, Index num_querie
     for (Index i = 0; i < num_queries; ++i, queries += d)
         query_ptrs[i] = queries;
 
-    return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
+    return radius_neighbors(query_ptrs.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
 }
 
 template <class Metric> typename Metric::index_type
-NearestNeighbors<Metric>::radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
+NearestNeighbors<Metric>::radius_neighbors(const IndexVector& queries, Real radius, RealVector& dists, IndexVector& neighs, IndexVector& ptrs, int num_threads) const
 {
     Index num_queries = queries.size();
     std::vector<const Atom*> query_ptrs(num_queries);
@@ -67,11 +67,11 @@ NearestNeighbors<Metric>::radius_neighbors(const IndexVector& queries, Real radi
     for (Index i = 0; i < num_queries; ++i)
         query_ptrs[i] = metric[i];
 
-    return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
+    return radius_neighbors(query_ptrs.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
 }
 
 template <class Metric> typename Metric::index_type
-NearestNeighbors<Metric>::radius_neighbors(Real radius, IndexVector& myneighs, RealVector& mydists, IndexVector& myptrs, MPI_Comm comm) const
+NearestNeighbors<Metric>::radius_neighbors(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const
 {
     Index dim = num_dimensions();
 
@@ -97,7 +97,7 @@ NearestNeighbors<Metric>::radius_neighbors(Real radius, IndexVector& myneighs, R
     int prev = (myrank-1+nprocs)%nprocs;
     int cur = myrank;
 
-    AtomVector curpoints(metric.point(0), metric.point(0) + metric.num_atoms());
+    AtomVector curpoints(metric.data(), metric.data() + metric.num_atoms());
     AtomVector nextpoints;
 
     TripleVector mytriples;

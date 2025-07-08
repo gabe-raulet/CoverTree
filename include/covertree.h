@@ -37,7 +37,7 @@ class CoverTree : public NearestNeighbors<Metric>
         using TripleVector = typename Metric::TripleVector;
 
         void build(Real cover, Index leaf_size);
-        virtual Index radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const final;
+        virtual Index radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const final;
 
         struct Vertex
         {

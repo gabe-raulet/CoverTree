@@ -91,7 +91,7 @@ void bind_metric(py::module_& m, const std::string& name)
         .def("radius_query", [](const BruteForce<Metric>& bf, Index query, Real radius, bool return_distance) -> py::object
                                {
                                    IndexVector neighs; RealVector dists;
-                                   bf.radius_query(query, radius, neighs, dists);
+                                   bf.radius_query(query, radius, dists, neighs);
 
                                    if (return_distance) return py::cast(std::make_tuple(dists, neighs));
                                    else return py::cast(neighs);
@@ -102,7 +102,7 @@ void bind_metric(py::module_& m, const std::string& name)
                                        IndexVector neighs, ptrs; RealVector dists;
                                        Index num_queries = queries.shape()[0];
                                        if (queries.shape()[1] != bf.num_dimensions()) throw std::runtime_error("Incompatible buffer format!");
-                                       bf.radius_neighbors(queries.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
+                                       bf.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
@@ -111,7 +111,7 @@ void bind_metric(py::module_& m, const std::string& name)
                                    {
                                        IndexVector neighs, ptrs; RealVector dists;
                                        Index num_queries = queries.shape()[0];
-                                       bf.radius_neighbors(IndexVector(queries.data(), queries.data() + num_queries), radius, neighs, dists, ptrs, num_threads);
+                                       bf.radius_neighbors(IndexVector(queries.data(), queries.data() + num_queries), radius, dists, neighs, ptrs, num_threads);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
@@ -119,7 +119,7 @@ void bind_metric(py::module_& m, const std::string& name)
         .def("radius_neighbors", [](const BruteForce<Metric>& bf, Real radius, bool return_distance, int num_threads) -> py::object
                                    {
                                        IndexVector neighs, ptrs; RealVector dists;
-                                       bf.radius_neighbors(radius, neighs, dists, ptrs, num_threads);
+                                       bf.radius_neighbors(radius, dists, neighs, ptrs, num_threads);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
@@ -131,7 +131,7 @@ void bind_metric(py::module_& m, const std::string& name)
                                        if (!comm_ptr) throw py::error_already_set();
 
                                        IndexVector neighs, ptrs; RealVector dists;
-                                       bf.radius_neighbors(radius, neighs, dists, ptrs, *comm_ptr);
+                                       bf.radius_neighbors(radius, dists, neighs, ptrs, *comm_ptr);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("radius"), py::arg("py_comm"), py::arg("return_distance") = true
@@ -168,7 +168,7 @@ void bind_metric(py::module_& m, const std::string& name)
         .def("radius_query", [](const CoverTree<Metric>& bf, Index query, Real radius, bool return_distance) -> py::object
                                {
                                    IndexVector neighs; RealVector dists;
-                                   bf.radius_query(query, radius, neighs, dists);
+                                   bf.radius_query(query, radius, dists, neighs);
 
                                    if (return_distance) return py::cast(std::make_tuple(dists, neighs));
                                    else return py::cast(neighs);
@@ -179,7 +179,7 @@ void bind_metric(py::module_& m, const std::string& name)
                                        IndexVector neighs, ptrs; RealVector dists;
                                        Index num_queries = queries.shape()[0];
                                        if (queries.shape()[1] != bf.num_dimensions()) throw std::runtime_error("Incompatible buffer format!");
-                                       bf.radius_neighbors(queries.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
+                                       bf.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
@@ -188,7 +188,7 @@ void bind_metric(py::module_& m, const std::string& name)
                                    {
                                        IndexVector neighs, ptrs; RealVector dists;
                                        Index num_queries = queries.shape()[0];
-                                       bf.radius_neighbors(IndexVector(queries.data(), queries.data() + num_queries), radius, neighs, dists, ptrs, num_threads);
+                                       bf.radius_neighbors(IndexVector(queries.data(), queries.data() + num_queries), radius, dists, neighs, ptrs, num_threads);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
@@ -196,7 +196,7 @@ void bind_metric(py::module_& m, const std::string& name)
         .def("radius_neighbors", [](const CoverTree<Metric>& bf, Real radius, bool return_distance, int num_threads) -> py::object
                                    {
                                        IndexVector neighs, ptrs; RealVector dists;
-                                       bf.radius_neighbors(radius, neighs, dists, ptrs, num_threads);
+                                       bf.radius_neighbors(radius, dists, neighs, ptrs, num_threads);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
@@ -208,7 +208,7 @@ void bind_metric(py::module_& m, const std::string& name)
                                        if (!comm_ptr) throw py::error_already_set();
 
                                        IndexVector neighs, ptrs; RealVector dists;
-                                       bf.radius_neighbors(radius, neighs, dists, ptrs, *comm_ptr);
+                                       bf.radius_neighbors(radius, dists, neighs, ptrs, *comm_ptr);
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("radius"), py::arg("py_comm"), py::arg("return_distance") = true

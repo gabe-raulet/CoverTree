@@ -36,7 +36,7 @@ class BruteForce : public NearestNeighbors<Metric>
         using AtomVector = typename Metric::AtomVector;
         using TripleVector = typename Metric::TripleVector;
 
-        virtual Index radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const final
+        virtual Index radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const final
         {
             Index found = 0;
             Index n = Base::metric.num_points();

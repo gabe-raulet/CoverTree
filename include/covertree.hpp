@@ -151,7 +151,7 @@ void CoverTree<Metric>::build(Real cover, Index leaf_size)
 
 template <class Metric>
 typename CoverTree<Metric>::Index
-CoverTree<Metric>::radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const
+CoverTree<Metric>::radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const
 {
     Index found = 0;
     std::deque<Index> queue = {0};
