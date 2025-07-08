@@ -25,7 +25,7 @@ void bind_brute_force(py::module_& m, const std::string& name)
         .def(py::init<const Metric&>())
         .def("num_points", &bruteforce::num_points)
         .def("num_dimensions", &bruteforce::num_dimensions)
-        .def("radius_neighbors", [](const bruteforce& bf, NumpyArray<Atom>::type queries, Real radius, bool return_distance, int num_threads) -> py::object
+        .def("radius_neighbors", [](const bruteforce& bf, NumpyArray<Atom>::type queries, Real radius, int num_threads)
                                    {
                                        Index num_queries = queries.shape()[0];
                                        Index dim = queries.shape()[1];
@@ -35,13 +35,11 @@ void bind_brute_force(py::module_& m, const std::string& name)
                                        RealVector dists; IndexVector neighs, ptrs;
                                        bf.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
 
-                                       if (return_distance)
-                                           return py::cast(std::make_tuple(dists, neighs, ptrs));
-                                       else
-                                           return py::cast(std::make_tuple(neighs, ptrs));
-                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = false, py::arg("num_threads") = 1
+                                       return std::make_tuple(dists, neighs, ptrs);
+
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("num_threads") = 1
             )
-        .def("radius_neighbors", [](const bruteforce& bf, NumpyArray<Index>::type_flexible queries, Real radius, bool return_distance, int num_threads) -> py::object
+        .def("radius_neighbors", [](const bruteforce& bf, NumpyArray<Index>::type_flexible queries, Real radius, int num_threads)
                                    {
                                        Index num_queries = queries.shape()[0];
                                        Index dim = queries.shape()[1];
@@ -51,24 +49,18 @@ void bind_brute_force(py::module_& m, const std::string& name)
                                        RealVector dists; IndexVector neighs, ptrs;
                                        bf.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
 
-                                       if (return_distance)
-                                           return py::cast(std::make_tuple(dists, neighs, ptrs));
-                                       else
-                                           return py::cast(std::make_tuple(neighs, ptrs));
+                                       return std::make_tuple(dists, neighs, ptrs);
 
-                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = false, py::arg("num_threads") = 1
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("num_threads") = 1
             )
-        .def("radius_neighbors", [](const bruteforce& bf, Real radius, bool return_distance, int num_threads) -> py::object
+        .def("radius_neighbors", [](const bruteforce& bf, Real radius, int num_threads)
                                    {
                                        RealVector dists; IndexVector neighs, ptrs;
                                        bf.radius_neighbors(radius, dists, neighs, ptrs, num_threads);
 
-                                       if (return_distance)
-                                           return py::cast(std::make_tuple(dists, neighs, ptrs));
-                                       else
-                                           return py::cast(std::make_tuple(neighs, ptrs));
+                                       return std::make_tuple(dists, neighs, ptrs);
 
-                                   }, py::arg("radius"), py::arg("return_distance") = false, py::arg("num_threads") = 1
+                                   }, py::arg("radius"), py::arg("num_threads") = 1
             );
 }
 

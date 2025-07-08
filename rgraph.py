@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
         t = -time.perf_counter()
         bf = BruteForce(space)
-        dists, neighs, ptrs = bf.radius_neighbors(radius=radius, return_distance=True, num_threads=num_threads)
+        dists, neighs, ptrs = bf.radius_neighbors(radius=radius, num_threads=num_threads)
         t += time.perf_counter()
 
         nz = len(neighs)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         sys.stdout.flush()
 
         t = -time.perf_counter()
-        dists, neighs, ptrs = tree.radius_neighbors(radius=radius, return_distance=True, num_threads=num_threads)
+        dists, neighs, ptrs = tree.radius_neighbors(radius=radius, num_threads=num_threads)
         t += time.perf_counter()
 
         nz = len(neighs)

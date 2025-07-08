@@ -46,7 +46,7 @@ void bind_cover_tree(py::module_& m, const std::string& name)
         .def(py::init<const Metric&>())
         .def("num_points", &covertree::num_points)
         .def("num_dimensions", &covertree::num_dimensions)
-        .def("radius_neighbors", [](const covertree& tree, NumpyArray<Atom>::type queries, Real radius, bool return_distance, int num_threads) -> py::object
+        .def("radius_neighbors", [](const covertree& tree, NumpyArray<Atom>::type queries, Real radius, int num_threads)
                                    {
                                        Index num_queries = queries.shape()[0];
                                        Index dim = queries.shape()[1];
@@ -56,13 +56,11 @@ void bind_cover_tree(py::module_& m, const std::string& name)
                                        RealVector dists; IndexVector neighs, ptrs;
                                        tree.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
 
-                                       if (return_distance)
-                                           return py::cast(std::make_tuple(dists, neighs, ptrs));
-                                       else
-                                           return py::cast(std::make_tuple(neighs, ptrs));
-                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = false, py::arg("num_threads") = 1
+                                       return std::make_tuple(dists, neighs, ptrs);
+
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("num_threads") = 1
             )
-        .def("radius_neighbors", [](const covertree& tree, NumpyArray<Index>::type_flexible queries, Real radius, bool return_distance, int num_threads) -> py::object
+        .def("radius_neighbors", [](const covertree& tree, NumpyArray<Index>::type_flexible queries, Real radius, int num_threads)
                                    {
                                        Index num_queries = queries.shape()[0];
                                        Index dim = queries.shape()[1];
@@ -72,24 +70,18 @@ void bind_cover_tree(py::module_& m, const std::string& name)
                                        RealVector dists; IndexVector neighs, ptrs;
                                        tree.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
 
-                                       if (return_distance)
-                                           return py::cast(std::make_tuple(dists, neighs, ptrs));
-                                       else
-                                           return py::cast(std::make_tuple(neighs, ptrs));
+                                       return std::make_tuple(dists, neighs, ptrs);
 
-                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = false, py::arg("num_threads") = 1
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("num_threads") = 1
             )
-        .def("radius_neighbors", [](const covertree& tree, Real radius, bool return_distance, int num_threads) -> py::object
+        .def("radius_neighbors", [](const covertree& tree, Real radius, int num_threads)
                                    {
                                        RealVector dists; IndexVector neighs, ptrs;
                                        tree.radius_neighbors(radius, dists, neighs, ptrs, num_threads);
 
-                                       if (return_distance)
-                                           return py::cast(std::make_tuple(dists, neighs, ptrs));
-                                       else
-                                           return py::cast(std::make_tuple(neighs, ptrs));
+                                       return std::make_tuple(dists, neighs, ptrs);
 
-                                   }, py::arg("radius"), py::arg("return_distance") = false, py::arg("num_threads") = 1
+                                   }, py::arg("radius"), py::arg("num_threads") = 1
             )
         .def("build", &covertree::build, py::arg("cover") = 1.3, py::arg("leaf_size") = 40)
         .def("num_vertices", &covertree::num_vertices)
