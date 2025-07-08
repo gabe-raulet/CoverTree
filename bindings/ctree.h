@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <mpi.h>
 #include "bindutils.h"
 #include "metricspace.h"
 #include "covertree.h"
@@ -82,6 +83,20 @@ void bind_cover_tree(py::module_& m, const std::string& name)
                                        return std::make_tuple(dists, neighs, ptrs);
 
                                    }, py::arg("radius"), py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors_dist", [](const covertree& tree, Real radius, py::object py_comm)
+                                        {
+                                            RealVector mydists; IndexVector myneighs, myptrs;
+                                            MPI_Comm *comm;
+
+                                            comm = PyMPIComm_Get(py_comm.ptr());
+
+                                            if (!comm) throw py::error_already_set();
+
+                                            tree.radius_neighbors(radius, mydists, myneighs, myptrs, *comm);
+
+                                            return std::make_tuple(mydists, myneighs, myptrs);
+                                        }
             )
         .def("build", &covertree::build, py::arg("cover") = 1.3, py::arg("leaf_size") = 40)
         .def("num_vertices", &covertree::num_vertices)

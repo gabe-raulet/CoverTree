@@ -20,10 +20,9 @@ nprocs = comm.Get_size()
 
 mypoints, myoffset, totsize, d, kind = read_file_dist("scratch/datasets/corel.fvecs", comm, count=10000)
 
-#  print(f"[myrank={myrank},mysize={len(mypoints)},myoffset={myoffset},totsize={totsize},d={d},kind={kind}]")
-
 metric = MetricSpace(mypoints, "euclidean")
-bf = BruteForce(metric)
+bf = CoverTree(metric)
+bf.build(cover=1.3,leaf_size=40)
 
 mydists, myneighs, myptrs = bf.radius_neighbors_dist(0.125, comm)
 
