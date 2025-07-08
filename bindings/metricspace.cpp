@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
+#include "covertree.h"
 #include "bruteforce.h"
 #include "metricspace.h"
 
@@ -123,6 +124,62 @@ void bind_metric(py::module_& m, const std::string& name)
                                    }, py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
             )
         .def("radius_neighbors_dist", [](const BruteForce<Metric>& bf, Real radius, py::object py_comm, bool return_distance) -> py::object
+                                   {
+                                       MPI_Comm *comm_ptr = PyMPIComm_Get(py_comm.ptr());
+
+                                       if (!comm_ptr) throw py::error_already_set();
+
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       bf.radius_neighbors(radius, neighs, dists, ptrs, *comm_ptr);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("radius"), py::arg("py_comm"), py::arg("return_distance") = true
+            );
+
+    std::string tree_name = std::string("CoverTree") + name;
+
+    py::class_<CoverTree<Metric>>(m, tree_name.c_str())
+        .def(py::init<const Metric&>())
+        .def("num_points", &CoverTree<Metric>::num_points)
+        .def("num_dimensions", &CoverTree<Metric>::num_dimensions)
+        .def("build", &CoverTree<Metric>::build, py::arg("cover") = 1.3, py::arg("leaf_size") = 40)
+        .def("radius_query", [](const CoverTree<Metric>& bf, Index query, Real radius, bool return_distance) -> py::object
+                               {
+                                   IndexVector neighs; RealVector dists;
+                                   bf.radius_query(query, radius, neighs, dists);
+
+                                   if (return_distance) return py::cast(std::make_tuple(dists, neighs));
+                                   else return py::cast(neighs);
+                               }, py::arg("query"), py::arg("radius"), py::arg("return_distance") = true
+            )
+        .def("radius_neighbors", [](const CoverTree<Metric>& bf, NumpyArray<Atom>::type queries, Real radius, bool return_distance, int num_threads) -> py::object
+                                   {
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       Index num_queries = queries.shape()[0];
+                                       if (queries.shape()[1] != bf.num_dimensions()) throw std::runtime_error("Incompatible buffer format!");
+                                       bf.radius_neighbors(queries.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors", [](const CoverTree<Metric>& bf, NumpyArray<Index>::type_flexible queries, Real radius, bool return_distance, int num_threads) -> py::object
+                                   {
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       Index num_queries = queries.shape()[0];
+                                       bf.radius_neighbors(IndexVector(queries.data(), queries.data() + num_queries), radius, neighs, dists, ptrs, num_threads);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors", [](const CoverTree<Metric>& bf, Real radius, bool return_distance, int num_threads) -> py::object
+                                   {
+                                       IndexVector neighs, ptrs; RealVector dists;
+                                       bf.radius_neighbors(radius, neighs, dists, ptrs, num_threads);
+                                       if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
+                                       else return py::cast(std::make_tuple(neighs, ptrs));
+                                   }, py::arg("radius"), py::arg("return_distance") = true, py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors_dist", [](const CoverTree<Metric>& bf, Real radius, py::object py_comm, bool return_distance) -> py::object
                                    {
                                        MPI_Comm *comm_ptr = PyMPIComm_Get(py_comm.ptr());
 
