@@ -1,5 +1,5 @@
-#ifndef BRUTE_FORCE_H_
-#define BRUTE_FORCE_H_
+#ifndef NEIGHBORS_H_
+#define NEIGHBORS_H_
 
 #include <stdio.h>
 #include <string>
@@ -14,10 +14,11 @@
 #include <assert.h>
 #include <omp.h>
 #include <mpi.h>
+#include "utils.h"
 #include "metricspace.h"
 
 template <class Metric>
-class BruteForce
+class NearestNeighbors
 {
     public:
 
@@ -31,17 +32,17 @@ class BruteForce
         using AtomVector = typename Metric::AtomVector;
         using TripleVector = typename Metric::TripleVector;
 
-        BruteForce() {}
-        BruteForce(const Metric& metric) : metric(metric) {}
+        NearestNeighbors(const Metric& metric) : metric(metric) {}
 
-        Index radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const;
+        virtual ~NearestNeighbors() {}
+
+        virtual Index radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const = 0;
         Index radius_query(Index query, Real radius, IndexVector& neighs, RealVector& dists) const { return radius_query(metric[query], radius, neighs, dists); }
 
         Index radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const;
         Index radius_neighbors(Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const { return radius_neighbors(metric.point(0), num_points(), radius, neighs, dists, ptrs, num_threads); }
-
         Index radius_neighbors(Real radius, IndexVector& myneighs, RealVector& mydists, IndexVector& myptrs, MPI_Comm comm) const;
 
         Index num_points() const { return metric.num_points(); }
@@ -49,11 +50,11 @@ class BruteForce
 
         const Metric& get_metric() const { return metric; }
 
-    private:
+    protected:
 
         Metric metric;
 };
 
-#include "bruteforce.hpp"
+#include "neighbors.hpp"
 
 #endif

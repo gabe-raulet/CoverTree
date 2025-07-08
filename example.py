@@ -21,7 +21,7 @@ nprocs = comm.Get_size()
 #  points = read_file_dist("scratch/datasets/deep.fbin", start=0, count=4000)
 #  n, d = points.shape
 
-mypoints, myoffset, totsize, d, kind = read_file_dist("scratch/datasets/deep.fbin", comm, start=0, count=1000)
+mypoints, myoffset, totsize, d, kind = read_file_dist("scratch/datasets/deep.fbin", comm, start=0, count=10000)
 
 #  print(f"[myrank={myrank},mysize={mypoints.shape[0]},myoffset={myoffset},totsize={totsize},dim={d},kind={kind}]")
 
@@ -29,9 +29,19 @@ metric = EuclideanSpaceFloat(mypoints)
 bf = BruteForceEuclideanSpaceFloat(metric)
 
 #  g1 = csr_array(bf.radius_neighbors(1.2, comm, return_distance=True))
-g1 = csr_array(bf.radius_neighbors_dist(1.2, comm, True))
+#  g1 = csr_array(bf.radius_neighbors_dist(1.2, comm, True))
 
-print(f"[myrank={myrank},mysize={metric.num_points()},myedges={g1.nnz},graph={g1.__repr__()}]")
+t = -time.perf_counter()
+data, colids, indptr = bf.radius_neighbors_dist(1.2, comm, True)
+t += time.perf_counter()
+
+maxtime = comm.allreduce(t, op=MPI.MAX)
+g1 = csr_array((data, colids, indptr), shape=(len(mypoints), totsize))
+
+nz = g1.nnz
+tot = comm.allreduce(nz, op=MPI.SUM)
+
+print(f"[myrank={myrank},mysize={metric.num_points()},myedges={g1.nnz},totsize={tot}] runtime={maxtime:.3f}")
 
 #  metric = EuclideanSpaceFloat(points)
 #  bf = BruteForceEuclideanSpaceFloat(metric)

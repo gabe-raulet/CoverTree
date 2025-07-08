@@ -1,28 +1,5 @@
-template <class Metric>
-typename Metric::index_type
-BruteForce<Metric>::radius_query(const Atom *query, Real radius, IndexVector& neighs, RealVector& dists) const
-{
-    Index found = 0;
-    Index n = metric.num_points();
-
-    for (Index i = 0; i < n; ++i)
-    {
-        Real dist = metric.distance(i, query);
-
-        if (dist <= radius)
-        {
-            neighs.push_back(i);
-            dists.push_back(dist);
-            found++;
-        }
-    }
-
-    return found;
-}
-
-template <class Metric>
-typename Metric::index_type
-BruteForce<Metric>::radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
+template <class Metric> typename Metric::index_type
+NearestNeighbors<Metric>::radius_neighbors(const Atom **queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
 {
     neighs.clear();
     dists.clear();
@@ -69,9 +46,8 @@ BruteForce<Metric>::radius_neighbors(const Atom **queries, Index num_queries, Re
     return ptrs[num_queries];
 }
 
-template <class Metric>
-typename Metric::index_type
-BruteForce<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
+template <class Metric> typename Metric::index_type
+NearestNeighbors<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
 {
     Index d = num_dimensions();
     std::vector<const Atom*> query_ptrs(num_queries);
@@ -82,9 +58,8 @@ BruteForce<Metric>::radius_neighbors(const Atom *queries, Index num_queries, Rea
     return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
 }
 
-template <class Metric>
-typename Metric::index_type
-BruteForce<Metric>::radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
+template <class Metric> typename Metric::index_type
+NearestNeighbors<Metric>::radius_neighbors(const IndexVector& queries, Real radius, IndexVector& neighs, RealVector& dists, IndexVector& ptrs, int num_threads) const
 {
     Index num_queries = queries.size();
     std::vector<const Atom*> query_ptrs(num_queries);
@@ -95,11 +70,8 @@ BruteForce<Metric>::radius_neighbors(const IndexVector& queries, Real radius, In
     return radius_neighbors(query_ptrs.data(), num_queries, radius, neighs, dists, ptrs, num_threads);
 }
 
-#include "utils.h"
-
-template <class Metric>
-typename Metric::index_type
-BruteForce<Metric>::radius_neighbors(Real radius, IndexVector& myneighs, RealVector& mydists, IndexVector& myptrs, MPI_Comm comm) const
+template <class Metric> typename Metric::index_type
+NearestNeighbors<Metric>::radius_neighbors(Real radius, IndexVector& myneighs, RealVector& mydists, IndexVector& myptrs, MPI_Comm comm) const
 {
     Index dim = num_dimensions();
 
@@ -130,6 +102,9 @@ BruteForce<Metric>::radius_neighbors(Real radius, IndexVector& myneighs, RealVec
 
     TripleVector mytriples;
     IndexVector w(mysize, 0);
+
+    IndexVector neighs, ptrs;
+    RealVector dists;
 
     for (int step = 0; step < nprocs; ++step)
     {
@@ -190,38 +165,3 @@ BruteForce<Metric>::radius_neighbors(Real radius, IndexVector& myneighs, RealVec
 
     return nz;
 }
-
-/*
- * Rank 0 starts with points[0..24]
- * Rank 1 starts with points[25..49]
- * Rank 2 starts with points[50..74]
- * Rank 3 starts with points[75..99]
- *
- * Step 0:
- *
- *     Rank 0 computes points[0..24] vs points[0..24] (0 vs 0)
- *     Rank 1 computes points[25..49] vs points[25..49] (1 vs 1)
- *     Rank 2 computes points[50..74] vs points[50..74] (2 vs 2)
- *     Rank 3 computes points[75..99] vs points[75..99] (3 vs 3)
- *
- * Step 1:
- *
- *     Rank 0 computes points[0..24] vs points[25..49] (0 vs 1)
- *     Rank 1 computes points[25..49] vs points[50..74] (1 vs 2)
- *     Rank 2 computes points[50..74] vs points[75..99] (2 vs 3)
- *     Rank 3 computes points[75..99] vs points[0..24] (3 vs 0)
- *
- * Step 2:
- *
- *     Rank 0 computes points[0..24] vs points[50..74] (0 vs 2)
- *     Rank 1 computes points[25..49] vs points[75..99] (1 vs 3)
- *     Rank 2 computes points[50..74] vs points[0..24] (2 vs 0)
- *     Rank 3 computes points[75..99] vs points[25..49] (3 vs 1)
- *
- * Step 3:
- *
- *     Rank 0 computes points[0..24] vs points[75..99] (0 vs 3)
- *     Rank 1 computes points[25..49] vs points[0..24] (1 vs 0)
- *     Rank 2 computes points[50..74] vs points[25..49] (2 vs 1)
- *     Rank 3 computes points[75..99] vs points[50..74] (3 vs 2)
- */
