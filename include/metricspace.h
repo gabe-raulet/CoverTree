@@ -4,16 +4,30 @@
 #include <cmath>
 #include <vector>
 #include <tuple>
-#include <assert.h>
-#include <omp.h>
-#include <mpi.h>
+#include <algorithm>
 
 template <class Index, class Real, class Atom>
 class MetricSpace
 {
-    public:
+    /*
+     * MetricSpace is an abstract base class for metric spaces whose points are
+     * fixed-length vectors. MetricSpace is templated with an integer type `Index`
+     * for indexing points (and integer values in general), a numeric type `Real`
+     * for representing distances between points, and a type `Atom` which is the
+     * underyling point vector type.
+     *
+     * Points are assumed to be fixed-length `Atom` vectors with dimension `dim`.
+     * For example, 3-dimensional euclidean space could be represented with the
+     * template MetricSpace<int64_t, double, float>, and a `dim` variable equal
+     * to 3, where distances are represented with 64-bit floating point values
+     * and points are represented by 3 32-bit floating point values.
+     *
+     * MetricSpace has two pure virtual functions: "metric(void)" and "distance(const Atom*, const Atom*)".
+     * "metric(void)" is simply overriden with the name of the metric used, and "distance(..)" is overriden
+     * with an implementation of the distance metric function. All other functions are non-virtual.
+     */
 
-        virtual constexpr const char* metric() const = 0;
+    public:
 
         using index_type = Index;
         using real_type = Real;
@@ -45,15 +59,21 @@ class MetricSpace
         const_iterator cbegin(Index idx = 0) const { return atoms.begin() + idx*dim; }
         const_iterator cend(Index idx = 0) const { return begin(idx) + dim; }
 
+        virtual constexpr const char* metric() const = 0;
         virtual Real distance(const Atom *p, const Atom *q) const = 0;
-        virtual Real distance(Index p, const Atom *q) const { return distance(point(p), q); }
-        virtual Real distance(Index p, Index q) const { return distance(point(p), point(q)); }
+
+        Real distance(Index p, const Atom *q) const { return distance(point(p), q); }
+        Real distance(Index p, Index q) const { return distance(point(p), point(q)); }
 
         Index num_points() const { return size; }
         Index num_dimensions() const { return dim; }
         Index num_atoms() const { return size*dim; }
 
-        void* data() {return static_cast<void*>(atoms.data()); }
+        Atom* data() { return atoms.data(); }
+        const Atom* data() const { return atoms.data(); }
+
+        void* mem() { return static_cast<void*>(atoms.data()); }
+        const void* mem() const { return static_cast<const void*>(atoms.data()); }
 
     protected:
 
