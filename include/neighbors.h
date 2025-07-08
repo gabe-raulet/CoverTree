@@ -20,6 +20,28 @@
 template <class Metric>
 class NearestNeighbors
 {
+    /*
+     * NearestNeighbors is an abstract base class implementing the interface and helper
+     * functions of a nearest neighbor indexing algorithm. The class takes a concrete class
+     * derived from a metric space `Metric` (a class template) in the constructor and
+     * implements various nearest neighbor query routines.
+     *
+     * The main radius query routine `radius_query(const Atom* query, Real, IndexVector&, RealVector&)`
+     * is pure virtual and must be implemented in a derived class with a query algorithm.
+     * `radius_query` takes a point `query` and threshold `radius` as inputs and finds all the points
+     * in `metric` that are within a distance `radius` of `query` using the distance method implemented
+     * by the `Metric` type. The indices are returned by reference through `neighs` and the corresponding
+     * distances through `dists`.
+     *
+     * A number of other non-virtual routines are implemented that use the pure virtual `radius_query` implementation:
+     *
+     *  - radius_query(Index, Real, IndexVector&, RealVector&):
+     *
+     *     - Queries the local point in `metric` with index `query`
+     *
+     *  - radius_neighbors(const Atom**, Index, Real, IndexVector&, RealVector&, IndexVector&,
+     */
+
     public:
 
         using Index = typename Metric::index_type;
