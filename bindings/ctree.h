@@ -104,9 +104,11 @@ void bind_cover_trees(py::module_& m, const std::string& atom_name)
     using Real = float;
 
     using euclidean = Euclidean<Index, Real, Atom>;
+    using manhattan = Manhattan<Index, Real, Atom>;
     using chebyshev = Chebyshev<Index, Real, Atom>;
 
     bind_cover_tree<euclidean>(m, std::string("CoverTreeEuclidean") + atom_name);
+    bind_cover_tree<manhattan>(m, std::string("CoverTreeManhattan") + atom_name);
     bind_cover_tree<chebyshev>(m, std::string("CoverTreeChebyshev") + atom_name);
 }
 

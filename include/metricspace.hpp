@@ -24,6 +24,30 @@ class Euclidean : public MetricSpace<Index, Real, Atom>
 };
 
 template <class Index, class Real, class Atom>
+class Manhattan : public MetricSpace<Index, Real, Atom>
+{
+    public:
+
+        virtual constexpr const char* metric() const final { return "manhattan"; }
+
+        using MetricSpace<Index, Real, Atom>::MetricSpace;
+        using MetricSpace<Index, Real, Atom>::distance;
+
+        virtual Real distance(const Atom *p, const Atom *q) const final
+        {
+            Real val = 0;
+            Index d = this->num_dimensions();
+
+            for (Index i = 0; i < d; ++i)
+            {
+                val += std::abs(p[i] - q[i]);
+            }
+
+            return val;
+        }
+};
+
+template <class Index, class Real, class Atom>
 class Chebyshev : public MetricSpace<Index, Real, Atom>
 {
     public:
@@ -40,7 +64,7 @@ class Chebyshev : public MetricSpace<Index, Real, Atom>
 
             for (Index i = 0; i < d; ++i)
             {
-                val += std::max(val, static_cast<Real>(p[i] - q[i]));
+                val = std::max(val, static_cast<Real>(std::abs(p[i] - q[i])));
             }
 
             return val;

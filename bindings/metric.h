@@ -79,9 +79,11 @@ void bind_metrics(py::module_& m, const std::string& atom_name)
     using Real = float;
 
     using euclidean = Euclidean<Index, Real, Atom>;
+    using manhattan = Manhattan<Index, Real, Atom>;
     using chebyshev = Chebyshev<Index, Real, Atom>;
 
     bind_metric<euclidean>(m, std::string("EuclideanSpace") + atom_name);
+    bind_metric<manhattan>(m, std::string("ManhattanSpace") + atom_name);
     bind_metric<chebyshev>(m, std::string("ChebyshevSpace") + atom_name);
 }
 

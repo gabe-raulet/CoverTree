@@ -79,9 +79,11 @@ void bind_brute_forces(py::module_& m, const std::string& atom_name)
     using Real = float;
 
     using euclidean = Euclidean<Index, Real, Atom>;
+    using manhattan = Manhattan<Index, Real, Atom>;
     using chebyshev = Chebyshev<Index, Real, Atom>;
 
     bind_brute_force<euclidean>(m, std::string("BruteForceEuclidean") + atom_name);
+    bind_brute_force<manhattan>(m, std::string("BruteForceManhattan") + atom_name);
     bind_brute_force<chebyshev>(m, std::string("BruteForceChebyshev") + atom_name);
 }
 
