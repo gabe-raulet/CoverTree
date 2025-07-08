@@ -1,5 +1,6 @@
 #include "metric.h"
 #include "bforce.h"
+#include "ctree.h"
 
 PYBIND11_MODULE(metricspace, m)
 {
@@ -10,4 +11,7 @@ PYBIND11_MODULE(metricspace, m)
 
     bind_brute_forces<float>(m, "Float");
     bind_brute_forces<double>(m, "Double");
+
+    bind_cover_trees<float>(m, "Float");
+    bind_cover_trees<double>(m, "Double");
 }

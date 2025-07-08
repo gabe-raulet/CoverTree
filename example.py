@@ -40,10 +40,26 @@ def BruteForce(space):
     else:
         raise Exception("Not implemented")
 
+def CoverTree(space):
+    kind = str(np.array(space, copy=False).dtype)
+    metric = space.metric()
+    if metric == "euclidean":
+        if kind == "float32": return CoverTreeEuclideanFloat(space)
+        elif kind == "float64": return CoverTreeEuclideanDouble(space)
+        else: raise Exception("Not implemented")
+    elif metric == "chebyshev":
+        if kind == "float32": return CoverTreeChebyshevFloat(space)
+        elif kind == "float64": return CoverTreeChebyshevDouble(space)
+        else: raise Exception("Not implemented")
+    else:
+        raise Exception("Not implemented")
+
 #  points = read_file("scratch/datasets/corel.fvecs", count=1000)
 points = read_file("scratch/datasets/covtype.fvecs")
 metric = MetricSpace(points.astype("float64"), "euclidean")
 bf = BruteForce(metric)
+tree = CoverTree(metric)
+tree.build(cover=2., leaf_size=25)
 #  bf = BruteForceChebyshevFloat(metric)
 
 #  comm = MPI.COMM_WORLD
