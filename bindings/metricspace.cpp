@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
+#include <iterator>
 #include "covertree.h"
 #include "bruteforce.h"
 #include "metricspace.h"
@@ -137,6 +138,27 @@ void bind_metric(py::module_& m, const std::string& name)
             );
 
     std::string tree_name = std::string("CoverTree") + name;
+    std::string vertex_name = std::string("CoverTreeVertex") + name;
+
+    using Vertex = typename CoverTree<Metric>::Vertex;
+
+    py::class_<Vertex>(m, vertex_name.c_str())
+        .def_readwrite("index", &Vertex::index)
+        .def_readwrite("level", &Vertex::level)
+        .def_readwrite("radius", &Vertex::radius)
+        .def_readwrite("children", &Vertex::children)
+        .def_readwrite("leaves", &Vertex::leaves)
+        .def("__repr__", [](const Vertex& v)
+                           {
+                               std::ostringstream ss;
+                               ss << "Vertex(index=" << v.index << ", level=" << v.level << ", radius=" << v.radius << ", children=[";
+                               std::copy(v.children.begin(), v.children.end(), std::ostream_iterator<Index>(ss, ","));
+                               ss << "], leaves=[";
+                               std::copy(v.leaves.begin(), v.leaves.end(), std::ostream_iterator<Index>(ss, ","));
+                               ss << "])";
+                               return ss.str();
+                           }
+            );
 
     py::class_<CoverTree<Metric>>(m, tree_name.c_str())
         .def(py::init<const Metric&>())
@@ -190,7 +212,8 @@ void bind_metric(py::module_& m, const std::string& name)
                                        if (return_distance) return py::cast(std::make_tuple(dists, neighs, ptrs));
                                        else return py::cast(std::make_tuple(neighs, ptrs));
                                    }, py::arg("radius"), py::arg("py_comm"), py::arg("return_distance") = true
-            );
+            )
+        .def("__getitem__", [](const CoverTree<Metric>& bf, Index vertex) { return bf[vertex]; });
 }
 
 template <class Atom>
