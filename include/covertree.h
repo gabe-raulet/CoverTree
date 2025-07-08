@@ -38,7 +38,12 @@ class CoverTreeInterface : public NearestNeighbors<Metric>
         using TripleVector = typename Metric::TripleVector;
 
         virtual void build(Real cover, Index leaf_size) = 0;
-        virtual Index radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const = 0;
+        virtual Real get_radius(Index vertex) const = 0;
+        virtual Index get_index(Index vertex) const = 0;
+        virtual const Index* get_children(Index vertex, Index& nchild) const = 0;
+        virtual const Index* get_leaves(Index vertex, Index& nleaf) const = 0;
+
+        Index radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const;
 
         struct Vertex
         {
@@ -88,13 +93,18 @@ class CoverTree: public CoverTreeInterface<Metric>
         using AtomVector = typename Metric::AtomVector;
         using TripleVector = typename Metric::TripleVector;
 
-        virtual void build(Real cover, Index leaf_size) final;
-        virtual Index radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const final;
-
         using Vertex = typename Base::Vertex;
         using VertexVector = typename Base::VertexVector;
 
-        virtual Vertex operator[](Index vertex) const { return vertices[vertex]; }
+        virtual Vertex operator[](Index vertex) const final { return vertices[vertex]; }
+
+        virtual Real get_radius(Index vertex) const final { return vertices[vertex].radius; }
+        virtual Index get_index(Index vertex) const final { return vertices[vertex].index; }
+        virtual const Index* get_children(Index vertex, Index& nchild) const final { nchild = vertices[vertex].children.size(); return vertices[vertex].children.data(); }
+        virtual const Index* get_leaves(Index vertex, Index& nleaf) const final { nleaf = vertices[vertex].leaves.size(); return vertices[vertex].leaves.data(); }
+
+        virtual void build(Real cover, Index leaf_size) final;
+
 
     private:
 

@@ -150,8 +150,8 @@ void CoverTree<Metric>::build(Real cover, Index leaf_size)
 }
 
 template <class Metric>
-typename CoverTree<Metric>::Index
-CoverTree<Metric>::radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const
+typename CoverTreeInterface<Metric>::Index
+CoverTreeInterface<Metric>::radius_query(const Atom *query, Real radius, RealVector& dists, IndexVector& neighs) const
 {
     Index found = 0;
     std::deque<Index> queue = {0};
@@ -159,10 +159,14 @@ CoverTree<Metric>::radius_query(const Atom *query, Real radius, RealVector& dist
     while (!queue.empty())
     {
         Index u = queue.front(); queue.pop_front();
-        const Vertex& u_vtx = vertices[u];
 
-        for (Index leaf : u_vtx.leaves)
+        Index nleaf, nchild;
+        const Index *leaves = get_leaves(u, nleaf);
+        const Index *children = get_children(u, nchild);
+
+        for (Index i = 0; i < nleaf; ++i)
         {
+            Index leaf = leaves[i];
             Real d = metric.distance(leaf, query);
 
             if (d <= radius)
@@ -173,11 +177,13 @@ CoverTree<Metric>::radius_query(const Atom *query, Real radius, RealVector& dist
             }
         }
 
-        for (Index v : u_vtx.children)
+        for (Index i = 0; i < nchild; ++i)
         {
-            const Vertex& v_vtx = vertices[v];
+            Index v = children[i];
+            Index idx = get_index(v);
+            Real vradius = get_radius(v);
 
-            if (metric.distance(v_vtx.index, query) <= v_vtx.radius + radius)
+            if (metric.distance(idx, query) <= vradius + radius)
                 queue.push_back(v);
         }
     }
