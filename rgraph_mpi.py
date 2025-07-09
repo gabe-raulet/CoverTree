@@ -130,7 +130,9 @@ if __name__ == "__main__":
         stats_dict["leaf_size"] = leaf_size
 
         if myrank == 0:
-            sys.stdout.write(f"[time={t:.3f}] built cover tree [vertices={sum(stats_dict['verts'])},maxlevel={max(stats_dict['maxlevels'])},cover={cover:.3f},leaf_size={leaf_size}]\n")
+            totverts = sum(stats_dict["verts"])
+            maxlevel = max(stats_dict["maxlevels"])
+            sys.stdout.write(f"[time={t:.3f}] built cover tree [vertices={totverts},maxlevel={maxlevel},cover={cover:.3f},leaf_size={leaf_size}]\n")
             sys.stdout.flush()
 
         t = -MPI.Wtime()

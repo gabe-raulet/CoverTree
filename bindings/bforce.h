@@ -72,7 +72,7 @@ void bind_brute_force(py::module_& m, const std::string& name)
 
                                             if (!comm) throw py::error_already_set();
 
-                                            bf.radius_neighbors(radius, mydists, myneighs, myptrs, *comm);
+                                            bf.radius_neighbors_dist(radius, mydists, myneighs, myptrs, *comm);
 
                                             return std::make_tuple(mydists, myneighs, myptrs);
                                         }

@@ -70,7 +70,7 @@ NearestNeighbors<Metric>::radius_neighbors(const Index *queries, Index num_queri
 }
 
 template <class Metric> typename Metric::index_type
-NearestNeighbors<Metric>::radius_neighbors(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const
+NearestNeighbors<Metric>::radius_neighbors_dist(Real radius, RealVector& mydists, IndexVector& myneighs, IndexVector& myptrs, MPI_Comm comm) const
 {
     Index dim = num_dimensions();
 

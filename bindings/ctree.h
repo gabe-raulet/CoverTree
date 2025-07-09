@@ -93,7 +93,7 @@ void bind_cover_tree(py::module_& m, const std::string& name)
 
                                             if (!comm) throw py::error_already_set();
 
-                                            tree.radius_neighbors(radius, mydists, myneighs, myptrs, *comm);
+                                            tree.radius_neighbors_dist(radius, mydists, myneighs, myptrs, *comm);
 
                                             return std::make_tuple(mydists, myneighs, myptrs);
                                         }
@@ -157,7 +157,7 @@ void bind_cover_tree(py::module_& m, const std::string& name)
 
                                             if (!comm) throw py::error_already_set();
 
-                                            tree.radius_neighbors(radius, mydists, myneighs, myptrs, *comm);
+                                            tree.radius_neighbors_dist(radius, mydists, myneighs, myptrs, *comm);
 
                                             return std::make_tuple(mydists, myneighs, myptrs);
                                         }
