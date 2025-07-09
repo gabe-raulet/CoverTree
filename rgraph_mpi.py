@@ -8,6 +8,7 @@ import math
 import sys
 import getopt
 import time
+import json
 from datetime import datetime
 from scipy.io import mmwrite
 from scipy.sparse import csr_array
@@ -23,12 +24,12 @@ outfile=None
 metric="euclidean"
 method="bruteforce"
 pack=False
-verbose=False
+stats=None
 cover=1.3
 leaf_size=40
 
 def usage():
-    global start, count, outfile, metric, method, pack, verbose, cover, leaf_size
+    global start, count, outfile, metric, method, pack, cover, leaf_size, stats
     if myrank == 0:
         sys.stderr.write(f"Usage: {sys.argv[0]} [options] -i <points> -r <radius>\n")
         sys.stderr.write(f"Options: -m STR   metric name [{metric}] (valid: euclidean, manhattan, chebyshev)\n")
@@ -38,8 +39,8 @@ def usage():
         sys.stderr.write(f"         -o FILE  output sparse graph [{outfile}]\n")
         sys.stderr.write(f"         -c FLOAT cover tree base [{cover:.3f}]\n")
         sys.stderr.write(f"         -l INT   leaf size [{leaf_size}]\n")
+        sys.stderr.write(f"         -j FILE  output stats json\n")
         sys.stderr.write(f"         -p       pack cover tree\n");
-        sys.stderr.write(f"         -v       verbose\n");
         sys.stderr.write(f"         -h       help message\n")
         sys.stderr.flush()
     sys.exit(1)
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     infile = None
     radius = -1
 
-    try: opts, args = getopt.getopt(sys.argv[1:], "i:r:m:A:n:s:o:l:c:pvh")
+    try: opts, args = getopt.getopt(sys.argv[1:], "i:r:m:A:n:s:o:l:c:j:ph")
     except getopt.GetoptError as err: usage()
 
     for o, a in opts:
@@ -62,8 +63,8 @@ if __name__ == "__main__":
         elif o == "-o": outfile = a
         elif o == "-c": cover = float(a)
         elif o == "-l": leaf_size = int(a)
-        elif o == "-v": verbose = True
         elif o == "-p": pack = True
+        elif o == "-j": stats = a
         elif o == "-h": usage()
         else: assert False, "unhandled option"
 
@@ -80,12 +81,18 @@ if __name__ == "__main__":
         sys.stdout.write(f"[time={t:.3f}] read points[{start}..{start+n}) from '{infile}' [n={n},d={d},type={kind}]\n")
         sys.stdout.flush()
 
-    if verbose:
-        allsizes = comm.gather(mysize, root=0)
-        if myrank == 0:
-            for rank in range(nprocs):
-                sys.stdout.write(f"[rank={rank},mysize={allsizes[rank]}]\n")
-                sys.stdout.flush()
+    stats_dict = {}
+    stats_dict["sizes"] = comm.gather(mysize, root=0)
+    stats_dict["filename"] = infile
+    stats_dict["datetime"] = datetime.now().strftime('%m/%d/%Y %I:%M:%S %p')
+    stats_dict["method"] = method
+    stats_dict["metric"] = metric
+    stats_dict["command"] = " ".join(sys.argv)
+    stats_dict["num_points"] = int(n)
+    stats_dict["dimension"] = int(d)
+    stats_dict["type"] = kind
+    stats_dict["offsets"] = comm.gather(int(myoffset), root=0)
+    stats_dict["nprocs"] = nprocs
 
     space = MetricSpace(mypoints, metric)
 
@@ -96,13 +103,14 @@ if __name__ == "__main__":
         mydists, myneighs, myptrs = bf.radius_neighbors_dist(radius, comm)
         t += MPI.Wtime()
 
-        mynz = len(myneighs)
+        mygraphtime = t
 
-        mytime = t
-        t = comm.reduce(t, op=MPI.MAX, root=0)
-        nz = comm.reduce(mynz, op=MPI.SUM)
+        stats_dict["buildtimes"] = [0]*nprocs
+        stats_dict["graphtimes"] = comm.gather(mygraphtime, root=0)
 
     elif method == "covertree":
+
+        stats_dict["pack"] = pack
 
         t = -MPI.Wtime()
         tree = CoverTree(space)
@@ -110,54 +118,44 @@ if __name__ == "__main__":
         if pack: tree = tree.get_packed()
         t += MPI.Wtime()
 
+        mybuildtime = t
+
         myverts = tree.num_vertices()
         mymaxlevel = tree.max_level()
 
-        mytime = t
-        t = comm.reduce(t, op=MPI.MAX, root=0)
-        verts = comm.reduce(myverts, op=MPI.SUM, root=0)
-        maxlevel = comm.reduce(mymaxlevel, op=MPI.MAX, root=0)
+        stats_dict["verts"] = comm.gather(myverts, root=0)
+        stats_dict["maxlevels"] = comm.gather(mymaxlevel, root=0)
+        stats_dict["buildtimes"] = comm.gather(mybuildtime, root=0)
+        stats_dict["cover"] = cover
+        stats_dict["leaf_size"] = leaf_size
 
         if myrank == 0:
-            sys.stdout.write(f"[time={t:.3f}] built cover tree [vertices={verts},maxlevel={maxlevel}]\n")
+            sys.stdout.write(f"[time={t:.3f}] built cover tree [vertices={sum(stats_dict['verts'])},maxlevel={max(stats_dict['maxlevels'])},cover={cover:.3f},leaf_size={leaf_size}]\n")
             sys.stdout.flush()
-
-        if verbose:
-            allverts = comm.gather(myverts, root=0)
-            allmaxlevels = comm.gather(mymaxlevel, root=0)
-            if myrank == 0:
-                for rank in range(nprocs):
-                    sys.stdout.write(f"[rank={rank},myverts={allverts[rank]},mymaxlevel={allmaxlevels[rank]}]\n")
-                    sys.stdout.flush()
 
         t = -MPI.Wtime()
         mydists, myneighs, myptrs = tree.radius_neighbors_dist(radius, comm)
         t += MPI.Wtime()
 
-        mynz = len(myneighs)
+        mygraphtime = t
+        stats_dict["graphtimes"] = comm.gather(mygraphtime, root=0)
 
-        mytime += t
-        t = comm.reduce(t, op=MPI.MAX, root=0)
-        nz = comm.reduce(mynz, op=MPI.SUM)
+    mynz = len(myneighs)
+    stats_dict["edges"] = comm.gather(mynz, root=0)
 
     if myrank == 0:
+        nz = sum(stats_dict["edges"])
         sys.stdout.write(f"[time={t:.3f}] built near neighbor graph [edges={nz},density={nz/n:.3f},method={method}]\n")
         sys.stdout.flush()
 
-    if verbose:
-        alledges = comm.gather(mynz, root=0)
-        if myrank == 0:
-            for rank in range(nprocs):
-                sys.stdout.write(f"[rank={rank},myedges={alledges[rank]},mydensity={alledges[rank]/allsizes[rank]:.3f}]\n")
-                sys.stdout.flush()
+        if stats:
+            with open(stats, "w") as f:
+                json.dump(stats_dict, f, indent=4)
 
     if outfile:
 
-        maxtime = comm.allreduce(mytime, op=MPI.MAX)
-
-        cmd = " ".join(sys.argv)
-        comment = f"datetime: {datetime.now().strftime('%m/%d/%Y %I:%M:%S %p')}\n"
-        comment += f"command: '{cmd}'\n"
+        comment = f"datetime: {stats_dict['datetime']}\n"
+        comment += f"command: '{stats_dict['command']}'\n"
         comment += f"metric: '{metric}'\n"
         comment += f"method: '{method}'\n"
         comment += f"infile: '{infile}'\n"
@@ -169,8 +167,8 @@ if __name__ == "__main__":
         comment += f"myoffset: {myoffset}\n"
         comment += f"myrank: {myrank}\n"
         comment += f"nprocs: {nprocs}\n"
-        comment += f"mytime: {mytime:.4f} seconds\n"
-        comment += f"maxtime: {maxtime:.4f} seconds\n"
+        comment += f"mybuildtime: {mybuildtime:.4f} seconds\n"
+        comment += f"mygraphtime: {mygraphtime:.4f} seconds\n"
 
         t = -MPI.Wtime()
         mygraph = csr_array((mydists, myneighs, myptrs), shape=(mysize,n))
