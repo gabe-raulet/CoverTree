@@ -22,12 +22,13 @@ count=None
 outfile=None
 metric="euclidean"
 method="bruteforce"
+pack=False
 verbose=False
 cover=1.3
 leaf_size=40
 
 def usage():
-    global start, count, outfile, metric, method, verbose, cover, leaf_size
+    global start, count, outfile, metric, method, pack, verbose, cover, leaf_size
     if myrank == 0:
         sys.stderr.write(f"Usage: {sys.argv[0]} [options] -i <points> -r <radius>\n")
         sys.stderr.write(f"Options: -m STR   metric name [{metric}] (valid: euclidean, manhattan, chebyshev)\n")
@@ -37,6 +38,7 @@ def usage():
         sys.stderr.write(f"         -o FILE  output sparse graph [{outfile}]\n")
         sys.stderr.write(f"         -c FLOAT cover tree base [{cover:.3f}]\n")
         sys.stderr.write(f"         -l INT   leaf size [{leaf_size}]\n")
+        sys.stderr.write(f"         -p       pack cover tree\n");
         sys.stderr.write(f"         -v       verbose\n");
         sys.stderr.write(f"         -h       help message\n")
         sys.stderr.flush()
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     infile = None
     radius = -1
 
-    try: opts, args = getopt.getopt(sys.argv[1:], "i:r:m:A:n:s:o:l:c:vh")
+    try: opts, args = getopt.getopt(sys.argv[1:], "i:r:m:A:n:s:o:l:c:pvh")
     except getopt.GetoptError as err: usage()
 
     for o, a in opts:
@@ -61,6 +63,7 @@ if __name__ == "__main__":
         elif o == "-c": cover = float(a)
         elif o == "-l": leaf_size = int(a)
         elif o == "-v": verbose = True
+        elif o == "-p": pack = True
         elif o == "-h": usage()
         else: assert False, "unhandled option"
 
@@ -104,6 +107,7 @@ if __name__ == "__main__":
         t = -MPI.Wtime()
         tree = CoverTree(space)
         tree.build(cover=cover, leaf_size=leaf_size)
+        if pack: tree = tree.get_packed()
         t += MPI.Wtime()
 
         myverts = tree.num_vertices()

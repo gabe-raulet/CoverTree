@@ -190,3 +190,34 @@ CoverTreeInterface<Metric>::radius_query(const Atom *query, Real radius, RealVec
 
     return found;
 }
+
+template <class Metric>
+PackedCoverTree<Metric>::PackedCoverTree(const CoverTree<Metric>& tree) : Base(tree.get_metric())
+{
+    maxlevel = tree.max_level();
+    numverts = tree.num_vertices();
+
+    vertices.resize(tree.num_vertices());
+    ids.resize(tree.num_points() + tree.num_vertices());
+
+    auto it = ids.begin();
+
+    for (Index v = 0; v < numverts; ++v)
+    {
+        Index nleaf, nchild;
+        const Index *leaves = tree.get_leaves(v, nleaf);
+        const Index *children = tree.get_children(v, nchild);
+
+        vertices[v].index = tree.get_index(v);
+        vertices[v].level = tree.get_level(v);
+        vertices[v].radius = tree.get_radius(v);
+        vertices[v].nchild = nchild;
+        vertices[v].nleaf = nleaf;
+
+        vertices[v].childptr = it - ids.begin();
+        it = std::copy(children, children+nchild, it);
+
+        vertices[v].leafptr = it - ids.begin();
+        it = std::copy(leaves, leaves+nleaf, it);
+    }
+}

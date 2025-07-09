@@ -19,11 +19,12 @@ outfile=None
 num_threads=1
 metric="euclidean"
 method="bruteforce"
+pack=False
 cover=1.3
 leaf_size=40
 
 def usage():
-    global start, count, outfile, num_threads, metric, method, cover, leaf_size
+    global start, count, outfile, num_threads, metric, method, pack, cover, leaf_size
     sys.stderr.write(f"Usage: {sys.argv[0]} [options] -i <points> -r <radius>\n")
     sys.stderr.write(f"Options: -m STR   metric name [{metric}] (valid: euclidean, manhattan, chebyshev)\n")
     sys.stderr.write(f"         -A STR   method name [{method}] (valid: bruteforce, covertree, scikit)\n")
@@ -33,6 +34,7 @@ def usage():
     sys.stderr.write(f"         -o FILE  output sparse graph [{outfile}]\n")
     sys.stderr.write(f"         -c FLOAT cover tree base [{cover:.3f}]\n")
     sys.stderr.write(f"         -l INT   leaf size [{leaf_size}]\n")
+    sys.stderr.write(f"         -p       pack cover tree\n")
     sys.stderr.write(f"         -h       help message\n")
     sys.stderr.flush()
     sys.exit(1)
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     infile = None
     radius = -1
 
-    try: opts, args = getopt.getopt(sys.argv[1:], "i:r:m:A:n:s:t:o:l:c:h")
+    try: opts, args = getopt.getopt(sys.argv[1:], "i:r:m:A:n:s:t:o:l:c:ph")
     except getopt.GetoptError as err: usage()
 
     for o, a in opts:
@@ -56,6 +58,7 @@ if __name__ == "__main__":
         elif o == "-o": outfile = a
         elif o == "-c": cover = float(a)
         elif o == "-l": leaf_size = int(a)
+        elif o == "-p": pack = True
         elif o == "-h": usage()
         else: assert False, "unhandled option"
 
@@ -88,6 +91,7 @@ if __name__ == "__main__":
         t = -time.perf_counter()
         tree = CoverTree(space)
         tree.build(cover=cover, leaf_size=leaf_size)
+        if pack: tree = tree.get_packed()
         t += time.perf_counter()
 
         sys.stdout.write(f"[time={t:.3f}] built cover tree [vertices={tree.num_vertices()},maxlevel={tree.max_level()}]\n")

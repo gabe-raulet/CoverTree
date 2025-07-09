@@ -98,10 +98,73 @@ void bind_cover_tree(py::module_& m, const std::string& name)
                                             return std::make_tuple(mydists, myneighs, myptrs);
                                         }
             )
+        .def("get_packed", &covertree::get_packed)
         .def("build", &covertree::build, py::arg("cover") = 1.3, py::arg("leaf_size") = 40)
         .def("num_vertices", &covertree::num_vertices)
         .def("max_level", &covertree::max_level)
         .def("__getitem__", [](const covertree& tree, Index vertex) { return tree[vertex]; });
+
+    using packed_covertree = PackedCoverTree<Metric>;
+    std::string packed_name = std::string("Packed") + name;
+
+    py::class_<packed_covertree>(m, packed_name.c_str())
+        .def(py::init<const covertree&>())
+        .def("num_points", &packed_covertree::num_points)
+        .def("num_dimensions", &packed_covertree::num_dimensions)
+        .def("radius_neighbors", [](const packed_covertree& tree, NumpyArray<Atom>::type queries, Real radius, int num_threads)
+                                   {
+                                       Index num_queries = queries.shape()[0];
+                                       Index dim = queries.shape()[1];
+
+                                       if (dim != tree.num_dimensions()) throw std::runtime_error("Query dimension doesn't match request!");
+
+                                       RealVector dists; IndexVector neighs, ptrs;
+                                       tree.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
+
+                                       return std::make_tuple(dists, neighs, ptrs);
+
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors", [](const packed_covertree& tree, NumpyArray<Index>::type_flexible queries, Real radius, int num_threads)
+                                   {
+                                       Index num_queries = queries.shape()[0];
+                                       Index dim = queries.shape()[1];
+
+                                       if (dim != tree.num_dimensions()) throw std::runtime_error("Query dimension doesn't match request!");
+
+                                       RealVector dists; IndexVector neighs, ptrs;
+                                       tree.radius_neighbors(queries.data(), num_queries, radius, dists, neighs, ptrs, num_threads);
+
+                                       return std::make_tuple(dists, neighs, ptrs);
+
+                                   }, py::arg("queries"), py::arg("radius"), py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors", [](const packed_covertree& tree, Real radius, int num_threads)
+                                   {
+                                       RealVector dists; IndexVector neighs, ptrs;
+                                       tree.radius_neighbors(radius, dists, neighs, ptrs, num_threads);
+
+                                       return std::make_tuple(dists, neighs, ptrs);
+
+                                   }, py::arg("radius"), py::arg("num_threads") = 1
+            )
+        .def("radius_neighbors_dist", [](const packed_covertree& tree, Real radius, py::object py_comm)
+                                        {
+                                            RealVector mydists; IndexVector myneighs, myptrs;
+                                            MPI_Comm *comm;
+
+                                            comm = PyMPIComm_Get(py_comm.ptr());
+
+                                            if (!comm) throw py::error_already_set();
+
+                                            tree.radius_neighbors(radius, mydists, myneighs, myptrs, *comm);
+
+                                            return std::make_tuple(mydists, myneighs, myptrs);
+                                        }
+            )
+        .def("num_vertices", &packed_covertree::num_vertices)
+        .def("max_level", &packed_covertree::max_level)
+        .def("__getitem__", [](const packed_covertree& tree, Index vertex) { return tree[vertex]; });
 }
 
 template <class Atom>
