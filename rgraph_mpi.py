@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     if myrank == 0:
         nz = sum(stats_dict["edges"])
-        sys.stdout.write(f"[time={t:.3f}] built near neighbor graph [edges={nz},density={nz/n:.3f},method={method}]\n")
+        sys.stdout.write(f"[time={t:.3f}] built near neighbor graph [edges={nz},density={nz/n:.3f},method={method},metric={metric}]\n")
         sys.stdout.flush()
 
         if stats:
