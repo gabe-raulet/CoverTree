@@ -16,7 +16,7 @@ struct GlobalPoint
     GlobalPoint() = default;
     GlobalPoint(const Atom *pt, int dim, Index globidx, Index cell, Real dist);
 
-    void set_point(const Atom &pt, int dim);
+    void set_point(const Atom *pt, int dim);
     void set_point(const PointVector& points, Index offset);
 
     Atom p[MAX_DIM];

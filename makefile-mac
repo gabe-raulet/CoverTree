@@ -10,8 +10,8 @@ endif
 COMPILER=mpic++
 INCLUDES=-I./include
 
-main: main.cpp include
-	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $<
+main: main.cpp src/point_vector.cpp
+	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
 clean:
 	rm -rf *.dSYM *.so main

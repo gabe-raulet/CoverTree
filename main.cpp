@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <stdio.h>
+#include <iostream>
 
 #include "utils.h"
 #include "point_vector.h"
@@ -15,12 +16,15 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    /* PointVector points(100); */
-    /* CoverTree tree(PointVector(100)); */
-    /* GlobalPoint p; */
+    PointVector corel, faces, artificial40;
 
-    /* DistVoronoi diagram(PointVector(100), 0, MPI_COMM_WORLD); */
-    /* GlobalPointVector points(3); */
+    corel.read_fvecs("scratch/datasets/corel.fvecs");
+    faces.read_fvecs("scratch/datasets/faces.fvecs");
+    artificial40.read_fvecs("scratch/datasets/artificial40.fvecs");
+
+    printf("corel: %s\n", corel.repr().c_str());
+    printf("faces: %s\n", faces.repr().c_str());
+    printf("artificial40: %s\n", artificial40.repr().c_str());
 
     MPI_Finalize();
     return 0;
