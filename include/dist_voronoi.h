@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "cover_tree.h"
 #include "point_vector.h"
-#include "global_point.h"
+#include "global_point_vector.h"
 #include <mpi.h>
 #include <limits>
 
