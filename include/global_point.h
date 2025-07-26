@@ -14,10 +14,10 @@
 struct GlobalPoint
 {
     GlobalPoint() = default;
-    GlobalPoint(const Atom *pt, int dim, Index globidx, Index cell, Real dist);
+    GlobalPoint(const Atom *pt, int dim, Index globidx, Index cell, Real dist) : globidx(globidx), cell(cell), dist(dist) { set_point(pt, dim); }
 
-    void set_point(const Atom *pt, int dim);
-    void set_point(const PointVector& points, Index offset);
+    void set_point(const Atom *pt, int dim) { std::copy(pt, pt+dim, p); }
+    void set_point(const PointVector& points, Index offset) { set_point(points[offset], points.num_dimensions()); }
 
     Atom p[MAX_DIM];
     Index globidx;
