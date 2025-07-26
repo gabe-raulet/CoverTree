@@ -1,5 +1,24 @@
 #include "global_point_vector.h"
 #include <assert.h>
+#include <numeric>
+
+GlobalPointVector::GlobalPointVector(const PointVector& mypoints, Index cell_init, Real dist_init, MPI_Comm comm)
+    : PointVector(mypoints),
+      ids(mypoints.num_points()),
+      cells(mypoints.num_points(), cell_init),
+      dists(mypoints.num_points(), dist_init)
+{
+    int myrank;
+    MPI_Comm_rank(comm, &myrank);
+
+    Index mysize = mypoints.num_points();
+    Index myoffset;
+
+    MPI_Exscan(&mysize, &myoffset, 1, MPI_INDEX, MPI_SUM, comm);
+    if (!myrank) myoffset = 0;
+
+    std::iota(ids.begin(), ids.end(), myoffset);
+}
 
 void GlobalPointVector::create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT)
 {

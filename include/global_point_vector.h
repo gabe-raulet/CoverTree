@@ -31,6 +31,7 @@ class GlobalPointVector : public PointVector
 
         GlobalPointVector() = delete;
         GlobalPointVector(int dim) : PointVector(dim) {}
+        GlobalPointVector(const PointVector& mypoints, Index cell_init, Real dist_init, MPI_Comm comm);
 
         GlobalPoint operator[](Index offset) const;
 
