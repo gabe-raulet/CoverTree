@@ -10,7 +10,7 @@ endif
 COMPILER=mpic++
 INCLUDES=-I./include
 
-main: main.cpp src/point_vector.cpp
+main: main.cpp src/point_vector.cpp src/cover_tree.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
 clean:

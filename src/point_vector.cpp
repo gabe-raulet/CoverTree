@@ -1,6 +1,20 @@
 #include "point_vector.h"
 #include <filesystem>
 
+Real PointVector::distance(const Atom *p, const Atom *q) const
+{
+    Real val = 0;
+    Real delta;
+
+    for (int i = 0; i < dim; ++i)
+    {
+        delta = static_cast<Real>(p[i] - q[i]);
+        val += delta*delta;
+    }
+
+    return std::sqrt(val);
+}
+
 void PointVector::read_fvecs(const char *fname)
 {
     Index filesize, n;
