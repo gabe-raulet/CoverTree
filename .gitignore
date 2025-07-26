@@ -1,0 +1,6 @@
+*.so
+*.dSYM
+__pycache__
+scratch
+references
+Makefile
