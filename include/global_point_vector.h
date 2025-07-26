@@ -35,6 +35,10 @@ class GlobalPointVector : public PointVector
 
         GlobalPoint operator[](Index offset) const;
 
+        Index getid(Index offset) const { return ids[offset]; }
+        Index getcell(Index offset) const { return cells[offset]; }
+        Index getdist(Index offset) const { return dists[offset]; }
+
         void reserve(Index newcap);
         void resize(Index newsize);
         void clear();
