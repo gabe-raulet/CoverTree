@@ -41,7 +41,7 @@ class GlobalPointVector : public PointVector
         void push_back(const GlobalPoint& pt);
         void set(Index offset, const GlobalPoint& pt);
 
-        static void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT);
+        void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT);
 
     private:
 
