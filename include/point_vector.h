@@ -7,7 +7,7 @@ class PointVector
 {
     public:
 
-        PointVector() : size(0), dim(0) {}
+        PointVector() : size(0), dim(1) {}
         PointVector(int dim) : size(0), dim(dim) {}
         PointVector(const Atom *atoms, Index size, int dim) : atoms(atoms, atoms + size*dim), size(size), dim(dim) {}
 

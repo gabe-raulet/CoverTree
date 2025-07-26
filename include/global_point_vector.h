@@ -34,7 +34,7 @@ class GlobalPointVector : public PointVector
 
         GlobalPoint operator[](Index offset) const;
 
-        void reserve(Index newsize);
+        void reserve(Index newcap);
         void resize(Index newsize);
         void clear();
 
@@ -48,6 +48,7 @@ class GlobalPointVector : public PointVector
         using PointVector::push_back;
         using PointVector::set;
 
+        IndexVector ids;
         IndexVector cells;
         RealVector dists;
 };

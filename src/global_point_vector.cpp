@@ -14,5 +14,45 @@ void GlobalPointVector::create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT)
 
 GlobalPoint GlobalPointVector::operator[](Index offset) const
 {
-    return GlobalPoint(PointVector::operator[](offset), num_dimensions(), offset, cells[offset], dists[offset]);
+    return GlobalPoint(PointVector::operator[](offset), num_dimensions(), ids[offset], cells[offset], dists[offset]);
+}
+
+void GlobalPointVector::reserve(Index newcap)
+{
+    PointVector::reserve(newcap);
+    ids.reserve(newcap);
+    cells.reserve(newcap);
+    dists.reserve(newcap);
+}
+
+void GlobalPointVector::resize(Index newsize)
+{
+    PointVector::resize(newsize);
+    ids.resize(newsize);
+    cells.resize(newsize);
+    dists.resize(newsize);
+}
+
+void GlobalPointVector::clear()
+{
+    PointVector::clear();
+    ids.clear();
+    cells.clear();
+    dists.clear();
+}
+
+void GlobalPointVector::push_back(const GlobalPoint& pt)
+{
+    PointVector::push_back(pt.p);
+    ids.push_back(pt.id);
+    cells.push_back(pt.cell);
+    dists.push_back(pt.dist);
+}
+
+void GlobalPointVector::set(Index offset, const GlobalPoint& pt)
+{
+    PointVector::set(offset, pt.p);
+    ids[offset] = pt.id;
+    cells[offset] = pt.cell;
+    dists[offset] = pt.dist;
 }
