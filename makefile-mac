@@ -1,0 +1,17 @@
+D?=0
+MAXDIM?=128
+
+ifeq ($(D),1)
+FLAGS=-O0 -g -std=c++20 -DMAX_DIM=$(MAXDIM)
+else
+FLAGS=-O3 -std=c++20 -DMAX_DIM=$(MAXDIM)
+endif
+
+COMPILER=mpic++
+INCLUDES=-I./include
+
+main: main.cpp include
+	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $<
+
+clean:
+	rm -rf *.dSYM *.so main
