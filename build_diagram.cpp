@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     const char *fname = argv[1];
     Index centers = atoi(argv[2]);
 
-    GlobalPointVector points; points.read_fvecs(fname, MPI_COMM_WORLD);
+    PointVector points; points.read_fvecs(fname, MPI_COMM_WORLD);
 
     {
         double t, maxtime;
