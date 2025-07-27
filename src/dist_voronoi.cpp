@@ -1,4 +1,5 @@
 #include "dist_voronoi.h"
+#include <assert.h>
 
 void DistVoronoi::mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dtype)
 {
@@ -87,6 +88,77 @@ void DistVoronoi::add_next_centers(Index count)
 
     for (Index i = 0; i < count; ++i)
         add_next_center();
+}
+
+void DistVoronoi::gather_local_cell_ids(IndexVector& mycellids, IndexVector& ptrs) const
+{
+    Index m = num_centers();
+    IndexVector w(m, 0);
+    ptrs.resize(m+1);
+
+    for (Index i = 0; i < mysize; ++i)
+        w[cells[i]]++;
+
+    Index nz = 0;
+
+    for (Index i = 0; i < m; ++i)
+    {
+        ptrs[i] = nz;
+        nz += w[i];
+        w[i] = ptrs[i];
+    }
+
+    assert((nz == mysize));
+    ptrs[m] = mysize;
+
+    mycellids.resize(mysize);
+
+    for (Index i = 0; i < mysize; ++i)
+    {
+        mycellids[w[cells[i]]++] = i;
+    }
+}
+
+void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, IndexVector& ptrs) const
+{
+    Index m = num_centers();
+    IndexVector w(m, 0);
+    ptrs.resize(m+1);
+
+    CoverTree reptree(centers);
+    reptree.build(1.3, 1);
+
+    IndexPairVector ghostpairs;
+
+    for (Index i = 0; i < mysize; ++i)
+    {
+        IndexVector ghostcells;
+        reptree.radius_query(mypoints[i], dists[i] + 2*radius, ghostcells);
+
+        for (Index ghostcell : ghostcells)
+            if (cells[i] != ghostcell)
+            {
+                ghostpairs.emplace_back(ghostcell, i);
+                w[ghostcell]++;
+            }
+    }
+
+    Index nz = 0;
+
+    for (Index i = 0; i < m; ++i)
+    {
+        ptrs[i] = nz;
+        nz += w[i];
+        w[i] = ptrs[i];
+    }
+
+    ptrs[m] = nz;
+    myghostids.resize(nz);
+
+    for (const auto& [ghostcell, id] : ghostpairs)
+    {
+        myghostids[w[ghostcell]++] = id;
+    }
 }
 
 std::string DistVoronoi::repr() const

@@ -25,6 +25,9 @@ class DistVoronoi
 
         std::string repr() const;
 
+        void gather_local_cell_ids(IndexVector& mycellids, IndexVector& ptrs) const;
+        void gather_local_ghost_ids(Real radius, IndexVector& myghostids, IndexVector& ptrs) const;
+
     private:
 
         PointVector centers; /* num_centers */
