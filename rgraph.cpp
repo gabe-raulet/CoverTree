@@ -9,6 +9,7 @@
 #include "point_vector.h"
 #include "cell_vector.h"
 #include "dist_voronoi.h"
+#include "dist_query.h"
 
 struct Parameters
 {
@@ -192,6 +193,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers);
     }
+
+    DistQuery dist_query(mytrees, my_cell_vectors, my_query_sizes, mycells, radius, comm);
 
     return 0;
 }
