@@ -26,14 +26,25 @@ class DistQuery
 
         DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<CellVector>& my_cell_vectors, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, MPI_Comm comm);
 
+        void static_balancing();
+
     private:
 
         Real radius;
+        std::deque<GhostTree> myqueue;
+
+        RealVector mydists;
+        IndexVector myneighs;
+        IndexVector myqueries;
+        IndexVector myptrs;
+
+        Index num_global_trees;
+        Index num_local_trees_completed;
+        Index num_local_queries_found;
+        Index num_local_edges_found;
 
         MPI_Comm comm;
         int myrank, nprocs;
-
-        std::deque<GhostTree> myqueue;
 };
 
 #endif
