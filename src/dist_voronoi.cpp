@@ -1,5 +1,7 @@
 #include "dist_voronoi.h"
+#include <numeric>
 #include <assert.h>
+#include <string.h>
 
 void DistVoronoi::mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dtype)
 {
@@ -19,7 +21,6 @@ DistVoronoi::DistVoronoi(const PointVector& mypoints, Index global_seed, MPI_Com
       comm(comm),
       mysize(mypoints.num_points())
 {
-    int myrank, nprocs;
     MPI_Comm_rank(comm, &myrank);
     MPI_Comm_size(comm, &nprocs);
 
@@ -158,6 +159,46 @@ void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, I
     for (const auto& [ghostcell, id] : ghostpairs)
     {
         myghostids[w[ghostcell]++] = id;
+    }
+}
+
+void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, std::vector<GlobalPoint>& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const
+{
+    Index m = num_centers();
+    assert((ptrs.size() == m+1));
+    assert((dests.size() == m));
+
+    sendbuf.clear();
+    sendcounts.resize(nprocs,0), sdispls.resize(nprocs);
+
+    Index totsend = 0;
+
+    for (Index i = 0; i < m; ++i)
+    {
+        int dest = dests[i];
+        sendcounts[dest] += (ptrs[i+1]-ptrs[i]);
+        totsend += (ptrs[i+1]-ptrs[i]);
+    }
+
+    std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
+    sendbuf.resize(totsend);
+
+    std::vector<int> sendptrs = sdispls;
+
+    for (Index i = 0; i < m; ++i)
+    {
+        int dest = dests[i];
+
+        for (Index ptr = ptrs[i]; ptr < ptrs[i+1]; ++ptr)
+        {
+            Index id = ids[ptr];
+            Index loc = sendptrs[dest]++;
+
+            sendbuf[loc].set_point(mypoints, id);
+            sendbuf[loc].id = id+myoffset;
+            sendbuf[loc].cell = i;
+            sendbuf[loc].dist = dists[id];
+        }
     }
 }
 

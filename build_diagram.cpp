@@ -50,6 +50,22 @@ int main(int argc, char *argv[])
         MPI_Reduce(&t, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
         if (!myrank) printf("[time=%.3f] [num_ghosts=%lld]\n", maxtime, num_ghosts);
+
+        std::vector<int> dests(diagram.num_centers());
+
+        for (int i = 0; i < dests.size(); ++i)
+            dests[i] = i % nprocs;
+
+        std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
+        std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
+
+        std::vector<GlobalPoint> cell_sendbuf, cell_recvbuf;
+        std::vector<GlobalPoint> ghost_sendbuf, ghost_recvbuf;
+
+        t = -MPI_Wtime();
+        diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
+        diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
+        t += MPI_Wtime();
     }
 
     MPI_Finalize();
