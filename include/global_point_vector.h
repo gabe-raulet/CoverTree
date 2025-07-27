@@ -23,6 +23,8 @@ struct GlobalPoint
     Index id;
     Index cell;
     Real dist;
+
+    static void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT, int dim);
 };
 
 class GlobalPointVector : public PointVector
@@ -49,8 +51,6 @@ class GlobalPointVector : public PointVector
 
         void push_back(const GlobalPoint& pt);
         void set(Index offset, const GlobalPoint& pt);
-
-        void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT) const;
 
         void read_fvecs(const char *fname, MPI_Comm comm);
 

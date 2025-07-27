@@ -27,12 +27,18 @@ class DistVoronoi
 
     private:
 
-        GlobalPointVector mypoints; /* mysize */
-        GlobalPointVector centers; /* num_centers */
+        PointVector centers; /* num_centers */
+        IndexVector centerids; /* num_centers */
         GlobalPoint next_center;
+
+        PointVector mypoints; /* mysize */
+        IndexVector cells; /* mysize */
+        RealVector dists; /* mysize */
 
         MPI_Comm comm;
         int myrank, nprocs;
+        Index mysize, myoffset, totsize;
+
         MPI_Datatype MPI_GLOBAL_POINT;
         MPI_Op MPI_ARGMAX;
 

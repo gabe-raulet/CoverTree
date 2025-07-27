@@ -10,25 +10,34 @@ void DistVoronoi::mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dt
             inout[i] = in[i];
 }
 
-DistVoronoi::DistVoronoi(const PointVector& points, Index global_seed, MPI_Comm comm)
-    : mypoints(points, global_seed, std::numeric_limits<Real>::max(), comm),
-      centers(points.num_dimensions()),
-      comm(comm)
+DistVoronoi::DistVoronoi(const PointVector& mypoints, Index global_seed, MPI_Comm comm)
+    : centers(mypoints.num_dimensions()),
+      mypoints(mypoints),
+      cells(mypoints.num_points(), 0),
+      dists(mypoints.num_points(), std::numeric_limits<Real>::max()),
+      comm(comm),
+      mysize(mypoints.num_points())
 {
     int myrank, nprocs;
     MPI_Comm_rank(comm, &myrank);
     MPI_Comm_size(comm, &nprocs);
 
-    mypoints.create_mpi_type(&MPI_GLOBAL_POINT);
+    MPI_Allreduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, comm);
+    MPI_Exscan(&mysize, &myoffset, 1, MPI_INDEX, MPI_SUM, comm);
+
+    if (!myrank) myoffset = 0;
+
+    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, mypoints.num_dimensions());
     MPI_Op_create(&mpi_argmax, 0, &MPI_ARGMAX);
 
-    Index mysize = mypoints.num_points();
-    Index myoffset = mypoints.getid(0);
-
     if (myoffset <= global_seed && global_seed < myoffset + mysize)
-        next_center = mypoints[global_seed-myoffset];
-    else
-        next_center.dist = 0;
+    {
+        next_center.set_point(mypoints, global_seed-myoffset);
+        next_center.id = global_seed;
+        next_center.dist = std::numeric_limits<Real>::max();
+        next_center.cell = 0;
+    }
+    else next_center.dist = 0;
 
     MPI_Allreduce(MPI_IN_PLACE, &next_center, 1, MPI_GLOBAL_POINT, MPI_ARGMAX, comm);
 }
@@ -44,26 +53,25 @@ void DistVoronoi::add_next_center()
     int dim = mypoints.num_dimensions();
 
     Index cell = num_centers();
-    centers.push_back(next_center);
+    centers.push_back(next_center.p);
+    centerids.push_back(next_center.id);
 
     next_center.dist = 0;
-    Index mysize = mypoints.num_points();
-    Index myoffset = mypoints.getid(0);
 
     for (Index i = 0; i < mysize; ++i)
     {
         Real dist = mypoints.distance(i, next_center.p);
 
-        if (dist < mypoints.getdist(i))
+        if (dist < dists[i])
         {
-            mypoints.getdist(i) = dist;
-            mypoints.getcell(i) = cell;
+            dists[i] = dist;
+            cells[i] = cell;
         }
 
-        if (mypoints.getdist(i) > next_center.dist)
+        if (dists[i] > next_center.dist)
         {
-            next_center.id = mypoints.getid(i);
-            next_center.dist = mypoints.getdist(i);
+            next_center.id = myoffset+i;
+            next_center.dist = dists[i];
         }
     }
 
