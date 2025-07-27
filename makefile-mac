@@ -10,13 +10,10 @@ endif
 COMPILER=mpic++
 INCLUDES=-I./include
 
-all: main build_diagram
+all: rgraph
 
-main: main.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/cell_vector.cpp
-	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
-
-build_diagram: build_diagram.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/cell_vector.cpp
+rgraph: rgraph.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/cell_vector.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
 clean:
-	rm -rf *.dSYM *.so main build_diagram
+	rm -rf *.dSYM *.so rgraph
