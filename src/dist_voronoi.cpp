@@ -126,15 +126,15 @@ void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, I
     IndexVector w(m, 0);
     ptrs.resize(m+1);
 
-    CoverTree reptree(centers);
-    reptree.build(1.3, 1);
+    CoverTree reptree;
+    reptree.build(centers, 1.3, 1);
 
     IndexPairVector ghostpairs;
 
     for (Index i = 0; i < mysize; ++i)
     {
         IndexVector ghostcells;
-        reptree.radius_query(mypoints[i], dists[i] + 2*radius, ghostcells);
+        reptree.radius_query(centers, mypoints[i], dists[i] + 2*radius, ghostcells);
 
         for (Index ghostcell : ghostcells)
             if (cells[i] != ghostcell)

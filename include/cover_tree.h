@@ -8,22 +8,19 @@ class CoverTree
 {
     public:
 
-        CoverTree() = delete;
-        CoverTree(const PointVector& points) : points(points) {}
+        CoverTree() = default;
+        CoverTree(const PointVector& points, Real cover, Index leaf_size);
 
-        void build(Real cover, Index leaf_size);
+        void build(const PointVector& points, Real cover, Index leaf_size);
 
         Index num_vertices() const { return centers.size(); }
-        Index num_points() const { return points.num_points(); }
 
-        Index radius_query(const Atom *query, Real radius, IndexVector& neighs) const;
-        Index radius_query(Index query, Real radius, IndexVector& neighs) const { return radius_query(points[query], radius, neighs); }
+        Index radius_query(const PointVector& points, const Atom *query, Real radius, IndexVector& neighs) const;
+        Index radius_query(const PointVector& points, Index query, Real radius, IndexVector& neighs) const { return radius_query(points, points[query], radius, neighs); }
 
         std::string repr() const;
 
     private:
-
-        PointVector points;
 
         IndexVector centers; /* size m; vertex centers */
         IndexVector childarr; /* size m-1; children array */

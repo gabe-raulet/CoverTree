@@ -1,7 +1,7 @@
 #include "cover_tree.h"
 #include <assert.h>
 
-void CoverTree::build(Real cover, Index leaf_size)
+void CoverTree::build(const PointVector& points, Real cover, Index leaf_size)
 {
     struct Vertex
     {
@@ -212,7 +212,7 @@ void CoverTree::build(Real cover, Index leaf_size)
     std::for_each(childarr.begin(), childarr.end(), [&](Index& id) { id = old_to_new[id]; });
 }
 
-Index CoverTree::radius_query(const Atom *query, Real radius, IndexVector& neighs) const
+Index CoverTree::radius_query(const PointVector& points, const Atom *query, Real radius, IndexVector& neighs) const
 {
     Index found = 0;
     IndexQueue queue = {0};
@@ -254,6 +254,6 @@ Index CoverTree::radius_query(const Atom *query, Real radius, IndexVector& neigh
 std::string CoverTree::repr() const
 {
     char buf[512];
-    snprintf(buf, 512, "CoverTree(size=%lld,dim=%d,vertices=%lld)", num_points(), points.num_dimensions(), num_vertices());
+    snprintf(buf, 512, "CoverTree(vertices=%lld)", num_vertices());
     return std::string(buf);
 }
