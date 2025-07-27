@@ -88,3 +88,30 @@ void DistQuery::report_finished(double mytime)
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
     printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
 }
+
+void DistQuery::write_to_file(const char *fname) const
+{
+    std::ostringstream ss;
+    Index num_vertices, num_edges;
+
+    MPI_Reduce(&num_local_edges_found, &num_edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
+    MPI_Reduce(&num_local_queries_made, &num_vertices, 1, MPI_INDEX, MPI_SUM, 0, comm);
+
+    if (!myrank) ss << num_vertices << " " << num_vertices << " " << num_edges << "\n";
+
+    for (Index i = 0; i < num_local_queries_made; ++i)
+        for (Index p = myptrs[i]; p < myptrs[i+1]; ++p)
+            ss << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
+
+    auto sbuf = ss.str();
+    std::vector<char> buf(sbuf.begin(), sbuf.end());
+
+    MPI_Offset mysize = buf.size(), fileoffset;
+    MPI_Exscan(&mysize, &fileoffset, 1, MPI_OFFSET, MPI_SUM, comm);
+    if (!myrank) fileoffset = 0;
+
+    MPI_File fh;
+    MPI_File_open(comm, fname, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    MPI_File_write_at_all(fh, fileoffset, buf.data(), static_cast<int>(buf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
+    MPI_File_close(&fh);
+}

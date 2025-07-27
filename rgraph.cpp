@@ -46,6 +46,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     MPI_Comm_size(comm, &nprocs);
 
     const char *infile = parameters.infile;
+    const char *outfile = parameters.outfile;
     Index num_centers = parameters.num_centers;
     Real radius = parameters.radius;
     Real cover = parameters.cover;
@@ -209,6 +210,19 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
         if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
+    }
+
+    if (outfile)
+    {
+        mytime = -MPI_Wtime();
+        dist_query.write_to_file(outfile);
+        mytime += MPI_Wtime();
+
+        if (verbosity > 0)
+        {
+            MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+            if (!myrank) printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile);
+        }
     }
 
     return 0;
