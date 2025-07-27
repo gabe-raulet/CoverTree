@@ -9,7 +9,6 @@ class CoverTree
     public:
 
         CoverTree() = default;
-        CoverTree(const PointVector& points, Real cover, Index leaf_size);
 
         void build(const PointVector& points, Real cover, Index leaf_size);
 
