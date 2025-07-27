@@ -194,7 +194,22 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers);
     }
 
-    DistQuery dist_query(mytrees, my_cell_vectors, my_query_sizes, mycells, radius, comm);
+
+    mytime = -MPI_Wtime();
+    DistQuery dist_query(mytrees, my_cell_vectors, my_query_sizes, mycells, radius, comm, verbosity);
+    dist_query.static_balancing();
+    mytime += MPI_Wtime();
+
+    if (verbosity > 0)
+    {
+        Index edges;
+        Index myedges = dist_query.my_edges_found();
+
+        MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
+        if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
+    }
 
     return 0;
 }
