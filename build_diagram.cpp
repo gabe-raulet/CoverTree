@@ -52,10 +52,19 @@ int main(int argc, char *argv[])
 
         if (!myrank) printf("[time=%.3f] find ghost points [num_ghosts=%lld]\n", maxtime, num_ghosts);
 
-        std::vector<int> dests(diagram.num_centers());
+        Index m = diagram.num_centers();
+        std::vector<int> dests(m);
+        IndexVector mycells;
 
-        for (int i = 0; i < dests.size(); ++i)
+        for (Index i = 0; i < m; ++i)
+        {
             dests[i] = i % nprocs;
+
+            if (dests[i] == myrank)
+            {
+                mycells.push_back(i);
+            }
+        }
 
         std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
         std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
