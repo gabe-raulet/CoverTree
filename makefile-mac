@@ -12,10 +12,10 @@ INCLUDES=-I./include
 
 all: main build_diagram
 
-main: main.cpp src/point_vector.cpp src/global_point_vector.cpp src/cover_tree.cpp src/dist_voronoi.cpp
+main: main.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
-build_diagram: build_diagram.cpp src/point_vector.cpp src/global_point_vector.cpp src/cover_tree.cpp src/dist_voronoi.cpp
+build_diagram: build_diagram.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
 clean:

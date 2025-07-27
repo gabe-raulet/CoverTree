@@ -9,7 +9,7 @@
 
 #include "utils.h"
 #include "point_vector.h"
-#include "global_point_vector.h"
+#include "global_point.h"
 #include "dist_voronoi.h"
 #include "cover_tree.h"
 
