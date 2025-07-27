@@ -147,3 +147,10 @@ void GlobalPointVector::read_fvecs(const char *fname, MPI_Comm comm)
         dists[i] = 0;
     }
 }
+
+std::string GlobalPointVector::repr() const
+{
+    char buf[512];
+    snprintf(buf, 512, "GlobalPointVector(mysize=%lld,dim=%d,firstid=%lld,lastid=%lld)", num_points(), num_dimensions(), ids.front(), ids.back());
+    return std::string(buf);
+}

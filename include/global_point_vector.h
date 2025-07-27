@@ -54,6 +54,8 @@ class GlobalPointVector : public PointVector
 
         void read_fvecs(const char *fname, MPI_Comm comm);
 
+        std::string repr() const;
+
     private:
 
         using PointVector::push_back;
