@@ -29,7 +29,7 @@ class PointVector
         void resize(Index newsize) { atoms.resize(newsize*dim); size = newsize; }
         void clear() { atoms.clear(); size = 0; }
 
-        void push_back(const Atom *pt) { atoms.insert(atoms.end(), pt, pt+dim); }
+        void push_back(const Atom *pt) { atoms.insert(atoms.end(), pt, pt+dim); ++size; }
         void set(Index offset, const Atom *pt) { std::copy(pt, pt+dim, &atoms[offset*dim]); }
 
         void read_fvecs(const char *fname);
