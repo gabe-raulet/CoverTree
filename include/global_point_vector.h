@@ -29,7 +29,7 @@ class GlobalPointVector : public PointVector
 {
     public:
 
-        GlobalPointVector() = delete;
+        GlobalPointVector() : PointVector(1) {}
         GlobalPointVector(int dim) : PointVector(dim) {}
         GlobalPointVector(const PointVector& mypoints, Index cell_init, Real dist_init, MPI_Comm comm);
 
@@ -51,6 +51,8 @@ class GlobalPointVector : public PointVector
         void set(Index offset, const GlobalPoint& pt);
 
         void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT) const;
+
+        void read_fvecs(const char *fname, MPI_Comm comm);
 
     private:
 

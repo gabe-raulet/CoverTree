@@ -15,15 +15,20 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    PointVector corel, faces, artificial40;
+    GlobalPointVector covtype;
+    covtype.read_fvecs("scratch/datasets/covtype.fvecs", MPI_COMM_WORLD);
 
-    artificial40.read_fvecs("scratch/datasets/artificial40.fvecs");
+    printf("[%d] %s\n", myrank, covtype.repr().c_str());
 
-    {
-        DistVoronoi diagram(artificial40, 0, MPI_COMM_WORLD);
-        diagram.add_next_centers(80);
-        printf("%s\n", diagram.repr().c_str());
-    }
+    /* PointVector corel, faces, artificial40; */
+
+    /* artificial40.read_fvecs("scratch/datasets/artificial40.fvecs"); */
+
+    /* { */
+        /* DistVoronoi diagram(artificial40, 0, MPI_COMM_WORLD); */
+        /* diagram.add_next_centers(80); */
+        /* printf("%s\n", diagram.repr().c_str()); */
+    /* } */
 
 
     /* faces.read_fvecs("scratch/datasets/faces.fvecs"); */
