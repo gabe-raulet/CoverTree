@@ -122,6 +122,22 @@ int main(int argc, char *argv[])
         std::vector<CellVector> my_cell_vectors(s, CellVector(points.num_dimensions()));
         IndexVector my_query_sizes(s,0);
         build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_query_sizes);
+
+        /* if (!myrank) */
+        /* { */
+            /* PointVector pts = my_cell_vectors.back(); */
+            /* CoverTree tree; */
+            /* tree.build(pts, 1.3, 20); */
+            /* printf("%lld\n", pts.num_points()); */
+
+            /* IndexVector neighs; */
+            /* tree.radius_query(pts, pts[0], radius, neighs); */
+            /* printf("%s\n", container_repr(neighs.begin(), neighs.end()).c_str()); */
+
+            /* neighs.clear(); */
+            /* tree.radius_query(my_cell_vectors.back(), my_cell_vectors.back()[0], radius, neighs); */
+            /* printf("%s\n", container_repr(neighs.begin(), neighs.end()).c_str()); */
+        /* } */
     }
 
     MPI_Finalize();
