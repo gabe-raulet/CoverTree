@@ -55,13 +55,13 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     Index totsize;
     Index mysize = mypoints.num_points();
+    int dim = mypoints.num_dimensions();
 
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
-
-        if (!myrank) printf("[time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, mypoints.num_dimensions());
+        if (!myrank) printf("[time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim);
     }
 
     mytime = -MPI_Wtime();
@@ -119,7 +119,6 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-
         if (!myrank) printf("[time=%.3f] computed tree-to-rank assignments\n", maxtime);
     }
 
@@ -136,12 +135,46 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     if (verbosity > 0)
     {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) printf("[time=%.3f] loaded alltoall outbufs\n", maxtime);
     }
 
+    mytime = -MPI_Wtime();
 
+    MPI_Request reqs[2];
+
+    MPI_Datatype MPI_GLOBAL_POINT;
+    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, dim);
+
+    global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, comm, &reqs[0]);
+    global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, MPI_GLOBAL_POINT, ghost_recvbuf, comm, &reqs[1]);
+
+    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+
+    MPI_Type_free(&MPI_GLOBAL_POINT);
+
+    mytime += MPI_Wtime();
+
+    if (verbosity > 0)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        if (!myrank) printf("[time=%.3f] alltoall exchange\n", maxtime);
+    }
+
+    mytime = -MPI_Wtime();
+
+    IndexVector my_query_sizes(s,0);
+    std::vector<CellVector> my_cell_vectors(s, CellVector(dim));
+
+    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_query_sizes);
+
+    mytime += MPI_Wtime();
+
+    if (verbosity > 0)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        if (!myrank) printf("[time=%.3f] built local cell vectors\n", maxtime);
+    }
 
     return 0;
 }
