@@ -79,6 +79,24 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) printf("[time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers);
     }
 
+    IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
+
+    mytime = -MPI_Wtime();
+    diagram.gather_local_cell_ids(mycellids, mycellptrs);
+    diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
+    mytime += MPI_Wtime();
+
+    if (verbosity > 0)
+    {
+        Index num_ghosts = myghostids.size();
+
+        const void *sendbuf = myrank == 0? MPI_IN_PLACE : &num_ghosts;
+        MPI_Reduce(sendbuf, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
+        if (!myrank) printf("[time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
+    }
+
     return 0;
 }
 
