@@ -225,6 +225,28 @@ void DistVoronoi::get_stats(Index& mincellsize, Index& maxcellsize, int root) co
     }
 }
 
+Index DistVoronoi::compute_static_cyclic_assignments(std::vector<int>& dests, IndexVector& mycells) const
+{
+    Index s = 0;
+    Index m = num_centers();
+
+    dests.resize(m);
+    mycells.clear();
+
+    for (Index i = 0; i < m; ++i)
+    {
+        dests[i] = i % nprocs;
+
+        if (dests[i] == myrank)
+        {
+            mycells.push_back(i);
+            s++;
+        }
+    }
+
+    return s;
+}
+
 std::string DistVoronoi::repr() const
 {
     char buf[512];

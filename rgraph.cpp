@@ -94,26 +94,15 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(sendbuf, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-        if (!myrank) printf("[time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
+        if (!myrank) printf("[time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs);
     }
 
-    Index s = 0;
+    Index s;
     IndexVector mycells;
-    std::vector<int> dests(num_centers); /* tree-to-rank assignments */
+    std::vector<int> dests; /* tree-to-rank assignments */
 
     mytime = -MPI_Wtime();
-
-    for (Index i = 0; i < num_centers; ++i)
-    {
-        dests[i] = i % nprocs;
-
-        if (dests[i] == myrank)
-        {
-            mycells.push_back(i);
-            s++;
-        }
-    }
-
+    s = diagram.compute_static_cyclic_assignments(dests, mycells);
     mytime += MPI_Wtime();
 
     if (verbosity > 0)

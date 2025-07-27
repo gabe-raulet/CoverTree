@@ -28,6 +28,8 @@ class DistVoronoi
         void gather_local_cell_ids(IndexVector& mycellids, IndexVector& ptrs) const;
         void gather_local_ghost_ids(Real radius, IndexVector& myghostids, IndexVector& ptrs) const;
 
+        Index compute_static_cyclic_assignments(std::vector<int>& dests, IndexVector& mycells) const;
+
         void load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, std::vector<GlobalPoint>& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const;
 
         void get_stats(Index& mincellsize, Index& maxcellsize, int root) const;
