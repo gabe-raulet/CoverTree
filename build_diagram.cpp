@@ -5,6 +5,7 @@
 
 #include "utils.h"
 #include "point_vector.h"
+#include "cell_vector.h"
 #include "dist_voronoi.h"
 
 int main(int argc, char *argv[])
@@ -55,6 +56,7 @@ int main(int argc, char *argv[])
         Index m = diagram.num_centers();
         std::vector<int> dests(m);
         IndexVector mycells;
+        Index s = 0;
 
         for (Index i = 0; i < m; ++i)
         {
@@ -63,6 +65,7 @@ int main(int argc, char *argv[])
             if (dests[i] == myrank)
             {
                 mycells.push_back(i);
+                s++;
             }
         }
 
@@ -115,6 +118,10 @@ int main(int argc, char *argv[])
             printf("cellcounts=%s\n", container_repr(cellcounts.begin(), cellcounts.end()).c_str());
             printf("ghostcounts=%s\n", container_repr(ghostcounts.begin(), ghostcounts.end()).c_str());
         }
+
+        std::vector<CellVector> my_cell_vectors(s, CellVector(points.num_dimensions()));
+        IndexVector my_query_sizes(s,0);
+        build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_query_sizes);
     }
 
     MPI_Finalize();

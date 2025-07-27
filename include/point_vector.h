@@ -40,6 +40,8 @@ class PointVector
 
         std::string repr() const;
 
+        virtual Index index(Index offset) const { return offset; }
+
     protected:
 
         AtomVector atoms;

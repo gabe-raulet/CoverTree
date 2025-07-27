@@ -45,3 +45,24 @@ void global_point_alltoall(const std::vector<GlobalPoint>& sendbuf, const std::v
     MPI_Ialltoallv(sendbuf.data(), sendcounts.data(), sdispls.data(), MPI_GLOBAL_POINT,
                    recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GLOBAL_POINT, comm, request);
 }
+
+void build_local_cell_vectors(const std::vector<GlobalPoint>& my_cell_points, const std::vector<GlobalPoint>& my_ghost_points, std::vector<CellVector>& my_cell_vectors, IndexVector& my_query_sizes)
+{
+    Index s = my_cell_vectors.size();
+    assert((s == my_query_sizes.size()));
+
+    std::fill(my_query_sizes.begin(), my_query_sizes.end(), 0);
+    IndexVector my_vector_sizes(s, 0);
+
+    for (const auto& [p, id, cell, dist] : my_cell_points) { my_query_sizes[cell]++; my_vector_sizes[cell]++; }
+    for (const auto& [p, id, cell, dist] : my_ghost_points) { my_vector_sizes[cell]++; }
+
+    for (Index i = 0; i < s; ++i)
+    {
+        my_cell_vectors[i].clear();
+        my_cell_vectors[i].reserve(my_vector_sizes[i]);
+    }
+
+    for (const auto& p : my_cell_points) my_cell_vectors[p.cell].push_back(p);
+    for (const auto& p : my_ghost_points) my_cell_vectors[p.cell].push_back(p);
+}
