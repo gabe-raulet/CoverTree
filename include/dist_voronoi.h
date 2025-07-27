@@ -13,27 +13,26 @@ class DistVoronoi
     public:
 
         DistVoronoi(const PointVector& mypoints, Index global_seed, MPI_Comm comm);
+        ~DistVoronoi();
 
-        Index num_centers() const;
+        Index num_centers() const { return centers.num_points(); }
 
         void add_next_center();
         void add_next_centers(Index count);
 
-        Index next_center_id() const;
-        Real center_separation() const; /* lower bound */
+        Index next_center_id() const { return next_center.id; }
+        Real center_separation() const { return next_center.dist; } /* lower bound */
 
         std::string repr() const;
 
     private:
 
-        MPI_Comm comm;
-        int myrank, nprocs;
-        Index mysize, myoffset, totsize;
-
         GlobalPointVector mypoints; /* mysize */
         GlobalPointVector centers; /* num_centers */
         GlobalPoint next_center;
 
+        MPI_Comm comm;
+        int myrank, nprocs;
         MPI_Datatype MPI_GLOBAL_POINT;
         MPI_Op MPI_ARGMAX;
 

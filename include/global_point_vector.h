@@ -37,7 +37,11 @@ class GlobalPointVector : public PointVector
 
         Index getid(Index offset) const { return ids[offset]; }
         Index getcell(Index offset) const { return cells[offset]; }
-        Index getdist(Index offset) const { return dists[offset]; }
+        Real getdist(Index offset) const { return dists[offset]; }
+
+        Index& getid(Index offset) { return ids[offset]; }
+        Index& getcell(Index offset) { return cells[offset]; }
+        Real& getdist(Index offset) { return dists[offset]; }
 
         void reserve(Index newcap);
         void resize(Index newsize);
@@ -46,7 +50,7 @@ class GlobalPointVector : public PointVector
         void push_back(const GlobalPoint& pt);
         void set(Index offset, const GlobalPoint& pt);
 
-        void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT);
+        void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT) const;
 
     private:
 

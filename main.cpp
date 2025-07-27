@@ -17,23 +17,31 @@ int main(int argc, char *argv[])
 
     PointVector corel, faces, artificial40;
 
-    corel.read_fvecs("scratch/datasets/corel.fvecs");
-    faces.read_fvecs("scratch/datasets/faces.fvecs");
     artificial40.read_fvecs("scratch/datasets/artificial40.fvecs");
 
-    printf("corel: %s\n", corel.repr().c_str());
-    printf("faces: %s\n", faces.repr().c_str());
-    printf("artificial40: %s\n", artificial40.repr().c_str());
-
-    CoverTree corel_tree(corel);
-    CoverTree faces_tree(faces);
-    CoverTree artificial40_tree(artificial40);
-
-    for (Index leaf_size : {1,2,4,8,16,32,64,128,256,512,1024,2048,4096})
     {
-        corel_tree.build(1.3, leaf_size);
-        printf("corel_tree(leaf_size=%lld) = %s\n", leaf_size, corel_tree.repr().c_str());
+        DistVoronoi diagram(artificial40, 0, MPI_COMM_WORLD);
+        diagram.add_next_centers(80);
+        printf("%s\n", diagram.repr().c_str());
     }
+
+
+    /* faces.read_fvecs("scratch/datasets/faces.fvecs"); */
+    /* artificial40.read_fvecs("scratch/datasets/artificial40.fvecs"); */
+
+    /* printf("corel: %s\n", corel.repr().c_str()); */
+    /* printf("faces: %s\n", faces.repr().c_str()); */
+    /* printf("artificial40: %s\n", artificial40.repr().c_str()); */
+
+    /* CoverTree corel_tree(corel); */
+    /* CoverTree faces_tree(faces); */
+    /* CoverTree artificial40_tree(artificial40); */
+
+    /* for (Index leaf_size : {1,2,4,8,16,32,64,128,256,512,1024,2048,4096}) */
+    /* { */
+        /* corel_tree.build(1.3, leaf_size); */
+        /* printf("corel_tree(leaf_size=%lld) = %s\n", leaf_size, corel_tree.repr().c_str()); */
+    /* } */
 
     /* corel_tree.build(1.3, 10); */
     /* faces_tree.build(1.3, 10); */

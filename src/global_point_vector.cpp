@@ -20,7 +20,7 @@ GlobalPointVector::GlobalPointVector(const PointVector& mypoints, Index cell_ini
     std::iota(ids.begin(), ids.end(), myoffset);
 }
 
-void GlobalPointVector::create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT)
+void GlobalPointVector::create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT) const
 {
     assert((dim <= MAX_DIM));
 
