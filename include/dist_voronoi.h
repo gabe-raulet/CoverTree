@@ -30,6 +30,8 @@ class DistVoronoi
 
         void load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, std::vector<GlobalPoint>& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const;
 
+        void get_stats(Index& mincellsize, Index& maxcellsize, int root) const;
+
     private:
 
         PointVector centers; /* num_centers */

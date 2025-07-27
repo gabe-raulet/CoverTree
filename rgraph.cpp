@@ -47,6 +47,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     const char *infile = parameters.infile;
     Index num_centers = parameters.num_centers;
     Real radius = parameters.radius;
+    int verbosity = parameters.verbosity;
 
     mytime = -MPI_Wtime();
     PointVector mypoints; mypoints.read_fvecs(infile, comm);
@@ -55,19 +56,28 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     Index totsize;
     Index mysize = mypoints.num_points();
 
-    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-    MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
+    if (verbosity > 0)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
 
-    if (!myrank) printf("[time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, mypoints.num_dimensions());
+        if (!myrank) printf("[time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, mypoints.num_dimensions());
+    }
 
     mytime = -MPI_Wtime();
     DistVoronoi diagram(mypoints, 0, comm);
     diagram.add_next_centers(num_centers);
     mytime += MPI_Wtime();
 
-    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    if (verbosity > 0)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-    if (!myrank) printf("[time=%.3f] found %lld centers [separation=%.3f,next_center=%lld]\n", maxtime, num_centers, diagram.center_separation(), diagram.next_center_id());
+        Index mincellsize, maxcellsize;
+        diagram.get_stats(mincellsize, maxcellsize, 0);
+
+        if (!myrank) printf("[time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers);
+    }
 
     return 0;
 }
@@ -79,7 +89,7 @@ Parameters::Parameters()
       num_centers(50),
       cover(1.3),
       radius(-1.),
-      verbosity(0),
+      verbosity(1),
       pinned(0) {}
 
 void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)

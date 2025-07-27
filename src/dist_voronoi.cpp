@@ -207,6 +207,24 @@ void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVecto
     }
 }
 
+void DistVoronoi::get_stats(Index& mincellsize, Index& maxcellsize, int root) const
+{
+    int m = num_centers();
+    IndexVector cellsizes(m, 0);
+
+    for (Index cell : cells) cellsizes[cell]++;
+
+    const void *sendbuf = myrank == root? MPI_IN_PLACE : cellsizes.data();
+
+    MPI_Reduce(sendbuf, cellsizes.data(), m, MPI_INDEX, MPI_SUM, root, comm);
+
+    if (myrank == root)
+    {
+        mincellsize = *std::min_element(cellsizes.begin(), cellsizes.end());
+        maxcellsize = *std::max_element(cellsizes.begin(), cellsizes.end());
+    }
+}
+
 std::string DistVoronoi::repr() const
 {
     char buf[512];
