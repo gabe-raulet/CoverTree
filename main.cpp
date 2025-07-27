@@ -1,6 +1,11 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <iostream>
+#include <random>
+#include <algorithm>
+#include <numeric>
+#include <iterator>
+#include <iostream>
 
 #include "utils.h"
 #include "point_vector.h"
@@ -15,40 +20,22 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    GlobalPointVector corel, faces, artificial40;
-
-    corel.read_fvecs("scratch/datasets/corel.fvecs", MPI_COMM_WORLD);
-    faces.read_fvecs("scratch/datasets/faces.fvecs", MPI_COMM_WORLD);
-    artificial40.read_fvecs("scratch/datasets/artificial40.fvecs", MPI_COMM_WORLD);
-
+    if (!myrank)
     {
-        double t1 = MPI_Wtime();
-        DistVoronoi corel_diagram(corel, 0, MPI_COMM_WORLD);
-        corel_diagram.add_next_centers(100);
+        PointVector points;
+        points.read_fvecs("scratch/datasets/faces.fvecs");
 
-        double t2 = MPI_Wtime();
-        double mytime = t2-t1;
-        double maxtime;
+        std::default_random_engine gen(10);
+        IndexVector ids(points.num_points());
+        std::iota(ids.begin(), ids.end(), (Index)0);
+        std::shuffle(ids.begin(), ids.end(), gen);
 
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        ids.resize(100);
 
-        if (!myrank) printf("[time=%.3f] %s\n", maxtime, corel_diagram.repr().c_str());
+        PointVector subset = points.gather(ids);
+
+        subset.write_fvecs("subset.fvecs");
     }
-
-    {
-        double t1 = MPI_Wtime();
-        DistVoronoi faces_diagram(faces, 0, MPI_COMM_WORLD);
-        faces_diagram.add_next_centers(35);
-
-        double t2 = MPI_Wtime();
-        double mytime = t2-t1;
-        double maxtime;
-
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-        if (!myrank) printf("[time=%.3f] %s\n", maxtime, faces_diagram.repr().c_str());
-    }
-
 
     MPI_Finalize();
     return 0;

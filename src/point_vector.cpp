@@ -45,6 +45,36 @@ void PointVector::read_fvecs(const char *fname)
     fclose(f);
 }
 
+void PointVector::write_fvecs(const char *fname) const
+{
+    FILE *f = fopen(fname, "wb");
+
+    const Atom *ptr = atoms.data();
+
+    for (Index i = 0; i < size; ++i)
+    {
+        fwrite(&dim, sizeof(int), 1, f);
+        fwrite(ptr, sizeof(Atom), dim, f);
+        ptr += dim;
+    }
+
+    fclose(f);
+}
+
+PointVector PointVector::gather(const IndexVector& offsets) const
+{
+    Index newsize = offsets.size();
+    AtomVector newatoms(newsize*dim);
+    auto it = newatoms.begin();
+
+    for (Index offset : offsets)
+    {
+        it = std::copy(begin(offset), end(offset), it);
+    }
+
+    return PointVector(newatoms.data(), newsize, dim);
+}
+
 std::string PointVector::repr() const
 {
     char buf[512];
