@@ -171,6 +171,8 @@ void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVecto
     sendbuf.clear();
     sendcounts.resize(nprocs,0), sdispls.resize(nprocs);
 
+    IndexVector rank_cell_map(m), rank_cell_counts(nprocs,0);
+
     Index totsend = 0;
 
     for (Index i = 0; i < m; ++i)
@@ -178,6 +180,9 @@ void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVecto
         int dest = dests[i];
         sendcounts[dest] += (ptrs[i+1]-ptrs[i]);
         totsend += (ptrs[i+1]-ptrs[i]);
+
+        rank_cell_map[i] = rank_cell_counts[dest];
+        rank_cell_counts[dest]++;
     }
 
     std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
@@ -196,7 +201,7 @@ void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVecto
 
             sendbuf[loc].set_point(mypoints, id);
             sendbuf[loc].id = id+myoffset;
-            sendbuf[loc].cell = i;
+            sendbuf[loc].cell = rank_cell_map[i];
             sendbuf[loc].dist = dists[id];
         }
     }
