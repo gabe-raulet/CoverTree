@@ -83,30 +83,13 @@ int main(int argc, char *argv[])
 
         t = -MPI_Wtime();
 
-        cell_recvcounts.resize(nprocs), cell_rdispls.resize(nprocs);
-        ghost_recvcounts.resize(nprocs), ghost_rdispls.resize(nprocs);
+        MPI_Request reqs[2];
 
         MPI_Datatype MPI_GLOBAL_POINT;
         GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, points.num_dimensions());
 
-        MPI_Request reqs[2];
-
-        MPI_Ialltoall(cell_sendcounts.data(), 1, MPI_INT, cell_recvcounts.data(), 1, MPI_INT, MPI_COMM_WORLD, reqs);
-        MPI_Ialltoall(ghost_sendcounts.data(), 1, MPI_INT, ghost_recvcounts.data(), 1, MPI_INT, MPI_COMM_WORLD, reqs+1);
-
-        MPI_Wait(&reqs[0], MPI_STATUS_IGNORE);
-        std::exclusive_scan(cell_recvcounts.begin(), cell_recvcounts.end(), cell_rdispls.begin(), static_cast<int>(0));
-        cell_recvbuf.resize(cell_recvcounts.back()+cell_rdispls.back());
-
-        MPI_Wait(&reqs[1], MPI_STATUS_IGNORE);
-        std::exclusive_scan(ghost_recvcounts.begin(), ghost_recvcounts.end(), ghost_rdispls.begin(), static_cast<int>(0));
-        ghost_recvbuf.resize(ghost_recvcounts.back()+ghost_rdispls.back());
-
-        MPI_Ialltoallv(cell_sendbuf.data(), cell_sendcounts.data(), cell_sdispls.data(), MPI_GLOBAL_POINT,
-                       cell_recvbuf.data(), cell_recvcounts.data(), cell_rdispls.data(), MPI_GLOBAL_POINT, MPI_COMM_WORLD, reqs);
-
-        MPI_Ialltoallv(ghost_sendbuf.data(), ghost_sendcounts.data(), ghost_sdispls.data(), MPI_GLOBAL_POINT,
-                       ghost_recvbuf.data(), ghost_recvcounts.data(), ghost_rdispls.data(), MPI_GLOBAL_POINT, MPI_COMM_WORLD, reqs+1);
+        global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, MPI_COMM_WORLD, &reqs[0]);
+        global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, MPI_GLOBAL_POINT, ghost_recvbuf, MPI_COMM_WORLD, &reqs[1]);
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 
@@ -117,6 +100,21 @@ int main(int argc, char *argv[])
         MPI_Reduce(&t, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
         if (!myrank) printf("[time=%.3f] alltoall exchange\n", maxtime);
+
+        IndexVector cellcounts, ghostcounts;
+        if (!myrank) { cellcounts.resize(nprocs); ghostcounts.resize(nprocs); }
+
+        Index mycellcount = cell_recvbuf.size();
+        Index myghostcount = ghost_recvbuf.size();
+
+        MPI_Gather(&mycellcount, 1, MPI_INDEX, cellcounts.data(), 1, MPI_INDEX, 0, MPI_COMM_WORLD);
+        MPI_Gather(&myghostcount, 1, MPI_INDEX, ghostcounts.data(), 1, MPI_INDEX, 0, MPI_COMM_WORLD);
+
+        if (!myrank)
+        {
+            printf("cellcounts=%s\n", container_repr(cellcounts.begin(), cellcounts.end()).c_str());
+            printf("ghostcounts=%s\n", container_repr(ghostcounts.begin(), ghostcounts.end()).c_str());
+        }
     }
 
     MPI_Finalize();

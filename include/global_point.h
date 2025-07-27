@@ -28,7 +28,8 @@ struct GlobalPoint
     Real dist;
 
     static void create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT, int dim);
-
 };
+
+void global_point_alltoall(const std::vector<GlobalPoint>& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, MPI_Datatype MPI_GLOBAL_POINT, std::vector<GlobalPoint>& recvbuf, MPI_Comm comm, MPI_Request *request);
 
 #endif

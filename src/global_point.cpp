@@ -1,5 +1,6 @@
 #include "global_point.h"
 #include <assert.h>
+#include <numeric>
 
 void GlobalPoint::create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT, int dim)
 {
@@ -26,4 +27,21 @@ std::string GlobalPoint::repr() const
     char buf[512];
     snprintf(buf, 512, "GlobalPoint(id=%lld,cell=%lld,dist=%.3f)", id, cell, dist);
     return std::string(buf);
+}
+
+void global_point_alltoall(const std::vector<GlobalPoint>& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, MPI_Datatype MPI_GLOBAL_POINT, std::vector<GlobalPoint>& recvbuf, MPI_Comm comm, MPI_Request *request)
+{
+    int myrank, nprocs;
+    MPI_Comm_rank(comm, &myrank);
+    MPI_Comm_size(comm, &nprocs);
+
+    std::vector<int> recvcounts(nprocs), rdispls(nprocs);
+
+    MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
+
+    std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0));
+    recvbuf.resize(recvcounts.back()+rdispls.back());
+
+    MPI_Ialltoallv(sendbuf.data(), sendcounts.data(), sdispls.data(), MPI_GLOBAL_POINT,
+                   recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GLOBAL_POINT, comm, request);
 }
