@@ -60,6 +60,15 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     if (!myrank) printf("[time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, mypoints.num_dimensions());
 
+    mytime = -MPI_Wtime();
+    DistVoronoi diagram(mypoints, 0, comm);
+    diagram.add_next_centers(num_centers);
+    mytime += MPI_Wtime();
+
+    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
+    if (!myrank) printf("[time=%.3f] found %lld centers [separation=%.3f,next_center=%lld]\n", maxtime, num_centers, diagram.center_separation(), diagram.next_center_id());
+
     return 0;
 }
 
