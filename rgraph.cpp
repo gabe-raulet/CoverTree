@@ -97,6 +97,52 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) printf("[time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
     }
 
+    Index s = 0;
+    IndexVector mycells;
+    std::vector<int> dests(num_centers); /* tree-to-rank assignments */
+
+    mytime = -MPI_Wtime();
+
+    for (Index i = 0; i < num_centers; ++i)
+    {
+        dests[i] = i % nprocs;
+
+        if (dests[i] == myrank)
+        {
+            mycells.push_back(i);
+            s++;
+        }
+    }
+
+    mytime += MPI_Wtime();
+
+    if (verbosity > 0)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
+        if (!myrank) printf("[time=%.3f] computed tree-to-rank assignments\n", maxtime);
+    }
+
+    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
+    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
+
+    std::vector<GlobalPoint> cell_sendbuf, cell_recvbuf;
+    std::vector<GlobalPoint> ghost_sendbuf, ghost_recvbuf;
+
+    mytime = -MPI_Wtime();
+    diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
+    diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
+    mytime += MPI_Wtime();
+
+    if (verbosity > 0)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+        if (!myrank) printf("[time=%.3f] loaded alltoall outbufs\n", maxtime);
+    }
+
+
+
     return 0;
 }
 
