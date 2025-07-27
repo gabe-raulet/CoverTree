@@ -1,6 +1,7 @@
 *.so
 *.dSYM
 main
+build_diagram
 __pycache__
 scratch
 references
