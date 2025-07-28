@@ -118,6 +118,23 @@ void DistQuery::write_to_file(const char *fname) const
     MPI_File_close(&fh);
 }
 
+void GhostTree::create_header_mpi_type(MPI_Datatype *MPI_GHOST_TREE_HEADER)
+{
+
+}
+
+void GhostTree::create_payload_mpi_type(MPI_Datatype *MPI_GHOST_TREE_PAYLOAD)
+{
+
+}
+
+void GhostTree::allocate()
+{
+
+
+
+}
+
 void DistQuery::shuffle_queues()
 {
     static std::random_device rd;
@@ -143,4 +160,28 @@ void DistQuery::shuffle_queues()
     {
         sendbuf[ptrs[dests[i]]++] = myqueue[i];
     }
+
+    MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
+
+    std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0));
+    recvbuf.resize(recvcounts.back()+rdispls.back());
+
+    MPI_Datatype MPI_GHOST_TREE_HEADER, MPI_GHOST_TREE_PAYLOAD;
+
+    GhostTree::create_header_mpi_type(&MPI_GHOST_TREE_HEADER);
+    GhostTree::create_payload_mpi_type(&MPI_GHOST_TREE_PAYLOAD);
+
+    MPI_Alltoallv(sendbuf.data(), sendcounts.data(), sdispls.data(), MPI_GHOST_TREE_HEADER,
+                  recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GHOST_TREE_HEADER, comm);
+
+    for (GhostTree& tree : recvbuf)
+        tree.allocate();
+
+    MPI_Alltoallv(sendbuf.data(), sendcounts.data(), sdispls.data(), MPI_GHOST_TREE_PAYLOAD,
+                  recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GHOST_TREE_PAYLOAD, comm);
+
+    MPI_Type_free(&MPI_GHOST_TREE_HEADER);
+    MPI_Type_free(&MPI_GHOST_TREE_PAYLOAD);
+
+    myqueue.assign(recvbuf.begin(), recvbuf.end());
 }
