@@ -19,6 +19,7 @@ struct Parameters
     Real cover, radius;
     int verbosity;
     int pinned;
+    int sort_cell_dists;
 
     Parameters();
 
@@ -54,6 +55,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     Index leaf_size = parameters.leaf_size;
     std::string assignment_method = parameters.assignment_method;
     int verbosity = parameters.verbosity;
+    bool sort_cell_dists = static_cast<bool>(parameters.sort_cell_dists);
 
     /*
      * Read input points file
@@ -193,7 +195,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     std::vector<PointVector> my_cell_vectors(s, PointVector(dim));
     std::vector<IndexVector> my_cell_indices(s);
 
-    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes);
+    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes, sort_cell_dists);
 
     mytime += MPI_Wtime();
 
@@ -285,7 +287,8 @@ Parameters::Parameters()
       cover(1.3),
       radius(-1.),
       verbosity(1),
-      pinned(0) {}
+      pinned(0),
+      sort_cell_dists(0) {}
 
 void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
 {
@@ -306,6 +309,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
             fprintf(stderr, "         -a STR   cell assignment method (one of: cyclic, multiway) [%s]\n", assignment_method.c_str());
+            fprintf(stderr, "         -S       sort cell points by distance\n");
             fprintf(stderr, "         -h       help message\n");
         }
 
@@ -313,7 +317,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
     };
 
     int c;
-    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:a:h")) >= 0)
+    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:a:Sh")) >= 0)
     {
 
         if      (c == 'i') infile = optarg;
@@ -326,6 +330,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
         else if (c == 'v') verbosity = atoi(optarg);
         else if (c == 'o') outfile = optarg;
         else if (c == 'a') assignment_method = std::string(optarg);
+        else if (c == 'S') sort_cell_dists = 1;
         else if (c == 'h') usage(0, myrank == 0);
     }
 

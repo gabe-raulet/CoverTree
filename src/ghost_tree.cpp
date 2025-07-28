@@ -28,4 +28,6 @@ GhostTree::GhostTree(const CoverTree& tree, const PointVector& points, const Ind
       indices(indices),
       id(id),
       cur_query(0),
-      num_queries(num_queries) {}
+      num_queries(num_queries),
+      num_points(points.num_points()),
+      num_vertices(tree.num_vertices()) {}

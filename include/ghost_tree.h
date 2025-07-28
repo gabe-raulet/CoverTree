@@ -12,6 +12,8 @@ struct GhostTree
     Index id;
     Index cur_query;
     Index num_queries;
+    Index num_points;
+    Index num_vertices;
 
     GhostTree() = default;
     GhostTree(const CoverTree& tree, const PointVector& points, const IndexVector& indices, Index num_queries, Index id);
