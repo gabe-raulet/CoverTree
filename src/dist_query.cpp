@@ -28,6 +28,7 @@ void DistQuery::static_balancing()
     double t;
 
     t = -MPI_Wtime();
+    shuffle_queues();
     for (auto& tree : myqueue) make_tree_queries(tree, -1);
     t += MPI_Wtime();
 
@@ -86,12 +87,23 @@ void DistQuery::write_to_file(const char *fname) const
     auto sbuf = ss.str();
     std::vector<char> buf(sbuf.begin(), sbuf.end());
 
-    MPI_Offset mysize = buf.size(), fileoffset;
+    MPI_Offset mysize = buf.size(), fileoffset, filesize;
     MPI_Exscan(&mysize, &fileoffset, 1, MPI_OFFSET, MPI_SUM, comm);
     if (!myrank) fileoffset = 0;
 
+    int truncate = 0;
+
     MPI_File fh;
     MPI_File_open(comm, fname, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    MPI_File_get_size(fh, &filesize);
+    truncate = (filesize > 0);
+    MPI_Bcast(&truncate, 1, MPI_INT, 0, comm);
+    if (truncate) MPI_File_set_size(fh, 0);
     MPI_File_write_at_all(fh, fileoffset, buf.data(), static_cast<int>(buf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
+}
+
+void DistQuery::shuffle_queues()
+{
+
 }
