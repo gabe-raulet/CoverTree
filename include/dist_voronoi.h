@@ -31,7 +31,7 @@ class DistVoronoi
         Index compute_static_cyclic_assignments(std::vector<int>& dests, IndexVector& mycells) const;
         Index compute_multiway_number_partitioning_assignments(std::vector<int>& dests, IndexVector& mycells) const;
 
-        void load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, std::vector<GlobalPoint>& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const;
+        void load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const;
 
         void get_stats(Index& mincellsize, Index& maxcellsize, int root) const;
 

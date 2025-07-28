@@ -163,7 +163,7 @@ void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, I
     }
 }
 
-void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, std::vector<GlobalPoint>& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const
+void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const
 {
     Index m = num_centers();
     assert((ptrs.size() == m+1));

@@ -144,8 +144,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
     std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
 
-    std::vector<GlobalPoint> cell_sendbuf, cell_recvbuf;
-    std::vector<GlobalPoint> ghost_sendbuf, ghost_recvbuf;
+    GlobalPointVector cell_sendbuf, cell_recvbuf;
+    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
 
     mytime = -MPI_Wtime();
     diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);

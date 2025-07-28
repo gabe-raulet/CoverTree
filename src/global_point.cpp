@@ -29,7 +29,7 @@ std::string GlobalPoint::repr() const
     return std::string(buf);
 }
 
-void global_point_alltoall(const std::vector<GlobalPoint>& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, MPI_Datatype MPI_GLOBAL_POINT, std::vector<GlobalPoint>& recvbuf, MPI_Comm comm, MPI_Request *request)
+void global_point_alltoall(const GlobalPointVector& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, MPI_Datatype MPI_GLOBAL_POINT, GlobalPointVector& recvbuf, MPI_Comm comm, MPI_Request *request)
 {
     int myrank, nprocs;
     MPI_Comm_rank(comm, &myrank);
@@ -46,7 +46,7 @@ void global_point_alltoall(const std::vector<GlobalPoint>& sendbuf, const std::v
                    recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GLOBAL_POINT, comm, request);
 }
 
-void build_local_cell_vectors(const std::vector<GlobalPoint>& my_cell_points, const std::vector<GlobalPoint>& my_ghost_points, std::vector<CellVector>& my_cell_vectors, IndexVector& my_query_sizes)
+void build_local_cell_vectors(const GlobalPointVector& my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<CellVector>& my_cell_vectors, IndexVector& my_query_sizes)
 {
     Index s = my_cell_vectors.size();
     assert((s == my_query_sizes.size()));
