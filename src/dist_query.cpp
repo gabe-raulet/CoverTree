@@ -1,4 +1,5 @@
 #include "dist_query.h"
+#include <random>
 
 Index GhostTree::make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made)
 {
@@ -115,4 +116,31 @@ void DistQuery::write_to_file(const char *fname) const
     MPI_File_open(comm, fname, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
     MPI_File_write_at_all(fh, fileoffset, buf.data(), static_cast<int>(buf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
+}
+
+void DistQuery::shuffle_queues()
+{
+    static std::random_device rd;
+    static std::default_random_engine gen(rd());
+    std::uniform_int_distribution<int> dist{0,nprocs-1};
+
+    int num_trees_send = myqueue.size();
+
+    std::vector<int> dests(num_trees_send);
+    std::vector<int> sendcounts(nprocs,0), recvcounts(nprocs), sdispls(nprocs), rdispls(nprocs);
+    std::vector<GhostTree> sendbuf(num_trees_send), recvbuf;
+
+    for (int i = 0; i < num_trees_send; ++i)
+    {
+        dests[i] = dist(gen);
+        sendcounts[dests[i]]++;
+    }
+
+    std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
+    auto ptrs = sdispls;
+
+    for (int i = 0; i < num_trees_send; ++i)
+    {
+        sendbuf[ptrs[dests[i]]++] = myqueue[i];
+    }
 }

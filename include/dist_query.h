@@ -15,11 +15,15 @@ struct GhostTree
     Index cur_query;
     Index num_queries;
 
+    GhostTree() = default;
     GhostTree(const CoverTree& tree, const CellVector& points, Index num_queries, Index id)
         : tree(tree), points(points), id(id), cur_query(0), num_queries(num_queries) {}
 
     bool finished() const { return cur_query >= num_queries; }
     Index make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made);
+
+    static void create_mpi_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER);
+    static void create_mpi_type(MPI_Datatype *MPI_GHOST_TREE);
 };
 
 
@@ -55,6 +59,8 @@ class DistQuery
 
         bool make_tree_queries(GhostTree& tree, Index count);
         void report_finished(double mytime);
+
+        void shuffle_queues();
 };
 
 #endif
