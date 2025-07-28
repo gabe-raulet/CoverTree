@@ -1,28 +1,6 @@
 #include "dist_query.h"
 #include <random>
 
-Index GhostTree::make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made)
-{
-    Index edges_found = 0;
-
-    if (finished()) return edges_found;
-
-    if (count < 0) count = num_queries - cur_query;
-    else count = std::min(count, num_queries - cur_query);
-
-    queries_made = count;
-
-    for (Index i = 0; i < count; ++i, ++cur_query)
-    {
-        Index found = tree.radius_query(points, cur_query, radius, neighs);
-        queries.push_back(points.index(cur_query));
-        ptrs.push_back(neighs.size());
-        edges_found += found;
-    }
-
-    return edges_found;
-}
-
 DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<CellVector>& my_cell_vectors, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, MPI_Comm comm, int verbosity)
     : radius(radius),
       comm(comm),
@@ -117,35 +95,3 @@ void DistQuery::write_to_file(const char *fname) const
     MPI_File_write_at_all(fh, fileoffset, buf.data(), static_cast<int>(buf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
 }
-
-/* void DistQuery::shuffle_queues() */
-/* { */
-    /* static std::random_device rd; */
-    /* static std::default_random_engine gen(rd()); */
-    /* std::uniform_int_distribution<int> dist{0,nprocs-1}; */
-
-    /* int num_trees_send = myqueue.size(); */
-
-    /* std::vector<int> dests(num_trees_send); */
-    /* std::vector<int> sendcounts(nprocs,0), recvcounts(nprocs), sdispls(nprocs), rdispls(nprocs); */
-    /* std::vector<GhostTree> sendbuf(num_trees_send), recvbuf; */
-
-    /* for (int i = 0; i < num_trees_send; ++i) */
-    /* { */
-        /* dests[i] = dist(gen); */
-        /* sendcounts[dests[i]]++; */
-    /* } */
-
-    /* std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0)); */
-    /* auto ptrs = sdispls; */
-
-    /* for (int i = 0; i < num_trees_send; ++i) */
-    /* { */
-        /* sendbuf[ptrs[dests[i]]++] = myqueue[i]; */
-    /* } */
-
-    /* MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm); */
-
-    /* std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0)); */
-    /* recvbuf.resize(recvcounts.back()+rdispls.back()); */
-/* } */
