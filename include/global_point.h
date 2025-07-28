@@ -31,9 +31,7 @@ struct GlobalPoint
 
 using GlobalPointVector = std::vector<GlobalPoint>;
 
-#include "cell_vector.h"
-
 void global_point_alltoall(const GlobalPointVector& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, MPI_Datatype MPI_GLOBAL_POINT, GlobalPointVector& recvbuf, MPI_Comm comm, MPI_Request *request);
-void build_local_cell_vectors(const GlobalPointVector& my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<CellVector>& my_cell_vectors, IndexVector& my_query_sizes);
+void build_local_cell_vectors(GlobalPointVector my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<PointVector>& my_cell_vectors, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes);
 
 #endif

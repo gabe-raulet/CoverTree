@@ -1,7 +1,7 @@
 #include "dist_query.h"
 #include <random>
 
-DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<CellVector>& my_cell_vectors, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, MPI_Comm comm, int verbosity)
+DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_vectors, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, MPI_Comm comm, int verbosity)
     : radius(radius),
       comm(comm),
       myptrs({0}),
@@ -17,7 +17,7 @@ DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<Ce
 
     for (Index i = 0; i < s; ++i)
     {
-        myqueue.emplace_back(mytrees[i], my_cell_vectors[i], my_query_sizes[i], mycells[i]);
+        myqueue.emplace_back(mytrees[i], my_cell_vectors[i], my_cell_indices[i], my_query_sizes[i], mycells[i]);
     }
 
     MPI_Allreduce(&s, &num_global_trees, 1, MPI_INDEX, MPI_SUM, comm);

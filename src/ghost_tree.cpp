@@ -13,8 +13,8 @@ Index GhostTree::make_queries(Index count, Real radius, IndexVector& neighs, Ind
 
     for (Index i = 0; i < count; ++i, ++cur_query)
     {
-        Index found = tree.radius_query(points, cur_query, radius, neighs);
-        queries.push_back(points.index(cur_query));
+        Index found = tree.radius_query_indexed(points, cur_query, radius, neighs, indices);
+        queries.push_back(indices[cur_query]);
         ptrs.push_back(neighs.size());
         edges_found += found;
     }
@@ -22,3 +22,10 @@ Index GhostTree::make_queries(Index count, Real radius, IndexVector& neighs, Ind
     return edges_found;
 }
 
+GhostTree::GhostTree(const CoverTree& tree, const PointVector& points, const IndexVector& indices, Index num_queries, Index id)
+    : tree(tree),
+      points(points),
+      indices(indices),
+      id(id),
+      cur_query(0),
+      num_queries(num_queries) {}

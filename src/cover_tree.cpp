@@ -253,6 +253,14 @@ Index CoverTree::radius_query(const PointVector& points, const Atom *query, Real
     return found;
 }
 
+Index CoverTree::radius_query_indexed(const PointVector& points, Index query, Real radius, IndexVector& neighs, const IndexVector& indices) const
+{
+    IndexVector tmpneighs;
+    Index found = radius_query(points, points[query], radius, tmpneighs);
+    std::transform(tmpneighs.begin(), tmpneighs.end(), std::back_inserter(neighs), [&indices](Index id) { return indices[id]; });
+    return found;
+}
+
 std::string CoverTree::repr() const
 {
     char buf[512];

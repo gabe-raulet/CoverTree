@@ -7,7 +7,6 @@
 
 #include "utils.h"
 #include "point_vector.h"
-#include "cell_vector.h"
 #include "dist_voronoi.h"
 #include "dist_query.h"
 
@@ -191,9 +190,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     mytime = -MPI_Wtime();
 
     IndexVector my_query_sizes(s,0);
-    std::vector<CellVector> my_cell_vectors(s, CellVector(dim));
+    std::vector<PointVector> my_cell_vectors(s, PointVector(dim));
+    std::vector<IndexVector> my_cell_indices(s);
 
-    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_query_sizes);
+    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes);
 
     mytime += MPI_Wtime();
 
@@ -239,7 +239,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
      */
 
     mytime = -MPI_Wtime();
-    DistQuery dist_query(mytrees, my_cell_vectors, my_query_sizes, mycells, radius, comm, verbosity);
+    DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, comm, verbosity);
     dist_query.static_balancing();
     mytime += MPI_Wtime();
 
