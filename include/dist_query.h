@@ -9,7 +9,7 @@ class DistQuery
 {
     public:
 
-        DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_vectors, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, MPI_Comm comm, int verbosity);
+        DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_vectors, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, int dim, MPI_Comm comm, int verbosity);
 
         void static_balancing();
 
@@ -33,6 +33,7 @@ class DistQuery
 
         MPI_Comm comm;
         int myrank, nprocs;
+        int dim;
         int verbosity;
 
         bool make_tree_queries(GhostTree& tree, Index count);

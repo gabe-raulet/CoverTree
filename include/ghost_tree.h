@@ -20,6 +20,10 @@ struct GhostTree
 
     bool finished() const { return cur_query >= num_queries; }
     Index make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made);
+
+    void allocate();
+
+    static void create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER);
 };
 
 #endif

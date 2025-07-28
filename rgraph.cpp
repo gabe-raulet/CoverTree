@@ -241,7 +241,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
      */
 
     mytime = -MPI_Wtime();
-    DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, comm, verbosity);
+    DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
     dist_query.static_balancing();
     mytime += MPI_Wtime();
 
