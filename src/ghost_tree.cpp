@@ -9,11 +9,11 @@ void GhostTreeHeader::create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER)
 
     MPI_Aint base_address;
     MPI_Get_address(&dummy, &base_address);
-    MPI_Get_address(&dummy.id, &disps[0]);
-    MPI_Get_address(&dummy.cur_query, &disps[1]);
-    MPI_Get_address(&dummy.num_queries, &disps[2]);
-    MPI_Get_address(&dummy.num_points, &disps[3]);
-    MPI_Get_address(&dummy.num_vertices, &disps[4]);
+    MPI_Get_address(&(dummy.id), &disps[0]);
+    MPI_Get_address(&(dummy.cur_query), &disps[1]);
+    MPI_Get_address(&(dummy.num_queries), &disps[2]);
+    MPI_Get_address(&(dummy.num_points), &disps[3]);
+    MPI_Get_address(&(dummy.num_vertices), &disps[4]);
 
     for (int i = 0; i < 5; ++i) disps[i] -= base_address;
     MPI_Type_create_struct(5, blklens, disps, types, MPI_GHOST_TREE_HEADER);
