@@ -248,6 +248,46 @@ Index DistVoronoi::compute_static_cyclic_assignments(std::vector<int>& dests, In
     return s;
 }
 
+Index DistVoronoi::compute_multiway_number_partitioning_assignments(std::vector<int>& dests, IndexVector& mycells) const
+{
+    Index s = 0;
+    Index m = num_centers();
+
+    dests.resize(m);
+    mycells.clear();
+
+    IndexVector cellsizes(m, 0);
+    for (Index cell : cells) cellsizes[cell]++;
+
+    MPI_Allreduce(MPI_IN_PLACE, cellsizes.data(), m, MPI_INDEX, MPI_SUM, comm);
+
+    IndexPairVector pairs;
+
+    for (Index i = 0; i < m; ++i)
+    {
+        pairs.emplace_back(cellsizes[i], i);
+    }
+
+    std::sort(pairs.rbegin(), pairs.rend());
+
+    IndexVector bins(nprocs, 0);
+
+    for (const auto& [size, cell] : pairs)
+    {
+        int rank = std::min_element(bins.begin(), bins.end()) - bins.begin();
+        bins[rank] += size;
+        dests[cell] = rank;
+
+        if (rank == myrank)
+        {
+            mycells.push_back(cell);
+            s++;
+        }
+    }
+
+    return s;
+}
+
 std::string DistVoronoi::repr() const
 {
     char buf[512];

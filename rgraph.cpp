@@ -16,6 +16,7 @@ struct Parameters
     const char *infile;
     const char *outfile;
     Index leaf_size, num_centers, queries_per_tree;
+    std::string assignment_method;
     Real cover, radius;
     int verbosity;
     int pinned;
@@ -52,6 +53,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     Real radius = parameters.radius;
     Real cover = parameters.cover;
     Index leaf_size = parameters.leaf_size;
+    std::string assignment_method = parameters.assignment_method;
     int verbosity = parameters.verbosity;
 
     mytime = -MPI_Wtime();
@@ -109,7 +111,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     std::vector<int> dests; /* tree-to-rank assignments */
 
     mytime = -MPI_Wtime();
-    s = diagram.compute_static_cyclic_assignments(dests, mycells);
+    if      (assignment_method == "cyclic") s = diagram.compute_static_cyclic_assignments(dests, mycells);
+    else if (assignment_method == "multiway") s = diagram.compute_multiway_number_partitioning_assignments(dests, mycells);
     mytime += MPI_Wtime();
 
     if (verbosity > 0)
@@ -243,6 +246,7 @@ Parameters::Parameters()
       leaf_size(10),
       num_centers(50),
       queries_per_tree(-1),
+      assignment_method("cyclic"),
       cover(1.3),
       radius(-1.),
       verbosity(1),
@@ -266,6 +270,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
             fprintf(stderr, "         -q INT   queries per tree [%lld]\n", queries_per_tree);
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
+            fprintf(stderr, "         -a STR   cell assignment method (one of: cyclic, multiway) [%s]\n", assignment_method.c_str());
             fprintf(stderr, "         -h       help message\n");
         }
 
@@ -273,8 +278,9 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
     };
 
     int c;
-    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:h")) >= 0)
+    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:a:h")) >= 0)
     {
+
         if      (c == 'i') infile = optarg;
         else if (c == 'r') radius = atof(optarg);
         else if (c == 'c') cover = atof(optarg);
@@ -284,6 +290,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
         else if (c == 'q') queries_per_tree = atoi(optarg);
         else if (c == 'v') verbosity = atoi(optarg);
         else if (c == 'o') outfile = optarg;
+        else if (c == 'a') assignment_method = std::string(optarg);
         else if (c == 'h') usage(0, myrank == 0);
     }
 
