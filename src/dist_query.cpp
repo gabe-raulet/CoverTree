@@ -152,6 +152,10 @@ void DistQuery::shuffle_queues()
 
     MPI_Type_free(&MPI_GHOST_TREE_HEADER);
 
-    /* for (auto& tree : recvbuf) */
-        /* tree.allocate(); */
+    for (int i = 0; i < num_trees_recv; ++i)
+    {
+        recvbuf[i].allocate(recvbuf_headers[i]);
+    }
+
+    /* for (auto& tree : recvbuf) tree.allocate(); */
 }

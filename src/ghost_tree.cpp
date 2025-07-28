@@ -49,7 +49,7 @@ GhostTree::GhostTree(const CoverTree& tree, const PointVector& points, const Ind
       header(id, 0, num_queries, points.num_points(), tree.num_vertices()) {}
 
 
-void GhostTree::allocate()
+void GhostTree::allocate(const GhostTreeHeader& recv_header)
 {
-    /* points.res */
+    header = recv_header;
 }
