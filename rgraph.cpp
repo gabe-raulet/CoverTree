@@ -56,6 +56,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     std::string assignment_method = parameters.assignment_method;
     int verbosity = parameters.verbosity;
 
+    /*
+     * Read input points file
+     */
+
     mytime = -MPI_Wtime();
     PointVector mypoints; mypoints.read_fvecs(infile, comm);
     mytime += MPI_Wtime();
@@ -73,6 +77,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) { printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim); fflush(stdout); }
     }
 
+    /*
+     * Partition points into Voronoi cells
+     */
+
     mytime = -MPI_Wtime();
     DistVoronoi diagram(mypoints, 0, comm);
     diagram.add_next_centers(num_centers);
@@ -87,6 +95,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
         if (!myrank) { printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers); fflush(stdout); }
     }
+
+    /*
+     * Gather cell points and find ghost points
+     */
 
     IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
 
@@ -106,6 +118,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) { printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs); fflush(stdout); }
     }
 
+    /*
+     * Compute tree-to-rank assignments
+     */
+
     Index s;
     IndexVector mycells;
     std::vector<int> dests; /* tree-to-rank assignments */
@@ -120,6 +136,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) { printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime); fflush(stdout); }
     }
+
+    /*
+     * Load alltoall buffers
+     */
 
     std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
     std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
@@ -137,6 +157,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) { printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime); fflush(stdout); }
     }
+
+    /*
+     * Exchange points alltoall
+     */
 
     mytime = -MPI_Wtime();
 
@@ -160,6 +184,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) { printf("[v1,time=%.3f] alltoall exchange\n", maxtime); fflush(stdout); }
     }
 
+    /*
+     * Build local cell vectors
+     */
+
     mytime = -MPI_Wtime();
 
     IndexVector my_query_sizes(s,0);
@@ -174,6 +202,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) { printf("[v1,time=%.3f] built local cell vectors\n", maxtime); fflush(stdout); }
     }
+
+    /*
+     * Build local cover trees
+     */
 
     mytime = -MPI_Wtime();
 
@@ -202,6 +234,9 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank) { printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers); fflush(stdout); }
     }
 
+    /*
+     * Compute epsilon neighbors
+     */
 
     mytime = -MPI_Wtime();
     DistQuery dist_query(mytrees, my_cell_vectors, my_query_sizes, mycells, radius, comm, verbosity);
