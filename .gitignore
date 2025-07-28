@@ -1,9 +1,7 @@
 *.so
 *.dSYM
-main
-build_diagram
 rgraph
-__pycache__
 scratch
 references
 Makefile
+__pycache__
