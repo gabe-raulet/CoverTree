@@ -52,7 +52,7 @@ bool DistQuery::make_tree_queries(GhostTree& tree, Index count)
     num_local_queries_made += queries_made;
     num_local_edges_found += edges_found;
 
-    if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,queries_made=%lld,queries_left=%lld,edges_found=%lld]\n", myrank, t, tree.id, queries_made, tree.num_queries - tree.cur_query, edges_found); fflush(stdout); }
+    if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,queries_made=%lld,queries_left=%lld,edges_found=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.num_queries - tree.header.cur_query, edges_found); fflush(stdout); }
 
     if (tree.finished())
     {
