@@ -57,6 +57,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     PointVector mypoints; mypoints.read_fvecs(infile, comm);
     mytime += MPI_Wtime();
 
+    double tottime = -MPI_Wtime();
+
     Index totsize;
     Index mysize = mypoints.num_points();
     int dim = mypoints.num_dimensions();
@@ -65,7 +67,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim);
+        if (!myrank) { printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim); fflush(stdout); }
     }
 
     mytime = -MPI_Wtime();
@@ -80,7 +82,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         Index mincellsize, maxcellsize;
         diagram.get_stats(mincellsize, maxcellsize, 0);
 
-        if (!myrank) printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers);
+        if (!myrank) { printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers); fflush(stdout); }
     }
 
     IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
@@ -98,7 +100,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(sendbuf, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-        if (!myrank) printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs);
+        if (!myrank) { printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs); fflush(stdout); }
     }
 
     Index s;
@@ -112,7 +114,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime);
+        if (!myrank) { printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime); fflush(stdout); }
     }
 
     std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
@@ -129,7 +131,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime);
+        if (!myrank) { printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime); fflush(stdout); }
     }
 
     mytime = -MPI_Wtime();
@@ -151,7 +153,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] alltoall exchange\n", maxtime);
+        if (!myrank) { printf("[v1,time=%.3f] alltoall exchange\n", maxtime); fflush(stdout); }
     }
 
     mytime = -MPI_Wtime();
@@ -166,7 +168,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] built local cell vectors\n", maxtime);
+        if (!myrank) { printf("[v1,time=%.3f] built local cell vectors\n", maxtime); fflush(stdout); }
     }
 
     mytime = -MPI_Wtime();
@@ -179,7 +181,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         mytrees[i].build(my_cell_vectors[i], cover, leaf_size);
         t += MPI_Wtime();
 
-        if (verbosity > 2) printf("[v3,rank=%d,time=%.3f] built cover tree [locid=%lld,globid=%lld,vertices=%lld]\n", myrank, t, i, mycells[i], mytrees[i].num_vertices());
+        if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] built cover tree [locid=%lld,globid=%lld,vertices=%lld]\n", myrank, t, i, mycells[i], mytrees[i].num_vertices()); fflush(stdout); }
     }
 
     mytime += MPI_Wtime();
@@ -187,12 +189,13 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     if (verbosity > 1)
     {
         printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s);
+        fflush(stdout);
     }
 
     if (verbosity > 0)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers);
+        if (!myrank) { printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers); fflush(stdout); }
     }
 
 
@@ -200,6 +203,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     DistQuery dist_query(mytrees, my_cell_vectors, my_query_sizes, mycells, radius, comm, verbosity);
     dist_query.static_balancing();
     mytime += MPI_Wtime();
+
+    tottime += MPI_Wtime();
 
     if (verbosity > 0)
     {
@@ -209,7 +214,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-        if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
+        if (!myrank) { printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize); fflush(stdout); }
     }
 
     if (outfile)
@@ -221,9 +226,12 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (verbosity > 0)
         {
             MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-            if (!myrank) printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile);
+            if (!myrank) { printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile); fflush(stdout); }
         }
     }
+
+    MPI_Reduce(myrank == 0? MPI_IN_PLACE : &tottime, &tottime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    if (!myrank) printf("\n[total_runtime=%.3f,nprocs=%d]\n\n", tottime, nprocs);
 
     return 0;
 }

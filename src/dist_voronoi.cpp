@@ -1,4 +1,5 @@
 #include "dist_voronoi.h"
+#include <algorithm>
 #include <numeric>
 #include <assert.h>
 #include <string.h>

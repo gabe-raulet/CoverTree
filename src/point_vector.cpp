@@ -1,5 +1,6 @@
 #include "point_vector.h"
 #include <filesystem>
+#include <math.h>
 #include <assert.h>
 
 Real PointVector::distance(const Atom *p, const Atom *q) const

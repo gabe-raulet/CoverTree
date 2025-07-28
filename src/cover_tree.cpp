@@ -1,4 +1,6 @@
 #include "cover_tree.h"
+#include <algorithm>
+#include <math.h>
 #include <assert.h>
 
 void CoverTree::build(const PointVector& points, Real cover, Index leaf_size)

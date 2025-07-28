@@ -70,7 +70,7 @@ bool DistQuery::make_tree_queries(GhostTree& tree, Index count)
     num_local_queries_made += queries_made;
     num_local_edges_found += edges_found;
 
-    if (verbosity > 2) printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,queries_made=%lld,queries_left=%lld,edges_found=%lld]\n", myrank, t, tree.id, queries_made, tree.num_queries - tree.cur_query, edges_found);
+    if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,queries_made=%lld,queries_left=%lld,edges_found=%lld]\n", myrank, t, tree.id, queries_made, tree.num_queries - tree.cur_query, edges_found); fflush(stdout); }
 
     if (tree.finished())
     {
@@ -87,6 +87,7 @@ void DistQuery::report_finished(double mytime)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
     printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
+    fflush(stdout);
 }
 
 void DistQuery::write_to_file(const char *fname) const
