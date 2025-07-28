@@ -15,7 +15,7 @@ struct Parameters
 {
     const char *infile;
     const char *outfile;
-    Index leaf_size, num_centers;
+    Index leaf_size, num_centers, queries_per_tree;
     Real cover, radius;
     int verbosity;
     int pinned;
@@ -48,6 +48,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     const char *infile = parameters.infile;
     const char *outfile = parameters.outfile;
     Index num_centers = parameters.num_centers;
+    Index queries_per_tree = parameters.queries_per_tree;
     Real radius = parameters.radius;
     Real cover = parameters.cover;
     Index leaf_size = parameters.leaf_size;
@@ -241,6 +242,7 @@ Parameters::Parameters()
       outfile(NULL),
       leaf_size(10),
       num_centers(50),
+      queries_per_tree(-1),
       cover(1.3),
       radius(-1.),
       verbosity(1),
@@ -261,6 +263,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
             fprintf(stderr, "         -l INT   leaf size [%lld]\n", leaf_size);
             fprintf(stderr, "         -m INT   centers per processor [%lld]\n", num_centers);
             fprintf(stderr, "         -M INT   pinned centers (overrides -m)\n");
+            fprintf(stderr, "         -q INT   queries per tree [%lld]\n", queries_per_tree);
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
             fprintf(stderr, "         -h       help message\n");
@@ -270,7 +273,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
     };
 
     int c;
-    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:h")) >= 0)
+    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:h")) >= 0)
     {
         if      (c == 'i') infile = optarg;
         else if (c == 'r') radius = atof(optarg);
@@ -278,6 +281,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
         else if (c == 'l') leaf_size = atoi(optarg);
         else if (c == 'm') num_centers = nprocs * atoi(optarg);
         else if (c == 'M') { num_centers = atoi(optarg); pinned = 1; }
+        else if (c == 'q') queries_per_tree = atoi(optarg);
         else if (c == 'v') verbosity = atoi(optarg);
         else if (c == 'o') outfile = optarg;
         else if (c == 'h') usage(0, myrank == 0);
