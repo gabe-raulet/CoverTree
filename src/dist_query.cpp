@@ -81,7 +81,8 @@ void DistQuery::write_to_file(const char *fname) const
 
     for (Index i = 0; i < num_local_queries_made; ++i)
         for (Index p = myptrs[i]; p < myptrs[i+1]; ++p)
-            ss << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
+            if (myqueries[i] >= myneighs[p])
+                ss << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
 
     auto sbuf = ss.str();
     std::vector<char> buf(sbuf.begin(), sbuf.end());
