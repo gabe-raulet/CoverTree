@@ -15,6 +15,7 @@ class PointVector
         Index num_points() const { return size; }
         int num_dimensions() const { return dim; }
 
+        Atom* data() { return atoms.data(); }
         const Atom* data() const { return atoms.data(); }
         const Atom* operator[](Index offset) const { return &atoms[offset*dim]; }
 

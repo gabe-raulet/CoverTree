@@ -193,21 +193,20 @@ void CoverTree::build(const PointVector& points, Real cover, Index leaf_size)
 
     assert((ordering.size() == m));
 
-    auto it = buf.begin();
+    auto it = childarr.begin();
 
     for (Index i = 0; i < m; ++i)
     {
         old_to_new[ordering[i]] = i;
-        childptrs[i] = it - buf.begin(); /* assumes childarr goes first */
+        childptrs[i] = it - childarr.begin();
         centers[i] = vertices[ordering[i]].index;
         radii[i] = vertices[ordering[i]].radius;
 
         it = std::copy(vertices[ordering[i]].children.begin(), vertices[ordering[i]].children.end(), it);
     }
 
-    childptrs[m] = m-1;
-
-    for (Index i = 0; i < m-1; ++i) childarr[i] = old_to_new[childarr[i]];
+    childptrs[m] = childarr.size();
+    std::for_each(childarr.begin(), childarr.end(), [&](Index& id) { id = old_to_new[id]; });
 }
 
 Index CoverTree::radius_query(const PointVector& points, const Atom *query, Real radius, IndexVector& neighs) const
@@ -259,12 +258,10 @@ Index CoverTree::radius_query_indexed(const PointVector& points, Index query, Re
 
 void CoverTree::allocate(Index num_verts)
 {
-    buf.resize(3*num_verts);
+    childarr.resize(num_verts-1);
+    childptrs.resize(num_verts+1);
+    centers.resize(num_verts);
     radii.resize(num_verts);
-
-    childarr = &buf[0];
-    childptrs = &childarr[num_verts-1];
-    centers = &childptrs[num_verts+1];
 }
 
 std::string CoverTree::repr() const

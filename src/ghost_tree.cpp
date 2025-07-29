@@ -57,3 +57,43 @@ void GhostTree::allocate(const GhostTreeHeader& recv_header, int dim)
     points.resize(header.num_points, dim);
     indices.resize(header.num_points);
 }
+
+void GhostTree::isend(int dest, MPI_Comm comm, MPI_Request *reqs)
+{
+    int m = header.num_vertices;
+    int n = header.num_points;
+    int tag = header.id;
+
+    const void* bufs[6];
+    int counts[6];
+    MPI_Datatype dtypes[6];
+
+    bufs[0] = tree.childarr.data();  counts[0] = m-1;                dtypes[0] = MPI_INDEX;
+    bufs[1] = tree.childptrs.data(); counts[1] = m+1;                dtypes[1] = MPI_INDEX;
+    bufs[2] = tree.centers.data();   counts[2] = m;                  dtypes[2] = MPI_INDEX;
+    bufs[3] = indices.data();        counts[3] = n;                  dtypes[3] = MPI_INDEX;
+    bufs[4] = tree.radii.data();     counts[4] = m;                  dtypes[4] = MPI_REAL;
+    bufs[5] = points.data();         counts[5] = points.num_atoms(); dtypes[5] = MPI_ATOM;
+
+    for (int i = 0; i < 6; ++i) MPI_Isend(bufs[i], counts[i], dtypes[i], dest, tag, comm, reqs+i);
+}
+
+void GhostTree::irecv(int source, MPI_Comm comm, MPI_Request *reqs)
+{
+    int m = header.num_vertices;
+    int n = header.num_points;
+    int tag = header.id;
+
+    void* bufs[6];
+    int counts[6];
+    MPI_Datatype dtypes[6];
+
+    bufs[0] = tree.childarr.data();  counts[0] = m-1;                dtypes[0] = MPI_INDEX;
+    bufs[1] = tree.childptrs.data(); counts[1] = m+1;                dtypes[1] = MPI_INDEX;
+    bufs[2] = tree.centers.data();   counts[2] = m;                  dtypes[2] = MPI_INDEX;
+    bufs[3] = indices.data();        counts[3] = n;                  dtypes[3] = MPI_INDEX;
+    bufs[4] = tree.radii.data();     counts[4] = m;                  dtypes[4] = MPI_REAL;
+    bufs[5] = points.data();         counts[5] = points.num_atoms(); dtypes[5] = MPI_ATOM;
+
+    for (int i = 0; i < 6; ++i) MPI_Irecv(bufs[i], counts[i], dtypes[i], source, tag, comm, reqs+i);
+}

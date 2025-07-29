@@ -28,6 +28,9 @@ struct GhostTree
     Index make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made);
 
     void allocate(const GhostTreeHeader& recv_header, int dim);
+
+    void isend(int dst, MPI_Comm comm, MPI_Request *reqs);
+    void irecv(int src, MPI_Comm comm, MPI_Request *reqs);
 };
 
 #endif

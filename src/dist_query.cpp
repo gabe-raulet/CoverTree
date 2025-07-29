@@ -31,6 +31,9 @@ void DistQuery::static_balancing()
 
     t = -MPI_Wtime();
     shuffle_queues();
+    shuffle_queues();
+    shuffle_queues();
+    shuffle_queues();
     for (auto& tree : myqueue) make_tree_queries(tree, -1);
     t += MPI_Wtime();
 
@@ -107,6 +110,9 @@ void DistQuery::write_to_file(const char *fname) const
 
 void DistQuery::shuffle_queues()
 {
+    double t = -MPI_Wtime();
+    double maxtime;
+
     static std::random_device rd;
     static std::default_random_engine gen(rd());
     std::uniform_int_distribution<int> dist{0, nprocs-1};
@@ -114,7 +120,7 @@ void DistQuery::shuffle_queues()
     int num_trees_send = myqueue.size();
     int num_trees_recv;
 
-    std::vector<GhostTree> sendbuf, recvbuf;
+    std::vector<GhostTree> sendbuf(myqueue.begin(), myqueue.end()), recvbuf;
     std::vector<GhostTreeHeader> sendbuf_headers, recvbuf_headers;
     std::vector<int> dests(num_trees_send);
 
@@ -128,13 +134,12 @@ void DistQuery::shuffle_queues()
     std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
     assert((num_trees_send == sendcounts.back() + sdispls.back()));
 
-    sendbuf.resize(num_trees_send);
     sendbuf_headers.resize(num_trees_send);
     auto ptrs = sdispls;
 
     for (int i = 0; i < num_trees_send; ++i)
     {
-        sendbuf_headers[ptrs[dests[i]]++] = myqueue[i].header;
+        sendbuf_headers[ptrs[dests[i]]++] = sendbuf[i].header;
     }
 
     MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
@@ -155,5 +160,30 @@ void DistQuery::shuffle_queues()
     for (int i = 0; i < num_trees_recv; ++i)
     {
         recvbuf[i].allocate(recvbuf_headers[i], dim);
+    }
+
+    std::vector<MPI_Request> send_requests(6*num_trees_send), recv_requests(6*num_trees_recv);
+
+    for (int i = 0; i < num_trees_send; ++i)
+    {
+        sendbuf[i].isend(dests[i], comm, &send_requests[6*i]);
+    }
+
+    for (int i = 0; i < num_trees_recv; ++i)
+    {
+        recvbuf[i].irecv(MPI_ANY_SOURCE, comm, &recv_requests[6*i]);
+    }
+
+    MPI_Waitall(6*num_trees_recv, recv_requests.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(6*num_trees_send, send_requests.data(), MPI_STATUSES_IGNORE);
+
+    myqueue.assign(recvbuf.begin(), recvbuf.end());
+
+    t += MPI_Wtime();
+
+    if (verbosity > 1)
+    {
+        MPI_Reduce(&t, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        if (!myrank) printf("[v2,time=%.3f] shuffled queues\n", maxtime);
     }
 }
