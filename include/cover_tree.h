@@ -20,7 +20,7 @@ class CoverTree
 
         std::string repr() const;
 
-        void allocate(Index num_verts) {}
+        void allocate(Index num_verts);
 
     private:
 

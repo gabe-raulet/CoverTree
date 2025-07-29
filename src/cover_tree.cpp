@@ -168,10 +168,7 @@ void CoverTree::build(const PointVector& points, Real cover, Index leaf_size)
 
     Index m = vertices.size();
 
-    centers.resize(m);
-    childarr.resize(m-1);
-    childptrs.resize(m+1);
-    radii.resize(m);
+    this->allocate(m);
 
     IndexQueue queue = {0};
     IndexVector ordering = {0};
@@ -259,6 +256,14 @@ Index CoverTree::radius_query_indexed(const PointVector& points, Index query, Re
     Index found = radius_query(points, points[query], radius, tmpneighs);
     std::transform(tmpneighs.begin(), tmpneighs.end(), std::back_inserter(neighs), [&indices](Index id) { return indices[id]; });
     return found;
+}
+
+void CoverTree::allocate(Index num_verts)
+{
+    centers.resize(num_verts);
+    childarr.resize(num_verts-1);
+    childptrs.resize(num_verts+1);
+    radii.resize(num_verts);
 }
 
 std::string CoverTree::repr() const
