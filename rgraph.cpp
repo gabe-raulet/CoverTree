@@ -222,7 +222,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         mytrees[i].build(my_cell_vectors[i], cover, leaf_size);
         t += MPI_Wtime();
 
-        if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] built cover tree [locid=%lld,globid=%lld,vertices=%lld]\n", myrank, t, i, mycells[i], mytrees[i].num_vertices()); fflush(stdout); }
+        if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] built cover tree [locid=%lld,globid=%lld,points=%lld,vertices=%lld]\n", myrank, t, i, mycells[i], my_cell_vectors[i].num_points(), mytrees[i].num_vertices()); fflush(stdout); }
     }
 
     mytime += MPI_Wtime();
