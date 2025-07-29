@@ -13,6 +13,7 @@ class DistQuery
 
         void static_balancing();
         void random_shuffling(Index queries_per_tree);
+        void random_stealing(Index queries_per_tree);
 
         Index my_edges_found() const { return num_local_edges_found; }
 
@@ -41,6 +42,9 @@ class DistQuery
         void report_finished(double mytime);
 
         void shuffle_queues();
+
+        void attempt_steal(int victim);
+        void handle_steal_requests();
 };
 
 #endif

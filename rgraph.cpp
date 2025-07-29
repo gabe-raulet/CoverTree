@@ -247,6 +247,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     if      (balancing_method == "static")  dist_query.static_balancing();
     else if (balancing_method == "shuffle") dist_query.random_shuffling(queries_per_tree);
+    else if (balancing_method == "steal") dist_query.random_stealing(queries_per_tree);
 
     mytime += MPI_Wtime();
 
@@ -315,7 +316,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
             fprintf(stderr, "         -a STR   cell assignment method (one of: cyclic, multiway) [%s]\n", assignment_method.c_str());
-            fprintf(stderr, "         -b STR   laod balancing method (one of: static, shuffle) [%s]\n", balancing_method.c_str());
+            fprintf(stderr, "         -b STR   load balancing method (one of: static, shuffle, steal) [%s]\n", balancing_method.c_str());
             fprintf(stderr, "         -S       sort cell points by distance\n");
             fprintf(stderr, "         -h       help message\n");
         }
