@@ -30,10 +30,6 @@ void DistQuery::static_balancing()
     double t;
 
     t = -MPI_Wtime();
-    shuffle_queues();
-    shuffle_queues();
-    shuffle_queues();
-    shuffle_queues();
     for (auto& tree : myqueue) make_tree_queries(tree, -1);
     t += MPI_Wtime();
 
@@ -186,4 +182,30 @@ void DistQuery::shuffle_queues()
         MPI_Reduce(&t, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) printf("[v2,time=%.3f] shuffled queues\n", maxtime);
     }
+}
+
+void DistQuery::random_shuffling(Index queries_per_tree)
+{
+    double t, mytime;
+
+    t = -MPI_Wtime();
+
+    while (!myqueue.empty())
+    {
+        /* shuffle_queues(); */
+
+        auto it = myqueue.begin();
+
+        while (it != myqueue.end())
+        {
+            if (make_tree_queries(*it, queries_per_tree))
+                it = myqueue.erase(it);
+            else
+                it++;
+        }
+    }
+
+    t += MPI_Wtime();
+
+    if (verbosity > 1) report_finished(t);
 }
