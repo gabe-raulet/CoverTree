@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include "point_vector.h"
+#include <assert.h>
 
 class CoverTree
 {
@@ -12,7 +13,7 @@ class CoverTree
 
         void build(const PointVector& points, Real cover, Index leaf_size);
 
-        Index num_vertices() const { return centers.size(); }
+        Index num_vertices() const { assert((buf.size() % 3 == 0)); return buf.size()/3; } /* hacky! address later */
 
         Index radius_query(const PointVector& points, const Atom *query, Real radius, IndexVector& neighs) const;
         Index radius_query(const PointVector& points, Index query, Real radius, IndexVector& neighs) const { return radius_query(points, points[query], radius, neighs); }
@@ -24,15 +25,17 @@ class CoverTree
 
     private:
 
-        IndexVector centers; /* size m; vertex centers */
-        IndexVector childarr; /* size m-1; children array */
-        IndexVector childptrs; /* size m+1; children poitners */
+        IndexVector buf; /* totsize 3*m */
         RealVector radii; /* size m; vertex radii */
 
-        IndexIter child_begin(Index vertex) const { return childarr.begin() + childptrs[vertex]; }
-        IndexIter child_end(Index vertex) const { return childarr.begin() + childptrs[vertex+1]; }
+        Index *childarr; /* size m-1; children array */
+        Index *childptrs; /* size m+1; children pointers */
+        Index *centers; /* size m; vertex centers */
 
-        void clear_tree() { centers.clear(); childarr.clear(); childptrs.clear(); radii.clear(); }
+        IndexIter child_begin(Index vertex) const { return buf.begin() + childptrs[vertex]; } /* assumes childarr goes first */
+        IndexIter child_end(Index vertex) const { return buf.begin() + childptrs[vertex+1]; } /* assumes childarr goes first */
+
+        void clear_tree() { buf.clear(); radii.clear(); }
 };
 
 #endif
