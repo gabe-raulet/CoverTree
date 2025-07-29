@@ -1,4 +1,5 @@
 #include "dist_query.h"
+#include "global_termination.h"
 #include <assert.h>
 #include <random>
 
@@ -67,8 +68,7 @@ bool DistQuery::make_tree_queries(GhostTree& tree, Index count)
 void DistQuery::report_finished(double mytime)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-    printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
-    fflush(stdout);
+    printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
 }
 
 void DistQuery::write_to_file(const char *fname) const
@@ -180,7 +180,7 @@ void DistQuery::shuffle_queues()
     if (verbosity > 1)
     {
         MPI_Reduce(&t, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v2,time=%.3f] shuffled queues\n", maxtime);
+        if (!myrank) { printf("[v2,time=%.3f] shuffled queues\n", maxtime); fflush(stdout); }
     }
 }
 
@@ -188,21 +188,32 @@ void DistQuery::random_shuffling(Index queries_per_tree)
 {
     double t, mytime;
 
+    GlobalTermination globterm(num_global_trees, comm);
+
     t = -MPI_Wtime();
 
-    while (!myqueue.empty())
+    while (true)
     {
-        /* shuffle_queues(); */
-
-        auto it = myqueue.begin();
-
-        while (it != myqueue.end())
+        if (!myqueue.empty())
         {
-            if (make_tree_queries(*it, queries_per_tree))
-                it = myqueue.erase(it);
-            else
-                it++;
+            auto it = myqueue.begin();
+
+            while (it != myqueue.end())
+            {
+                if (make_tree_queries(*it, queries_per_tree))
+                {
+                    it = myqueue.erase(it);
+                    globterm.increment();
+                }
+                else it++;
+            }
         }
+
+        if (globterm.done())
+            break;
+
+        if (globterm.ready())
+            shuffle_queues();
     }
 
     t += MPI_Wtime();

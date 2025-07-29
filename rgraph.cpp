@@ -226,8 +226,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     if (verbosity > 1)
     {
-        printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s);
-        fflush(stdout);
+        printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s); fflush(stdout);
     }
 
     if (verbosity > 0)
@@ -242,8 +241,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     mytime = -MPI_Wtime();
     DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
-    dist_query.static_balancing();
-    /* dist_query.random_shuffling(queries_per_tree); */
+    /* dist_query.static_balancing(); */
+    dist_query.random_shuffling(queries_per_tree);
     mytime += MPI_Wtime();
 
     tottime += MPI_Wtime();
