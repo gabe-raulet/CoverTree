@@ -171,7 +171,8 @@ void DistQuery::shuffle_queues()
     if (verbosity > 1)
     {
         MPI_Reduce(&t, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) { printf("[v2,time=%.3f] shuffled queues\n", maxtime); fflush(stdout); }
+        if (!myrank) { printf("[v2,time=%.3f] shuffled queues\n", maxtime); }
+        fflush(stdout);
     }
 }
 
