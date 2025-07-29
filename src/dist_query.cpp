@@ -1,5 +1,4 @@
 #include "dist_query.h"
-#include "global_termination.h"
 #include <assert.h>
 #include <random>
 #include <algorithm>
@@ -25,17 +24,6 @@ DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<Po
     }
 
     MPI_Allreduce(&s, &num_global_trees, 1, MPI_INDEX, MPI_SUM, comm);
-}
-
-void DistQuery::static_balancing()
-{
-    double t;
-
-    t = -MPI_Wtime();
-    for (auto& tree : myqueue) make_tree_queries(tree, -1);
-    t += MPI_Wtime();
-
-    if (verbosity > 1) report_finished(t);
 }
 
 bool DistQuery::make_tree_queries(GhostTree& tree, Index count)
@@ -186,14 +174,15 @@ void DistQuery::shuffle_queues()
     }
 }
 
-void DistQuery::attempt_steal(int victim)
+void DistQuery::static_balancing()
 {
+    double t;
 
-}
+    t = -MPI_Wtime();
+    for (auto& tree : myqueue) make_tree_queries(tree, -1);
+    t += MPI_Wtime();
 
-void DistQuery::handle_steal_requests()
-{
-
+    if (verbosity > 1) report_finished(t);
 }
 
 void DistQuery::random_stealing(Index queries_per_tree)
@@ -202,79 +191,11 @@ void DistQuery::random_stealing(Index queries_per_tree)
     static std::default_random_engine gen(rd());
     std::uniform_int_distribution<int> dist{0, nprocs-1};
 
-    double t, mytime;
+    double t;
 
-    GlobalTermination globterm(num_global_trees, comm);
-
+    shuffle_queues();
     t = -MPI_Wtime();
-
-    while (true)
-    {
-        handle_steal_requests();
-
-        if (!myqueue.empty())
-        {
-            auto it = myqueue.begin();
-
-            while (it != myqueue.end())
-            {
-                if (make_tree_queries(*it, queries_per_tree))
-                {
-                    it = myqueue.erase(it);
-                    globterm.increment();
-                }
-                else it++;
-            }
-        }
-        else
-        {
-            int victim = dist(gen);
-
-            if (victim != myrank)
-                attempt_steal(victim);
-        }
-
-        if (globterm.done())
-            break;
-    }
-
-    t += MPI_Wtime();
-
-    if (verbosity > 1) report_finished(t);
-}
-
-void DistQuery::random_shuffling(Index queries_per_tree)
-{
-    double t, mytime;
-
-    GlobalTermination globterm(num_global_trees, comm);
-
-    t = -MPI_Wtime();
-
-    while (true)
-    {
-        if (!myqueue.empty())
-        {
-            auto it = myqueue.begin();
-
-            while (it != myqueue.end())
-            {
-                if (make_tree_queries(*it, queries_per_tree))
-                {
-                    it = myqueue.erase(it);
-                    globterm.increment();
-                }
-                else it++;
-            }
-        }
-
-        if (globterm.done())
-            break;
-
-        if (globterm.ready())
-            shuffle_queues();
-    }
-
+    for (auto& tree : myqueue) make_tree_queries(tree, -1);
     t += MPI_Wtime();
 
     if (verbosity > 1) report_finished(t);
