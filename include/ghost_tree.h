@@ -29,8 +29,8 @@ struct GhostTree
 
     void allocate(const GhostTreeHeader& recv_header, int dim);
 
-    void isend(int dst, MPI_Comm comm, MPI_Request *reqs);
-    void irecv(int src, MPI_Comm comm, MPI_Request *reqs);
+    void isend(int dst, MPI_Comm comm, std::vector<MPI_Request>& reqs);
+    void irecv(int src, MPI_Comm comm, std::vector<MPI_Request>& reqs);
 };
 
 #endif

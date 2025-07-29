@@ -58,7 +58,7 @@ void GhostTree::allocate(const GhostTreeHeader& recv_header, int dim)
     indices.resize(header.num_points);
 }
 
-void GhostTree::isend(int dest, MPI_Comm comm, MPI_Request *reqs)
+void GhostTree::isend(int dest, MPI_Comm comm, std::vector<MPI_Request>& reqs)
 {
     int m = header.num_vertices;
     int n = header.num_points;
@@ -75,10 +75,15 @@ void GhostTree::isend(int dest, MPI_Comm comm, MPI_Request *reqs)
     bufs[4] = tree.radii.data();     counts[4] = m;                  dtypes[4] = MPI_REAL;
     bufs[5] = points.data();         counts[5] = points.num_atoms(); dtypes[5] = MPI_ATOM;
 
-    for (int i = 0; i < 6; ++i) MPI_Isend(bufs[i], counts[i], dtypes[i], dest, tag, comm, reqs+i);
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Isend(bufs[0], counts[0], dtypes[0], dest, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Isend(bufs[1], counts[1], dtypes[1], dest, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Isend(bufs[2], counts[2], dtypes[2], dest, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Isend(bufs[3], counts[3], dtypes[3], dest, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Isend(bufs[4], counts[4], dtypes[4], dest, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Isend(bufs[5], counts[5], dtypes[5], dest, tag, comm, &reqs.back());
 }
 
-void GhostTree::irecv(int source, MPI_Comm comm, MPI_Request *reqs)
+void GhostTree::irecv(int source, MPI_Comm comm, std::vector<MPI_Request>& reqs)
 {
     int m = header.num_vertices;
     int n = header.num_points;
@@ -95,5 +100,10 @@ void GhostTree::irecv(int source, MPI_Comm comm, MPI_Request *reqs)
     bufs[4] = tree.radii.data();     counts[4] = m;                  dtypes[4] = MPI_REAL;
     bufs[5] = points.data();         counts[5] = points.num_atoms(); dtypes[5] = MPI_ATOM;
 
-    for (int i = 0; i < 6; ++i) MPI_Irecv(bufs[i], counts[i], dtypes[i], source, tag, comm, reqs+i);
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Irecv(bufs[0], counts[0], dtypes[0], source, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Irecv(bufs[1], counts[1], dtypes[1], source, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Irecv(bufs[2], counts[2], dtypes[2], source, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Irecv(bufs[3], counts[3], dtypes[3], source, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Irecv(bufs[4], counts[4], dtypes[4], source, tag, comm, &reqs.back());
+    reqs.push_back(MPI_REQUEST_NULL); MPI_Irecv(bufs[5], counts[5], dtypes[5], source, tag, comm, &reqs.back());
 }

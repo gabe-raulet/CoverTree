@@ -164,20 +164,16 @@ void DistQuery::shuffle_queues()
         recvbuf[i].allocate(recvbuf_headers[i], dim);
     }
 
-    std::vector<MPI_Request> send_requests(6*num_trees_send), recv_requests(6*num_trees_recv);
+    std::vector<MPI_Request> send_requests, recv_requests;
 
-    for (int i = 0; i < num_trees_send; ++i)
-    {
-        sendbuf[i].isend(dests[i], comm, &send_requests[6*i]);
-    }
+    send_requests.reserve(6*num_trees_send);
+    recv_requests.reserve(6*num_trees_recv);
 
-    for (int i = 0; i < num_trees_recv; ++i)
-    {
-        recvbuf[i].irecv(MPI_ANY_SOURCE, comm, &recv_requests[6*i]);
-    }
+    for (int i = 0; i < num_trees_send; ++i) sendbuf[i].isend(dests[i],       comm, send_requests);
+    for (int i = 0; i < num_trees_recv; ++i) recvbuf[i].irecv(MPI_ANY_SOURCE, comm, recv_requests);
 
-    MPI_Waitall(6*num_trees_recv, recv_requests.data(), MPI_STATUSES_IGNORE);
-    MPI_Waitall(6*num_trees_send, send_requests.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(static_cast<int>(send_requests.size()), send_requests.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(static_cast<int>(recv_requests.size()), recv_requests.data(), MPI_STATUSES_IGNORE);
 
     myqueue.assign(recvbuf.begin(), recvbuf.end());
 
