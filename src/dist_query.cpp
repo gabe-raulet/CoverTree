@@ -74,17 +74,22 @@ void DistQuery::report_finished(double mytime)
 
 void DistQuery::write_to_file(const char *fname) const
 {
-    std::ostringstream ss;
-    Index num_vertices, num_edges;
-
-    MPI_Reduce(&num_local_edges_found, &num_edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
-    MPI_Reduce(&num_local_queries_made, &num_vertices, 1, MPI_INDEX, MPI_SUM, 0, comm);
-
-    if (!myrank) ss << num_vertices << " " << num_vertices << " " << num_edges << "\n";
+    std::ostringstream ss, ss2;
+    Index num_vertices, num_edges, my_num_edges = 0;
 
     for (Index i = 0; i < num_local_queries_made; ++i)
         for (Index p = myptrs[i]; p < myptrs[i+1]; ++p)
-            ss << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
+            if (myqueries[i] != myneighs[p])
+            {
+                ss2 << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
+                my_num_edges++;
+            }
+
+    MPI_Reduce(&my_num_edges, &num_edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
+    MPI_Reduce(&num_local_queries_made, &num_vertices, 1, MPI_INDEX, MPI_SUM, 0, comm);
+
+    if (!myrank) ss << num_vertices << " " << num_vertices << " " << num_edges << "\n" << ss2.str();
+    else std::swap(ss, ss2);
 
     auto sbuf = ss.str();
     std::vector<char> buf(sbuf.begin(), sbuf.end());
