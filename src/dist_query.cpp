@@ -1,4 +1,5 @@
 #include "dist_query.h"
+#include "work_stealer.h"
 #include <assert.h>
 #include <random>
 #include <algorithm>
@@ -187,15 +188,31 @@ void DistQuery::static_balancing()
 
 void DistQuery::random_stealing(Index queries_per_tree)
 {
-    static std::random_device rd;
-    static std::default_random_engine gen(rd());
-    std::uniform_int_distribution<int> dist{0, nprocs-1};
+    WorkStealer work_stealer(dim, comm);
 
     double t;
-
-    shuffle_queues();
     t = -MPI_Wtime();
-    for (auto& tree : myqueue) make_tree_queries(tree, -1);
+
+    while (!work_stealer.finished())
+    {
+        work_stealer.poll_incoming_requests(myqueue);
+
+        if (!myqueue.empty())
+        {
+            make_tree_queries(myqueue.front(), -1);
+            myqueue.pop_front();
+        }
+        else
+        {
+            work_stealer.random_steal(myqueue);
+        }
+
+        if (myqueue.empty())
+        {
+            work_stealer.poll_global_termination();
+        }
+    }
+
     t += MPI_Wtime();
 
     if (verbosity > 1) report_finished(t);

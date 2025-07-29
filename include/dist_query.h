@@ -42,9 +42,6 @@ class DistQuery
         void report_finished(double mytime);
 
         void shuffle_queues();
-
-        void attempt_steal(int victim);
-        void handle_steal_requests();
 };
 
 #endif
