@@ -1,6 +1,7 @@
 #include "global_point.h"
 #include <assert.h>
 #include <numeric>
+#include <algorithm>
 
 void GlobalPoint::create_mpi_type(MPI_Datatype *MPI_GLOBAL_POINT, int dim)
 {

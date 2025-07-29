@@ -2,6 +2,7 @@
 #include "global_termination.h"
 #include <assert.h>
 #include <random>
+#include <algorithm>
 
 DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_vectors, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, int dim, MPI_Comm comm, int verbosity)
     : radius(radius),

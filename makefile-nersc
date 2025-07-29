@@ -12,7 +12,7 @@ INCLUDES=-I./include
 
 all: rgraph
 
-rgraph: rgraph.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/cell_vector.cpp src/dist_query.cpp
+rgraph: rgraph.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/dist_query.cpp src/ghost_tree.cpp src/global_termination.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
 clean:
