@@ -16,6 +16,7 @@ struct Parameters
     const char *outfile;
     Index leaf_size, num_centers, queries_per_tree;
     std::string assignment_method;
+    std::string balancing_method;
     Real cover, radius;
     int verbosity;
     int pinned;
@@ -54,6 +55,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     Real cover = parameters.cover;
     Index leaf_size = parameters.leaf_size;
     std::string assignment_method = parameters.assignment_method;
+    std::string balancing_method = parameters.balancing_method;
     int verbosity = parameters.verbosity;
     bool sort_cell_dists = static_cast<bool>(parameters.sort_cell_dists);
 
@@ -84,6 +86,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     mytime = -MPI_Wtime();
     DistVoronoi diagram(mypoints, 0, comm);
+    /* diagram.pick_random_centers(num_centers); */
     diagram.add_next_centers(num_centers);
     mytime += MPI_Wtime();
 
@@ -241,8 +244,10 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     mytime = -MPI_Wtime();
     DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
-    dist_query.static_balancing();
-    //dist_query.random_shuffling(queries_per_tree);
+
+    if      (balancing_method == "static")  dist_query.static_balancing();
+    else if (balancing_method == "shuffle") dist_query.random_shuffling(queries_per_tree);
+
     mytime += MPI_Wtime();
 
     tottime += MPI_Wtime();
@@ -284,6 +289,7 @@ Parameters::Parameters()
       num_centers(50),
       queries_per_tree(-1),
       assignment_method("cyclic"),
+      balancing_method("static"),
       cover(1.3),
       radius(-1.),
       verbosity(1),
@@ -309,6 +315,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
             fprintf(stderr, "         -a STR   cell assignment method (one of: cyclic, multiway) [%s]\n", assignment_method.c_str());
+            fprintf(stderr, "         -b STR   laod balancing method (one of: static, shuffle) [%s]\n", balancing_method.c_str());
             fprintf(stderr, "         -S       sort cell points by distance\n");
             fprintf(stderr, "         -h       help message\n");
         }
@@ -318,7 +325,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
     };
 
     int c;
-    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:a:Sh")) >= 0)
+    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:a:b:Sh")) >= 0)
     {
 
         if      (c == 'i') infile = optarg;
@@ -331,6 +338,7 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
         else if (c == 'v') verbosity = atoi(optarg);
         else if (c == 'o') outfile = optarg;
         else if (c == 'a') assignment_method = std::string(optarg);
+        else if (c == 'b') balancing_method = std::string(optarg);
         else if (c == 'S') sort_cell_dists = 1;
         else if (c == 'h') usage(0, myrank == 0);
     }
