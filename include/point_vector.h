@@ -27,6 +27,7 @@ class PointVector
 
         void reserve(Index newcap) { atoms.reserve(newcap*dim); }
         void resize(Index newsize) { atoms.resize(newsize*dim); size = newsize; }
+        void resize(Index newsize, int newdim) { atoms.resize(newsize*newdim); size = newsize; dim = newdim; }
         void clear() { atoms.clear(); size = 0; }
 
         void push_back(const Atom *pt) { atoms.insert(atoms.end(), pt, pt+dim); ++size; }

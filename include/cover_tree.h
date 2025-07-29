@@ -20,6 +20,8 @@ class CoverTree
 
         std::string repr() const;
 
+        void allocate(Index num_verts) {}
+
     private:
 
         IndexVector centers; /* size m; vertex centers */

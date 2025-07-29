@@ -154,8 +154,6 @@ void DistQuery::shuffle_queues()
 
     for (int i = 0; i < num_trees_recv; ++i)
     {
-        recvbuf[i].allocate(recvbuf_headers[i]);
+        recvbuf[i].allocate(recvbuf_headers[i], dim);
     }
-
-    /* for (auto& tree : recvbuf) tree.allocate(); */
 }

@@ -27,7 +27,7 @@ struct GhostTree
     bool finished() const { return header.cur_query >= header.num_queries; }
     Index make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made);
 
-    void allocate(const GhostTreeHeader& recv_header);
+    void allocate(const GhostTreeHeader& recv_header, int dim);
 };
 
 #endif
