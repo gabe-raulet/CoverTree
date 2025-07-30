@@ -1,0 +1,28 @@
+#!/bin/bash
+
+export MPICH_MPIIO_DVS_MAXNODES=1
+
+INFILE=t2i_small.fvecs
+RADIUS=$1
+CENTERS_PER_PROC=$2
+
+#for NUM_PROCS in 8 16 32 64 128
+#do
+#    srun -N 1 -n $NUM_PROCS ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a cyclic -b static
+#    srun -N 1 -n $NUM_PROCS ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a cyclic -b steal
+#    srun -N 1 -n $NUM_PROCS ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a multiway -b static
+#    srun -N 1 -n $NUM_PROCS ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a multiway -b steal
+#    srun -N 1 -n $NUM_PROCS ./systolic $INFILE $RADIUS
+#    printf "\n"
+#done
+
+for NUM_NODES in 1 2 4
+do
+    srun -N $NUM_NODES --ntasks-per-node 128 ./systolic $INFILE $RADIUS
+    #srun -N $NUM_NODES --ntasks-per-node 128 ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a cyclic -b static
+    #srun -N $NUM_NODES --ntasks-per-node 128 ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a cyclic -b steal
+    #srun -N $NUM_NODES --ntasks-per-node 128 ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a multiway -b static
+    srun -N $NUM_NODES --ntasks-per-node 128 ./rgraph -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -v0 -a multiway -b steal
+    printf "\n"
+done
+

@@ -195,6 +195,10 @@ void DistQuery::static_balancing()
 
 void DistQuery::random_stealing(Index queries_per_tree)
 {
+    /*
+     * 1. TIME STEAL TIME AND POLL TIME SEPARATELY
+     */
+
     WorkStealer work_stealer(dim, comm);
 
     Index totsize = myqueue.size();

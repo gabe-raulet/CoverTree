@@ -38,6 +38,8 @@ bool WorkStealer::finished()
 
 void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
 {
+    /* SORT THE QUEUES BY WORK ESTIMATE */
+
     MPI_Status status;
     int tag, flag, source;
 
@@ -93,6 +95,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
         {
             MPI_Wait(&request, MPI_STATUS_IGNORE);
 
+            /* TIME START HERE (This is where actual communication is happening) */
             int num_trees_recv;
             MPI_Get_count(&status, MPI_GHOST_TREE_HEADER, &num_trees_recv);
 
@@ -116,6 +119,8 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
 
                 MPI_Waitall(6*num_trees_recv, recvreqs.data(), MPI_STATUSES_IGNORE);
             }
+
+            /* TIME END */
 
             steal_in_progress = false;
         }
