@@ -25,7 +25,7 @@ class WorkStealer
         ~WorkStealer();
 
         bool finished();
-        void poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time, int& num_requests, int& num_steals, int& num_response);
+        void poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time, int& num_trees_stolen, int& num_steal_reqs_recv, int& num_steal_reqs_sent);
         void random_steal(std::deque<GhostTree>& myqueue);
         void poll_global_termination();
 

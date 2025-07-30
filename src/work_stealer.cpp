@@ -35,8 +35,7 @@ bool WorkStealer::finished()
     return done;
 }
 
-
-void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time, int& num_requests, int& num_steals, int& num_responses)
+void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time, int& num_trees_stolen, int& num_steal_reqs_recv, int& num_steal_reqs_sent)
 {
     /* SORT THE QUEUES BY WORK ESTIMATE */
 
@@ -58,7 +57,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
         if (tag == STEAL_REQUEST_TAG)
         {
             MPI_Recv(MPI_BOTTOM, 0, MPI_BYTE, source, STEAL_REQUEST_TAG, comm, MPI_STATUS_IGNORE);
-            num_requests++;
+            num_steal_reqs_recv++;
 
             if (myqueue.size() <= 1)
             {
@@ -94,7 +93,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                     color = BLACK_TOKEN;
                 }
 
-                num_steals++;
+                num_trees_stolen++;
             }
         }
 
@@ -134,7 +133,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
             t += MPI_Wtime();
             response_time += t;
 
-            num_responses++;
+            num_steal_reqs_sent++;
             steal_in_progress = false;
         }
 
