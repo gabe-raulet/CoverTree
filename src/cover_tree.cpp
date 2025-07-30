@@ -264,6 +264,95 @@ void CoverTree::allocate(Index num_verts)
     radii.resize(num_verts);
 }
 
+void CoverTree::distributed_query(Real radius, const PointVector& points, IndexVector& myneighs, IndexVector& myqueries, IndexVector& myptrs, MPI_Comm comm, int verbosity) const
+{
+    int myrank, nprocs;
+    MPI_Comm_rank(comm, &myrank);
+    MPI_Comm_size(comm, &nprocs);
+
+    int dim = points.num_dimensions();
+
+    IndexVector allsizes(nprocs), alloffsets(nprocs);
+    allsizes[myrank] = points.num_points();
+
+    MPI_Allgather(MPI_IN_PLACE, 1, MPI_INDEX, allsizes.data(), 1, MPI_INDEX, comm);
+
+    std::exclusive_scan(allsizes.begin(), allsizes.end(), alloffsets.begin(), (Index)0);
+
+    Index myoffset = alloffsets[myrank];
+    Index mysize = allsizes[myrank];
+    Index totsize = std::accumulate(allsizes.begin(), allsizes.end(), (Index)0);
+
+    MPI_Request reqs[2];
+
+    int next = (myrank+1)%nprocs;
+    int prev = (myrank-1+nprocs)%nprocs;
+    int cur = myrank;
+
+    AtomVector curpoints = points.copy_atoms();
+    AtomVector nextpoints;
+
+    Index totfound = 0;
+    double t = -MPI_Wtime();
+
+    for (int step = 0; step < nprocs; ++step)
+    {
+        double mytime = -MPI_Wtime();
+
+        Index numrecv = allsizes[(cur+1)%nprocs];
+        Index numsend = allsizes[cur];
+
+        int recvcount = numrecv*dim;
+        int sendcount = numsend*dim;
+
+        nextpoints.resize(recvcount);
+
+        MPI_Irecv(nextpoints.data(), recvcount, MPI_ATOM, next, myrank, comm, &reqs[0]);
+        MPI_Isend(curpoints.data(), sendcount, MPI_ATOM, prev, prev, comm, &reqs[1]);
+
+        Index cursize = allsizes[cur];
+        Index curoffset = alloffsets[cur];
+
+        Index found = 0;
+        for (Index j = 0; j < cursize; ++j)
+        {
+            myqueries.push_back(j+curoffset);
+            myptrs.push_back(myneighs.size());
+
+            IndexVector neighs;
+            found += radius_query(points, &curpoints[j*dim], radius, neighs);
+            for (Index id : neighs) myneighs.push_back(id+myoffset);
+        }
+
+        totfound += found;
+
+        MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+
+        cur = (cur+1)%nprocs;
+        std::swap(curpoints, nextpoints);
+
+        mytime += MPI_Wtime();
+
+        if (verbosity >= 2)
+        {
+            Real density = (found+0.0)/cursize;
+            printf("[rank=%d,time=%.3f] queried [%lld..%lld] vs [%lld..%lld] [queries_made=%lld,edges_found=%lld,density=%.3f]\n", myrank, mytime, myoffset, myoffset+mysize, curoffset, curoffset+cursize-1, cursize, found, density);
+        }
+    }
+
+    myptrs.push_back(myneighs.size());
+
+    t += MPI_Wtime();
+
+    if (verbosity >= 1)
+    {
+        MPI_Barrier(comm);
+        fflush(stdout);
+        Real density = (totfound+0.0)/totsize;
+        printf("[rank=%d,time=%.3f] finished querying [%lld..%lld] vs all [queries_made=%lld,edges_found=%lld,density=%.3f]\n", myrank, t, myoffset, myoffset+mysize, totsize, totfound, density);
+    }
+}
+
 std::string CoverTree::repr() const
 {
     char buf[512];

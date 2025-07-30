@@ -10,10 +10,13 @@ endif
 COMPILER=mpic++
 INCLUDES=-I./include
 
-all: rgraph
+all: rgraph systolic
 
 rgraph: rgraph.cpp src/point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/dist_query.cpp src/ghost_tree.cpp src/work_stealer.cpp src/utils.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
+systolic: systolic.cpp src/point_vector.cpp src/cover_tree.cpp src/utils.cpp
+	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
+
 clean:
-	rm -rf *.dSYM *.so rgraph
+	rm -rf *.dSYM *.so rgraph systolic

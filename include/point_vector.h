@@ -42,6 +42,8 @@ class PointVector
 
         std::string repr() const;
 
+        AtomVector copy_atoms() const { return atoms; }
+
     protected:
 
         AtomVector atoms;
