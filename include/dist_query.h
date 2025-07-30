@@ -39,7 +39,9 @@ class DistQuery
         int verbosity;
 
         bool make_tree_queries(GhostTree& tree, Index count);
+
         void report_finished(double mytime);
+        void report_finished(double mycomptime, double mycommtime);
 
         void shuffle_queues();
 };

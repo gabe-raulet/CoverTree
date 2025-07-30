@@ -61,6 +61,12 @@ void DistQuery::report_finished(double mytime)
     printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
 }
 
+void DistQuery::report_finished(double mycomptime, double mycommtime)
+{
+    Real density = (num_local_edges_found+0.0)/num_local_queries_made;
+    printf("[v2,rank=%d,comptime=%.3f,commtime=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mycomptime, mycommtime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
+}
+
 void DistQuery::write_to_file(const char *fname) const
 {
     std::ostringstream ss, ss2;
@@ -192,29 +198,42 @@ void DistQuery::random_stealing(Index queries_per_tree)
     WorkStealer work_stealer(dim, comm);
 
     double t;
-    t = -MPI_Wtime();
+    double mycommtime = 0, mycomptime = 0;
 
     while (!work_stealer.finished())
     {
+        t = -MPI_Wtime();
         work_stealer.poll_incoming_requests(myqueue);
+        t += MPI_Wtime();
+        mycommtime += t;
 
         if (!myqueue.empty())
         {
-            make_tree_queries(myqueue.front(), -1);
-            myqueue.pop_front();
+            t = -MPI_Wtime();
+            if (make_tree_queries(myqueue.front(), queries_per_tree))
+                myqueue.pop_front();
+            t += MPI_Wtime();
+            mycomptime += t;
         }
         else
         {
+            t = -MPI_Wtime();
             work_stealer.random_steal(myqueue);
+            t += MPI_Wtime();
+            mycommtime += t;
         }
 
         if (myqueue.empty())
         {
+            t = -MPI_Wtime();
             work_stealer.poll_global_termination();
+            t += MPI_Wtime();
+            mycommtime += t;
         }
     }
 
-    t += MPI_Wtime();
+    if (verbosity > 1) report_finished(mycomptime, mycommtime);
 
-    if (verbosity > 1) report_finished(t);
+    MPI_Barrier(comm);
+    fflush(stdout);
 }
