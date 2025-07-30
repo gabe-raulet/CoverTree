@@ -43,17 +43,20 @@ int main(int argc, char *argv[])
     Index mysize = mypoints.num_points();
     int dim = mypoints.num_dimensions();
 
-    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, MPI_COMM_WORLD);
-    if (!myrank) printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim);
-    fflush(stdout);
+    /* MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); */
+    /* MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, MPI_COMM_WORLD); */
+    /* if (!myrank) printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim); */
+    /* fflush(stdout); */
 
     IndexVector myneighs, myqueries, myptrs;
 
+    Real cover = 1.3;
+    Index leaf_size = 20;
+
     mytime = -MPI_Wtime();
     CoverTree tree;
-    tree.build(mypoints, 1.3, 20);
-    tree.distributed_query(radius, mypoints, myneighs, myqueries, myptrs, MPI_COMM_WORLD, 1);
+    tree.build(mypoints, cover, leaf_size);
+    tree.distributed_query(radius, mypoints, myneighs, myqueries, myptrs, MPI_COMM_WORLD, 0);
     mytime += MPI_Wtime();
 
     Index totedges;
@@ -61,7 +64,12 @@ int main(int argc, char *argv[])
     MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&myedges, &totedges, 1, MPI_INDEX, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", maxtime, totedges, (totedges+0.0)/totsize);
+    /* if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", maxtime, totedges, (totedges+0.0)/totsize); */
+    if (!myrank)
+    {
+        printf("[time=%.3f,nprocs=%d,edges=%lld,radius=%.3f,cover=%.3f,leaf_size=%lld,systolic]\n",
+                 maxtime, nprocs, totedges, radius, cover, leaf_size);
+    }
     fflush(stdout);
 
     MPI_Finalize();

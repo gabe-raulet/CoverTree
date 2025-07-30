@@ -246,7 +246,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     mytime = -MPI_Wtime();
     DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
 
-    if      (balancing_method == "static")  dist_query.static_balancing();
+    if      (balancing_method == "static" || nprocs == 1) dist_query.static_balancing();
     else if (balancing_method == "steal") dist_query.random_stealing(queries_per_tree);
     else throw std::runtime_error("Invalid balancing_method selected!");
 
@@ -254,12 +254,12 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     tottime += MPI_Wtime();
 
+    Index edges;
+    Index myedges = dist_query.my_edges_found();
+    MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
+
     if (verbosity > 0)
     {
-        Index edges;
-        Index myedges = dist_query.my_edges_found();
-
-        MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
         if (!myrank) { printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize); fflush(stdout); }
@@ -279,7 +279,19 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     }
 
     MPI_Reduce(myrank == 0? MPI_IN_PLACE : &tottime, &tottime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-    if (!myrank) printf("\n[total_runtime=%.3f,nprocs=%d]\n\n", tottime, nprocs);
+
+    if (verbosity > 0)
+    {
+        if (!myrank) printf("\n[total_runtime=%.3f,nprocs=%d]\n\n", tottime, nprocs);
+    }
+    else
+    {
+        if (!myrank)
+        {
+            printf("[time=%.3f,nprocs=%d,edges=%lld,radius=%.3f,cover=%.3f,leaf_size=%lld,centers=%lld,queries_per_tree=%lld,assignment=%s,balancing=%s]\n",
+                     tottime, nprocs, edges, radius, cover, leaf_size, num_centers, queries_per_tree, assignment_method.c_str(), balancing_method.c_str());
+        }
+    }
 
     return 0;
 }
