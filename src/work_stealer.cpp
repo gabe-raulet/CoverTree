@@ -59,13 +59,28 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
             }
             else
             {
-                MPI_Send(&myqueue.back().header, 1, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm);
+
+                int queue_size = myqueue.size();
+                int num_trees_send = std::max(1, queue_size/3);
 
                 std::vector<MPI_Request> sendreqs;
-                sendreqs.reserve(6);
-                myqueue.back().isend(source, comm, sendreqs);
-                MPI_Waitall(6, sendreqs.data(), MPI_STATUSES_IGNORE);
-                myqueue.pop_back();
+
+                std::vector<GhostTreeHeader> headers(num_trees_send);
+
+                for (int i = 0; i < num_trees_send; ++i)
+                    headers[i] = myqueue[queue_size-i-1].header;
+
+                MPI_Send(headers.data(), num_trees_send, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm);
+
+                sendreqs.reserve(6*num_trees_send);
+
+                for (int i = 0; i < num_trees_send; ++i)
+                    myqueue[queue_size-i-1].isend(source, comm, sendreqs);
+
+                MPI_Waitall(6*num_trees_send, sendreqs.data(), MPI_STATUSES_IGNORE);
+
+                for (int i = 0; i < num_trees_send; ++i)
+                    myqueue.pop_back();
 
                 if (source < myrank)
                 {
@@ -78,22 +93,28 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
         {
             MPI_Wait(&request, MPI_STATUS_IGNORE);
 
-            int count;
-            MPI_Get_count(&status, MPI_GHOST_TREE_HEADER, &count);
+            int num_trees_recv;
+            MPI_Get_count(&status, MPI_GHOST_TREE_HEADER, &num_trees_recv);
 
-            GhostTreeHeader header;
-            MPI_Recv(&header, count, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm, MPI_STATUS_IGNORE);
+            std::vector<GhostTreeHeader> headers(num_trees_recv);
+            MPI_Recv(headers.data(), num_trees_recv, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm, MPI_STATUS_IGNORE);
 
-            if (count != 0)
+            if (num_trees_recv != 0)
             {
                 std::vector<MPI_Request> recvreqs;
-                recvreqs.reserve(6);
+                recvreqs.reserve(6*num_trees_recv);
 
-                myqueue.emplace_front();
-                myqueue.front().allocate(header, dim);
-                myqueue.front().irecv(source, comm, recvreqs);
+                for (int i = 0; i < num_trees_recv; ++i)
+                    myqueue.emplace_front();
+    
+                for (int i = 0; i < num_trees_recv; ++i)
+                    myqueue[i].allocate(headers[i], dim);
 
-                MPI_Waitall(6, recvreqs.data(), MPI_STATUSES_IGNORE);
+                for (int i = 0; i < num_trees_recv; ++i)
+                    myqueue[i].irecv(source, comm, recvreqs);
+
+
+                MPI_Waitall(6*num_trees_recv, recvreqs.data(), MPI_STATUSES_IGNORE);
             }
 
             steal_in_progress = false;
@@ -114,6 +135,9 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
 
 void WorkStealer::random_steal(std::deque<GhostTree>& myqueue)
 {
+    if (steal_in_progress)
+        return;
+
     std::uniform_int_distribution<int> dist{0,nprocs-1};
 
     int victim;
