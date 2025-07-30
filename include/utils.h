@@ -6,7 +6,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <limits>
 #include <unordered_map>
+#include <random>
 #include <deque>
 #include <tuple>
 #include <mpi.h>
@@ -70,6 +72,8 @@ std::string container_repr(Iter first, Iter last)
     ss << "]";
     return ss.str();
 }
+
+void selection_sample(Index range, Index size, IndexVector& sample, int seed);
 
 #ifdef MPI_INDEX
 #undef MPI_INDEX

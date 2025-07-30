@@ -228,7 +228,7 @@ Index CoverTree::radius_query(const PointVector& points, const Atom *query, Real
 
             if (dist <= radius)
             {
-                neighs.push_back(points.index(leaf));
+                neighs.push_back(leaf);
                 found++;
             }
         }
