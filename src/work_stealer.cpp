@@ -36,7 +36,7 @@ bool WorkStealer::finished()
 }
 
 
-void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time)
+void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time, int& num_requests, int& num_steals, int& num_responses)
 {
     /* SORT THE QUEUES BY WORK ESTIMATE */
 
@@ -58,6 +58,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
         if (tag == STEAL_REQUEST_TAG)
         {
             MPI_Recv(MPI_BOTTOM, 0, MPI_BYTE, source, STEAL_REQUEST_TAG, comm, MPI_STATUS_IGNORE);
+            num_requests++;
 
             if (myqueue.size() <= 1)
             {
@@ -92,15 +93,18 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                 {
                     color = BLACK_TOKEN;
                 }
+
+                num_steals++;
             }
         }
 
         if (tag == STEAL_RESPONSE_TAG)
         {
-            MPI_Wait(&request, MPI_STATUS_IGNORE);
-
             /* TIME START HERE (This is where actual communication is happening) */
             t = -MPI_Wtime();
+
+            MPI_Wait(&request, MPI_STATUS_IGNORE);
+
             int num_trees_recv;
             MPI_Get_count(&status, MPI_GHOST_TREE_HEADER, &num_trees_recv);
 
@@ -130,6 +134,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
             t += MPI_Wtime();
             response_time += t;
 
+            num_responses++;
             steal_in_progress = false;
         }
 
@@ -152,18 +157,17 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
 
 void WorkStealer::random_steal(std::deque<GhostTree>& myqueue)
 {
-    if (steal_in_progress)
-        return;
+    if (!steal_in_progress)
+    {
+        std::uniform_int_distribution<int> dist{0,nprocs-1};
 
-    std::uniform_int_distribution<int> dist{0,nprocs-1};
+        int victim;
+        do { victim = dist(gen); } while (victim == myrank);
 
-    int victim;
+        MPI_Isend(MPI_BOTTOM, 0, MPI_BYTE, victim, STEAL_REQUEST_TAG, comm, &request);
 
-    do { victim = dist(gen); } while (victim == myrank);
-
-    MPI_Isend(MPI_BOTTOM, 0, MPI_BYTE, victim, STEAL_REQUEST_TAG, comm, &request);
-
-    steal_in_progress = true;
+        steal_in_progress = true;
+    }
 }
 
 void WorkStealer::poll_global_termination()

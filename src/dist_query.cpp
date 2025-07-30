@@ -211,6 +211,10 @@ void DistQuery::random_stealing(Index queries_per_tree)
     double my_response_time = 0;
     double my_allreduce_time = 0;
 
+    int num_steals = 0;
+    int num_responses = 0;
+    int num_requests = 0;
+
     int flag;
     Index mycount = 0;
     Index sendbuf = 0, recvbuf;
@@ -223,7 +227,7 @@ void DistQuery::random_stealing(Index queries_per_tree)
 
     while (!work_stealer.finished())
     {
-        work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time);
+        work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time, num_requests, num_steals, num_responses);
 
         if (!myqueue.empty())
         {
@@ -264,7 +268,12 @@ void DistQuery::random_stealing(Index queries_per_tree)
         }
     }
 
-    if (verbosity > 1) report_finished(my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time);
+    if (verbosity > 1)
+    {
+        //Real density = (num_local_edges_found+0.0)/num_local_queries_made;
+        //printf("[v2,rank=%d,comp_time=%.3f,steal_time=%.3f,poll_time=%.3f,resp_time=%.3f,iallreduce_time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
+        printf("[v2,rank=%d,comp_time=%.3f,steal_time=%.3f,poll_time=%.3f,resp_time=%.3f,iallreduce_time=%.3f,num_reqs=%d,num_resps=%d,num_steals=%d] completed queries [num_total_queries=%lld]\n", myrank, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_local_queries_made, num_requests, num_responses, num_steals); fflush(stdout);
+    }
 
     MPI_Barrier(comm);
     fflush(stdout);
