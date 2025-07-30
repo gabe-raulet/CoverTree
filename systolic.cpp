@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     IndexVector myneighs, myqueries, myptrs;
 
     Real cover = 1.3;
-    Index leaf_size = 20;
+    Index leaf_size = 10;
 
     mytime = -MPI_Wtime();
     CoverTree tree;
