@@ -61,10 +61,10 @@ void DistQuery::report_finished(double mytime)
     printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
 }
 
-void DistQuery::report_finished(double mycomptime, double mycommtime)
+void DistQuery::report_finished(double my_comp_time, double my_steal_time, double my_poll_time, double my_response_time, double my_allreduce_time)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-    printf("[v2,rank=%d,comptime=%.3f,commtime=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mycomptime, mycommtime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
+    printf("[v2,rank=%d,comp_time=%.3f,steal_time=%.3f,poll_time=%.3f,resp_time=%.3f,iallreduce_time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
 }
 
 void DistQuery::write_to_file(const char *fname) const
@@ -205,21 +205,25 @@ void DistQuery::random_stealing(Index queries_per_tree)
     MPI_Allreduce(MPI_IN_PLACE, &totsize, 1, MPI_INDEX, MPI_SUM, comm);
 
     double t;
-    double mycommtime = 0, mycomptime = 0;
+    double my_comp_time = 0;
+    double my_steal_time = 0;
+    double my_poll_time = 0;
+    double my_response_time = 0;
+    double my_allreduce_time = 0;
 
     int flag;
     Index mycount = 0;
     Index sendbuf = 0, recvbuf;
     MPI_Request request;
 
+    t = -MPI_Wtime();
     MPI_Iallreduce(&sendbuf, &recvbuf, 1, MPI_INDEX, MPI_SUM, comm, &request);
+    t += MPI_Wtime();
+    my_allreduce_time += t;
 
     while (!work_stealer.finished())
     {
-        t = -MPI_Wtime();
-        work_stealer.poll_incoming_requests(myqueue);
-        t += MPI_Wtime();
-        mycommtime += t;
+        work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time);
 
         if (!myqueue.empty())
         {
@@ -232,29 +236,35 @@ void DistQuery::random_stealing(Index queries_per_tree)
             }
 
             t += MPI_Wtime();
-            mycomptime += t;
+            my_comp_time += t;
         }
         else
         {
             t = -MPI_Wtime();
             work_stealer.random_steal(myqueue);
             t += MPI_Wtime();
-            mycommtime += t;
+            my_steal_time += t;
         }
 
+        t = -MPI_Wtime();
         MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+        t += MPI_Wtime();
+        my_allreduce_time += t;
 
         if (flag)
         {
+            t = -MPI_Wtime();
             if (recvbuf >= totsize)
                 break;
 
             sendbuf = mycount;
             MPI_Iallreduce(&sendbuf, &recvbuf, 1, MPI_INDEX, MPI_SUM, comm, &request);
+            t += MPI_Wtime();
+            my_allreduce_time += t;
         }
     }
 
-    if (verbosity > 1) report_finished(mycomptime, mycommtime);
+    if (verbosity > 1) report_finished(my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time);
 
     MPI_Barrier(comm);
     fflush(stdout);

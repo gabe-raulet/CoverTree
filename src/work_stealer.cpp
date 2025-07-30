@@ -36,12 +36,16 @@ bool WorkStealer::finished()
 }
 
 
-void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
+void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time)
 {
     /* SORT THE QUEUES BY WORK ESTIMATE */
 
     MPI_Status status;
     int tag, flag, source;
+
+    double response_time = 0;
+    double tottime = -MPI_Wtime();
+    double t;
 
     while (true)
     {
@@ -96,6 +100,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
             MPI_Wait(&request, MPI_STATUS_IGNORE);
 
             /* TIME START HERE (This is where actual communication is happening) */
+            t = -MPI_Wtime();
             int num_trees_recv;
             MPI_Get_count(&status, MPI_GHOST_TREE_HEADER, &num_trees_recv);
 
@@ -109,7 +114,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
 
                 for (int i = 0; i < num_trees_recv; ++i)
                     myqueue.emplace_front();
-    
+
                 for (int i = 0; i < num_trees_recv; ++i)
                     myqueue[i].allocate(headers[i], dim);
 
@@ -121,6 +126,9 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
             }
 
             /* TIME END */
+
+            t += MPI_Wtime();
+            response_time += t;
 
             steal_in_progress = false;
         }
@@ -136,6 +144,10 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue)
             done = true;
         }
     }
+
+    tottime += MPI_Wtime();
+    my_poll_time += (tottime - response_time);
+    my_response_time += response_time;
 }
 
 void WorkStealer::random_steal(std::deque<GhostTree>& myqueue)
