@@ -197,8 +197,18 @@ void DistQuery::random_stealing(Index queries_per_tree)
 {
     WorkStealer work_stealer(dim, comm);
 
+    Index totsize = myqueue.size();
+    MPI_Allreduce(MPI_IN_PLACE, &totsize, 1, MPI_INDEX, MPI_SUM, comm);
+
     double t;
     double mycommtime = 0, mycomptime = 0;
+
+    int flag;
+    Index mycount = 0;
+    Index sendbuf = 0, recvbuf;
+    MPI_Request request;
+
+    MPI_Iallreduce(&sendbuf, &recvbuf, 1, MPI_INDEX, MPI_SUM, comm, &request);
 
     while (!work_stealer.finished())
     {
@@ -210,8 +220,13 @@ void DistQuery::random_stealing(Index queries_per_tree)
         if (!myqueue.empty())
         {
             t = -MPI_Wtime();
+
             if (make_tree_queries(myqueue.front(), queries_per_tree))
+            {
                 myqueue.pop_front();
+                mycount++;
+            }
+
             t += MPI_Wtime();
             mycomptime += t;
         }
@@ -223,12 +238,15 @@ void DistQuery::random_stealing(Index queries_per_tree)
             mycommtime += t;
         }
 
-        if (myqueue.empty())
+        MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+
+        if (flag)
         {
-            t = -MPI_Wtime();
-            work_stealer.poll_global_termination();
-            t += MPI_Wtime();
-            mycommtime += t;
+            if (recvbuf >= totsize)
+                break;
+
+            sendbuf = mycount;
+            MPI_Iallreduce(&sendbuf, &recvbuf, 1, MPI_INDEX, MPI_SUM, comm, &request);
         }
     }
 
