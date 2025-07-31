@@ -1,0 +1,28 @@
+[v1,time=0.038] read file 'scratch/datasets/corel.fvecs' [size=68040,dim=32]
+[v1,time=0.033] found 200 centers [separation=0.422,minsize=2,maxsize=5154,avgsize=340.200]
+[v1,time=0.082] found 6591337 ghost points [avgprocsize=823917.125]
+[v1,time=0.000] computed tree-to-rank assignments
+[v1,time=0.117] loaded alltoall outbufs
+[v1,time=0.329] alltoall exchange
+[v1,time=0.058] built local cell vectors
+[v2,rank=7,time=0.965] completed 25 local trees
+[v2,rank=5,time=0.992] completed 25 local trees
+[v2,rank=3,time=1.085] completed 25 local trees
+[v2,rank=2,time=1.104] completed 25 local trees
+[v2,rank=1,time=1.212] completed 25 local trees
+[v2,rank=4,time=1.215] completed 25 local trees
+[v2,rank=0,time=1.256] completed 25 local trees
+[v1,time=1.275] built 200 cover trees
+[v2,rank=6,time=1.275] completed 25 local trees
+[v2,rank=0,overall_time=5.105,comp_time=3.684,steal_time=0.348,poll_time=0.559,resp_time=0.000,iallreduce_time=0.513,num_trees_stolen=6,num_steal_reqs_recv=29,num_steal_reqs_sent=22] completed queries [num_total_queries=8469]
+[v2,rank=1,overall_time=6.218,comp_time=6.214,steal_time=0.000,poll_time=0.004,resp_time=0.000,iallreduce_time=0.000,num_trees_stolen=1,num_steal_reqs_recv=23,num_steal_reqs_sent=2] completed queries [num_total_queries=12946]
+[v2,rank=2,overall_time=4.221,comp_time=1.737,steal_time=0.622,poll_time=0.934,resp_time=0.009,iallreduce_time=0.919,num_trees_stolen=1,num_steal_reqs_recv=26,num_steal_reqs_sent=9] completed queries [num_total_queries=7546]
+[v2,rank=3,overall_time=4.483,comp_time=2.312,steal_time=0.541,poll_time=0.827,resp_time=0.003,iallreduce_time=0.799,num_trees_stolen=1,num_steal_reqs_recv=17,num_steal_reqs_sent=47] completed queries [num_total_queries=8079]
+[v2,rank=4,overall_time=4.662,comp_time=2.713,steal_time=0.489,poll_time=0.739,resp_time=0.005,iallreduce_time=0.716,num_trees_stolen=0,num_steal_reqs_recv=14,num_steal_reqs_sent=19] completed queries [num_total_queries=8439]
+[v2,rank=5,overall_time=4.463,comp_time=2.276,steal_time=0.548,poll_time=0.828,resp_time=0.006,iallreduce_time=0.806,num_trees_stolen=0,num_steal_reqs_recv=27,num_steal_reqs_sent=23] completed queries [num_total_queries=8594]
+[v2,rank=6,overall_time=4.689,comp_time=2.773,steal_time=0.478,poll_time=0.729,resp_time=0.004,iallreduce_time=0.705,num_trees_stolen=0,num_steal_reqs_recv=19,num_steal_reqs_sent=41] completed queries [num_total_queries=7634]
+[v2,rank=7,overall_time=4.284,comp_time=1.867,steal_time=0.604,poll_time=0.910,resp_time=0.011,iallreduce_time=0.891,num_trees_stolen=0,num_steal_reqs_recv=21,num_steal_reqs_sent=12] completed queries [num_total_queries=6333]
+[v1,time=6.261] completed queries [edges=37559190,density=552.016]
+
+[total_runtime=8.108,nprocs=8]
+

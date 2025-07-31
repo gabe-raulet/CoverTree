@@ -273,7 +273,8 @@ void DistQuery::random_stealing(Index queries_per_tree)
 
     if (verbosity > 1)
     {
-        printf("[v2,rank=%d,comp_time=%.3f,steal_time=%.3f,poll_time=%.3f,resp_time=%.3f,iallreduce_time=%.3f,num_trees_stolen=%d,num_steal_reqs_recv=%d,num_steal_reqs_sent=%d] completed queries [num_total_queries=%lld]\n", myrank, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_trees_stolen, num_steal_reqs_recv, num_steal_reqs_sent, num_local_queries_made); fflush(stdout);
+        double overall_time = my_comp_time + my_steal_time + my_poll_time + my_response_time + my_allreduce_time;
+        printf("[v2,rank=%d,overall_time=%.3f,comp_time=%.3f,steal_time=%.3f,poll_time=%.3f,resp_time=%.3f,iallreduce_time=%.3f,num_trees_stolen=%d,num_steal_reqs_recv=%d,num_steal_reqs_sent=%d] completed queries [num_total_queries=%lld]\n", myrank, overall_time, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_trees_stolen, num_steal_reqs_recv, num_steal_reqs_sent, num_local_queries_made); fflush(stdout);
     }
 
     MPI_Barrier(comm);

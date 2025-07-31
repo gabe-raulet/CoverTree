@@ -1,0 +1,44 @@
+[v1,time=0.497] read file 'scratch/datasets/covtype.fvecs' [size=581012,dim=55]
+[v1,time=0.450] found 400 centers [separation=541.091,minsize=21,maxsize=10318,avgsize=1452.530]
+[v1,time=0.257] found 5709179 ghost points [avgprocsize=356823.688]
+[v1,time=0.000] computed tree-to-rank assignments
+[v1,time=0.069] loaded alltoall outbufs
+[v1,time=0.314] alltoall exchange
+[v1,time=0.049] built local cell vectors
+[v2,rank=7,time=0.436] completed 25 local trees
+[v2,rank=13,time=0.556] completed 25 local trees
+[v2,rank=3,time=0.569] completed 25 local trees
+[v2,rank=9,time=0.589] completed 25 local trees
+[v2,rank=15,time=0.602] completed 25 local trees
+[v2,rank=5,time=0.641] completed 25 local trees
+[v2,rank=6,time=0.674] completed 25 local trees
+[v2,rank=8,time=0.662] completed 25 local trees
+[v2,rank=14,time=0.688] completed 25 local trees
+[v2,rank=12,time=0.728] completed 25 local trees
+[v2,rank=4,time=0.755] completed 25 local trees
+[v2,rank=11,time=0.770] completed 25 local trees
+[v2,rank=10,time=0.786] completed 25 local trees
+[v2,rank=2,time=0.815] completed 25 local trees
+[v2,rank=0,time=0.949] completed 25 local trees
+[v1,time=0.987] built 400 cover trees
+[v2,rank=1,time=0.987] completed 25 local trees
+[v2,rank=7,time=1.710] completed queries [num_local_trees=25,num_total_queries=26514,num_local_edges=5271231,density=198.809]
+[v2,rank=12,time=2.117] completed queries [num_local_trees=25,num_total_queries=33007,num_local_edges=6012833,density=182.168]
+[v2,rank=13,time=2.445] completed queries [num_local_trees=25,num_total_queries=30542,num_local_edges=7419207,density=242.918]
+[v2,rank=3,time=2.512] completed queries [num_local_trees=25,num_total_queries=32810,num_local_edges=7734709,density=235.742]
+[v2,rank=15,time=2.596] completed queries [num_local_trees=25,num_total_queries=30049,num_local_edges=7737867,density=257.508]
+[v2,rank=14,time=2.828] completed queries [num_local_trees=25,num_total_queries=34918,num_local_edges=8483792,density=242.963]
+[v2,rank=6,time=2.971] completed queries [num_local_trees=25,num_total_queries=34528,num_local_edges=9326477,density=270.113]
+[v2,rank=8,time=3.103] completed queries [num_local_trees=25,num_total_queries=35510,num_local_edges=9040759,density=254.598]
+[v2,rank=5,time=3.193] completed queries [num_local_trees=25,num_total_queries=33980,num_local_edges=8797819,density=258.912]
+[v2,rank=4,time=3.636] completed queries [num_local_trees=25,num_total_queries=37450,num_local_edges=10188476,density=272.055]
+[v2,rank=10,time=3.764] completed queries [num_local_trees=25,num_total_queries=38683,num_local_edges=10994871,density=284.230]
+[v2,rank=9,time=3.845] completed queries [num_local_trees=25,num_total_queries=35153,num_local_edges=10935597,density=311.086]
+[v2,rank=11,time=3.856] completed queries [num_local_trees=25,num_total_queries=40383,num_local_edges=10612006,density=262.784]
+[v2,rank=2,time=4.727] completed queries [num_local_trees=25,num_total_queries=43791,num_local_edges=12857963,density=293.621]
+[v2,rank=0,time=5.437] completed queries [num_local_trees=25,num_total_queries=46486,num_local_edges=14961255,density=321.844]
+[v1,time=5.473] completed queries [edges=157365576,density=270.847]
+[v2,rank=1,time=6.047] completed queries [num_local_trees=25,num_total_queries=47208,num_local_edges=16990714,density=359.912]
+
+[total_runtime=8.062,nprocs=16]
+

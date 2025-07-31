@@ -1,0 +1,524 @@
+[v1,time=0.222] read file 'points.fvecs' [size=50000,dim=200]
+[v1,time=0.249] found 3840 centers [separation=1.059,minsize=1,maxsize=432,avgsize=13.021]
+[v1,time=0.532] found 191949996 ghost points [avgprocsize=749804.672]
+[v1,time=0.000] computed tree-to-rank assignments
+[v1,time=0.696] loaded alltoall outbufs
+[v1,time=3.520] alltoall exchange
+[v1,time=0.787] built local cell vectors
+[v2,rank=157,time=11.227] completed 15 local trees
+[v2,rank=203,time=11.431] completed 15 local trees
+[v2,rank=83,time=11.525] completed 15 local trees
+[v2,rank=111,time=11.546] completed 15 local trees
+[v2,rank=7,time=11.517] completed 15 local trees
+[v2,rank=51,time=11.651] completed 15 local trees
+[v2,rank=120,time=11.532] completed 15 local trees
+[v2,rank=217,time=11.708] completed 15 local trees
+[v2,rank=10,time=11.692] completed 15 local trees
+[v2,rank=56,time=11.791] completed 15 local trees
+[v2,rank=70,time=11.777] completed 15 local trees
+[v2,rank=229,time=11.858] completed 15 local trees
+[v2,rank=14,time=11.827] completed 15 local trees
+[v2,rank=237,time=11.832] completed 15 local trees
+[v2,rank=27,time=11.922] completed 15 local trees
+[v2,rank=31,time=11.967] completed 15 local trees
+[v2,rank=195,time=11.961] completed 15 local trees
+[v2,rank=4,time=11.900] completed 15 local trees
+[v2,rank=154,time=11.975] completed 15 local trees
+[v2,rank=78,time=11.979] completed 15 local trees
+[v2,rank=124,time=11.852] completed 15 local trees
+[v2,rank=13,time=11.982] completed 15 local trees
+[v2,rank=59,time=12.009] completed 15 local trees
+[v2,rank=116,time=11.969] completed 15 local trees
+[v2,rank=113,time=12.095] completed 15 local trees
+[v2,rank=95,time=12.050] completed 15 local trees
+[v2,rank=43,time=12.092] completed 15 local trees
+[v2,rank=97,time=12.063] completed 15 local trees
+[v2,rank=125,time=11.977] completed 15 local trees
+[v2,rank=167,time=12.143] completed 15 local trees
+[v2,rank=3,time=12.068] completed 15 local trees
+[v2,rank=225,time=12.069] completed 15 local trees
+[v2,rank=48,time=12.101] completed 15 local trees
+[v2,rank=39,time=12.152] completed 15 local trees
+[v2,rank=93,time=12.092] completed 15 local trees
+[v2,rank=180,time=12.123] completed 15 local trees
+[v2,rank=77,time=12.122] completed 15 local trees
+[v2,rank=100,time=12.152] completed 15 local trees
+[v2,rank=134,time=12.170] completed 15 local trees
+[v2,rank=177,time=12.253] completed 15 local trees
+[v2,rank=86,time=12.218] completed 15 local trees
+[v2,rank=133,time=12.222] completed 15 local trees
+[v2,rank=246,time=12.207] completed 15 local trees
+[v2,rank=58,time=12.261] completed 15 local trees
+[v2,rank=87,time=12.244] completed 15 local trees
+[v2,rank=235,time=12.272] completed 15 local trees
+[v2,rank=54,time=12.280] completed 15 local trees
+[v2,rank=199,time=12.302] completed 15 local trees
+[v2,rank=17,time=12.296] completed 15 local trees
+[v2,rank=25,time=12.341] completed 15 local trees
+[v2,rank=186,time=12.286] completed 15 local trees
+[v2,rank=239,time=12.322] completed 15 local trees
+[v2,rank=103,time=12.318] completed 15 local trees
+[v2,rank=0,time=12.111] completed 15 local trees
+[v2,rank=129,time=12.299] completed 15 local trees
+[v2,rank=233,time=12.337] completed 15 local trees
+[v2,rank=94,time=12.352] completed 15 local trees
+[v2,rank=166,time=12.371] completed 15 local trees
+[v2,rank=81,time=12.356] completed 15 local trees
+[v2,rank=218,time=12.404] completed 15 local trees
+[v2,rank=185,time=12.386] completed 15 local trees
+[v2,rank=57,time=12.410] completed 15 local trees
+[v2,rank=71,time=12.379] completed 15 local trees
+[v2,rank=126,time=12.323] completed 15 local trees
+[v2,rank=26,time=12.482] completed 15 local trees
+[v2,rank=52,time=12.463] completed 15 local trees
+[v2,rank=90,time=12.485] completed 15 local trees
+[v2,rank=205,time=12.471] completed 15 local trees
+[v2,rank=231,time=12.525] completed 15 local trees
+[v2,rank=215,time=12.555] completed 15 local trees
+[v2,rank=73,time=12.672] completed 15 local trees
+[v2,rank=211,time=12.586] completed 15 local trees
+[v2,rank=142,time=12.556] completed 15 local trees
+[v2,rank=15,time=12.565] completed 15 local trees
+[v2,rank=92,time=12.554] completed 15 local trees
+[v2,rank=49,time=12.599] completed 15 local trees
+[v2,rank=200,time=12.474] completed 15 local trees
+[v2,rank=191,time=12.594] completed 15 local trees
+[v2,rank=68,time=12.559] completed 15 local trees
+[v2,rank=118,time=12.554] completed 15 local trees
+[v2,rank=128,time=12.387] completed 15 local trees
+[v2,rank=171,time=12.629] completed 15 local trees
+[v2,rank=102,time=12.603] completed 15 local trees
+[v2,rank=123,time=12.611] completed 15 local trees
+[v2,rank=222,time=12.604] completed 15 local trees
+[v2,rank=76,time=12.636] completed 15 local trees
+[v2,rank=189,time=12.651] completed 15 local trees
+[v2,rank=137,time=12.638] completed 15 local trees
+[v2,rank=159,time=12.737] completed 15 local trees
+[v2,rank=183,time=12.695] completed 15 local trees
+[v2,rank=202,time=12.601] completed 15 local trees
+[v2,rank=114,time=12.681] completed 15 local trees
+[v2,rank=62,time=12.719] completed 15 local trees
+[v2,rank=181,time=12.781] completed 15 local trees
+[v2,rank=65,time=12.731] completed 15 local trees
+[v2,rank=182,time=12.768] completed 15 local trees
+[v2,rank=34,time=12.835] completed 15 local trees
+[v2,rank=198,time=12.788] completed 15 local trees
+[v2,rank=119,time=12.761] completed 15 local trees
+[v2,rank=55,time=12.826] completed 15 local trees
+[v2,rank=204,time=12.821] completed 15 local trees
+[v2,rank=112,time=12.716] completed 15 local trees
+[v2,rank=250,time=12.710] completed 15 local trees
+[v2,rank=208,time=12.734] completed 15 local trees
+[v2,rank=108,time=12.823] completed 15 local trees
+[v2,rank=164,time=12.872] completed 15 local trees
+[v2,rank=223,time=12.871] completed 15 local trees
+[v2,rank=216,time=12.844] completed 15 local trees
+[v2,rank=255,time=12.872] completed 15 local trees
+[v2,rank=33,time=12.948] completed 15 local trees
+[v2,rank=50,time=12.914] completed 15 local trees
+[v2,rank=117,time=12.983] completed 15 local trees
+[v2,rank=234,time=12.925] completed 15 local trees
+[v2,rank=1,time=12.916] completed 15 local trees
+[v2,rank=168,time=12.881] completed 15 local trees
+[v2,rank=21,time=12.970] completed 15 local trees
+[v2,rank=98,time=12.871] completed 15 local trees
+[v2,rank=179,time=12.967] completed 15 local trees
+[v2,rank=163,time=13.030] completed 15 local trees
+[v2,rank=9,time=12.975] completed 15 local trees
+[v2,rank=243,time=12.972] completed 15 local trees
+[v2,rank=209,time=12.994] completed 15 local trees
+[v2,rank=219,time=13.041] completed 15 local trees
+[v2,rank=140,time=12.907] completed 15 local trees
+[v2,rank=188,time=13.003] completed 15 local trees
+[v2,rank=145,time=13.011] completed 15 local trees
+[v2,rank=143,time=13.009] completed 15 local trees
+[v2,rank=130,time=12.987] completed 15 local trees
+[v2,rank=194,time=12.945] completed 15 local trees
+[v2,rank=8,time=13.034] completed 15 local trees
+[v2,rank=37,time=13.119] completed 15 local trees
+[v2,rank=151,time=12.998] completed 15 local trees
+[v2,rank=69,time=13.071] completed 15 local trees
+[v2,rank=41,time=13.139] completed 15 local trees
+[v2,rank=136,time=13.020] completed 15 local trees
+[v2,rank=214,time=13.004] completed 15 local trees
+[v2,rank=2,time=13.111] completed 15 local trees
+[v2,rank=20,time=13.132] completed 15 local trees
+[v2,rank=161,time=13.157] completed 15 local trees
+[v2,rank=82,time=13.144] completed 15 local trees
+[v2,rank=230,time=13.168] completed 15 local trees
+[v2,rank=12,time=13.147] completed 15 local trees
+[v2,rank=184,time=13.124] completed 15 local trees
+[v2,rank=187,time=13.130] completed 15 local trees
+[v2,rank=72,time=13.125] completed 15 local trees
+[v2,rank=247,time=13.149] completed 15 local trees
+[v2,rank=132,time=13.171] completed 15 local trees
+[v2,rank=89,time=13.225] completed 15 local trees
+[v2,rank=11,time=13.238] completed 15 local trees
+[v2,rank=24,time=13.271] completed 15 local trees
+[v2,rank=104,time=13.156] completed 15 local trees
+[v2,rank=141,time=13.190] completed 15 local trees
+[v2,rank=127,time=13.193] completed 15 local trees
+[v2,rank=35,time=13.384] completed 15 local trees
+[v2,rank=67,time=13.336] completed 15 local trees
+[v2,rank=109,time=13.326] completed 15 local trees
+[v2,rank=150,time=13.300] completed 15 local trees
+[v2,rank=30,time=13.444] completed 15 local trees
+[v2,rank=61,time=13.399] completed 15 local trees
+[v2,rank=99,time=13.305] completed 15 local trees
+[v2,rank=197,time=13.372] completed 15 local trees
+[v2,rank=139,time=13.414] completed 15 local trees
+[v2,rank=155,time=13.443] completed 15 local trees
+[v2,rank=172,time=13.357] completed 15 local trees
+[v2,rank=110,time=13.441] completed 15 local trees
+[v2,rank=245,time=13.461] completed 15 local trees
+[v2,rank=79,time=13.480] completed 15 local trees
+[v2,rank=96,time=13.348] completed 15 local trees
+[v2,rank=221,time=13.516] completed 15 local trees
+[v2,rank=169,time=13.494] completed 15 local trees
+[v2,rank=84,time=13.500] completed 15 local trees
+[v2,rank=147,time=13.299] completed 15 local trees
+[v2,rank=19,time=13.535] completed 15 local trees
+[v2,rank=63,time=13.544] completed 15 local trees
+[v2,rank=226,time=13.550] completed 15 local trees
+[v2,rank=47,time=13.552] completed 15 local trees
+[v2,rank=152,time=13.606] completed 15 local trees
+[v2,rank=46,time=13.610] completed 15 local trees
+[v2,rank=28,time=13.626] completed 15 local trees
+[v2,rank=232,time=13.529] completed 15 local trees
+[v2,rank=5,time=13.592] completed 15 local trees
+[v2,rank=40,time=13.623] completed 15 local trees
+[v2,rank=91,time=13.662] completed 15 local trees
+[v2,rank=160,time=13.576] completed 15 local trees
+[v2,rank=16,time=13.663] completed 15 local trees
+[v2,rank=238,time=13.671] completed 15 local trees
+[v2,rank=66,time=13.563] completed 15 local trees
+[v2,rank=190,time=13.687] completed 15 local trees
+[v2,rank=210,time=13.690] completed 15 local trees
+[v2,rank=241,time=13.684] completed 15 local trees
+[v2,rank=212,time=13.605] completed 15 local trees
+[v2,rank=107,time=13.744] completed 15 local trees
+[v2,rank=42,time=13.766] completed 15 local trees
+[v2,rank=29,time=13.812] completed 15 local trees
+[v2,rank=131,time=13.761] completed 15 local trees
+[v2,rank=253,time=13.758] completed 15 local trees
+[v2,rank=148,time=13.751] completed 15 local trees
+[v2,rank=144,time=13.610] completed 15 local trees
+[v2,rank=156,time=13.855] completed 15 local trees
+[v2,rank=174,time=13.841] completed 15 local trees
+[v2,rank=176,time=13.751] completed 15 local trees
+[v2,rank=22,time=13.858] completed 15 local trees
+[v2,rank=224,time=13.723] completed 15 local trees
+[v2,rank=45,time=13.895] completed 15 local trees
+[v2,rank=138,time=13.871] completed 15 local trees
+[v2,rank=88,time=13.911] completed 15 local trees
+[v2,rank=44,time=13.968] completed 15 local trees
+[v2,rank=251,time=14.008] completed 15 local trees
+[v2,rank=228,time=13.985] completed 15 local trees
+[v2,rank=106,time=13.976] completed 15 local trees
+[v2,rank=60,time=14.005] completed 15 local trees
+[v2,rank=38,time=14.047] completed 15 local trees
+[v2,rank=201,time=14.017] completed 15 local trees
+[v2,rank=80,time=13.922] completed 15 local trees
+[v2,rank=242,time=14.086] completed 15 local trees
+[v2,rank=207,time=14.120] completed 15 local trees
+[v2,rank=220,time=14.137] completed 15 local trees
+[v2,rank=178,time=14.084] completed 15 local trees
+[v2,rank=121,time=14.138] completed 15 local trees
+[v2,rank=64,time=14.066] completed 15 local trees
+[v2,rank=105,time=14.075] completed 15 local trees
+[v2,rank=23,time=14.271] completed 15 local trees
+[v2,rank=153,time=14.292] completed 15 local trees
+[v2,rank=158,time=14.398] completed 15 local trees
+[v2,rank=213,time=14.374] completed 15 local trees
+[v2,rank=165,time=14.449] completed 15 local trees
+[v2,rank=36,time=14.525] completed 15 local trees
+[v2,rank=85,time=14.561] completed 15 local trees
+[v2,rank=18,time=14.504] completed 15 local trees
+[v2,rank=244,time=14.484] completed 15 local trees
+[v2,rank=252,time=14.490] completed 15 local trees
+[v2,rank=74,time=14.543] completed 15 local trees
+[v2,rank=196,time=14.631] completed 15 local trees
+[v2,rank=115,time=14.623] completed 15 local trees
+[v2,rank=248,time=14.563] completed 15 local trees
+[v2,rank=170,time=14.727] completed 15 local trees
+[v2,rank=173,time=14.681] completed 15 local trees
+[v2,rank=135,time=14.748] completed 15 local trees
+[v2,rank=227,time=14.865] completed 15 local trees
+[v2,rank=53,time=14.900] completed 15 local trees
+[v2,rank=193,time=14.961] completed 15 local trees
+[v2,rank=32,time=15.002] completed 15 local trees
+[v2,rank=175,time=15.027] completed 15 local trees
+[v2,rank=192,time=14.931] completed 15 local trees
+[v2,rank=254,time=15.272] completed 15 local trees
+[v2,rank=75,time=15.308] completed 15 local trees
+[v2,rank=249,time=15.372] completed 15 local trees
+[v2,rank=206,time=15.409] completed 15 local trees
+[v2,rank=6,time=15.401] completed 15 local trees
+[v2,rank=146,time=15.364] completed 15 local trees
+[v2,rank=122,time=15.834] completed 15 local trees
+[v2,rank=240,time=15.810] completed 15 local trees
+[v2,rank=162,time=16.219] completed 15 local trees
+[v2,rank=149,time=16.333] completed 15 local trees
+[v2,rank=101,time=16.658] completed 15 local trees
+[v2,rank=236,time=17.103] completed 15 local trees
+[v1,time=17.103] built 3840 cover trees
+[v2,rank=128,overall_time=8.716,comp_time=4.068,steal_time=0.090,poll_time=4.341,resp_time=0.013,iallreduce_time=0.204,num_trees_stolen=0,num_steal_reqs_recv=597,num_steal_reqs_sent=795] completed queries [num_total_queries=199]
+[v2,rank=192,overall_time=8.714,comp_time=3.961,steal_time=0.090,poll_time=4.464,resp_time=0.001,iallreduce_time=0.198,num_trees_stolen=2,num_steal_reqs_recv=566,num_steal_reqs_sent=385] completed queries [num_total_queries=190]
+[v2,rank=64,overall_time=8.707,comp_time=3.571,steal_time=0.093,poll_time=4.829,resp_time=0.002,iallreduce_time=0.211,num_trees_stolen=1,num_steal_reqs_recv=538,num_steal_reqs_sent=1534] completed queries [num_total_queries=160]
+[v2,rank=0,overall_time=8.695,comp_time=3.429,steal_time=0.097,poll_time=4.949,resp_time=0.008,iallreduce_time=0.214,num_trees_stolen=0,num_steal_reqs_recv=568,num_steal_reqs_sent=661] completed queries [num_total_queries=155]
+[v2,rank=129,overall_time=8.760,comp_time=4.544,steal_time=0.076,poll_time=3.949,resp_time=0.028,iallreduce_time=0.162,num_trees_stolen=0,num_steal_reqs_recv=568,num_steal_reqs_sent=602] completed queries [num_total_queries=234]
+[v2,rank=193,overall_time=8.670,comp_time=2.863,steal_time=0.104,poll_time=5.480,resp_time=0.000,iallreduce_time=0.221,num_trees_stolen=0,num_steal_reqs_recv=582,num_steal_reqs_sent=236] completed queries [num_total_queries=133]
+[v2,rank=65,overall_time=8.704,comp_time=3.902,steal_time=0.094,poll_time=4.474,resp_time=0.033,iallreduce_time=0.202,num_trees_stolen=1,num_steal_reqs_recv=565,num_steal_reqs_sent=678] completed queries [num_total_queries=187]
+[v2,rank=1,overall_time=8.764,comp_time=4.562,steal_time=0.075,poll_time=3.967,resp_time=0.000,iallreduce_time=0.160,num_trees_stolen=3,num_steal_reqs_recv=520,num_steal_reqs_sent=228] completed queries [num_total_queries=224]
+[v2,rank=130,overall_time=8.770,comp_time=5.026,steal_time=0.073,poll_time=3.514,resp_time=0.001,iallreduce_time=0.157,num_trees_stolen=4,num_steal_reqs_recv=514,num_steal_reqs_sent=578] completed queries [num_total_queries=258]
+[v2,rank=194,overall_time=8.712,comp_time=3.823,steal_time=0.092,poll_time=4.592,resp_time=0.010,iallreduce_time=0.195,num_trees_stolen=1,num_steal_reqs_recv=592,num_steal_reqs_sent=487] completed queries [num_total_queries=184]
+[v2,rank=66,overall_time=8.661,comp_time=3.185,steal_time=0.107,poll_time=5.118,resp_time=0.017,iallreduce_time=0.233,num_trees_stolen=1,num_steal_reqs_recv=584,num_steal_reqs_sent=275] completed queries [num_total_queries=149]
+[v2,rank=2,overall_time=8.732,comp_time=4.087,steal_time=0.085,poll_time=4.380,resp_time=0.001,iallreduce_time=0.179,num_trees_stolen=3,num_steal_reqs_recv=556,num_steal_reqs_sent=357] completed queries [num_total_queries=186]
+[v2,rank=131,overall_time=8.692,comp_time=3.685,steal_time=0.098,poll_time=4.649,resp_time=0.054,iallreduce_time=0.206,num_trees_stolen=0,num_steal_reqs_recv=570,num_steal_reqs_sent=697] completed queries [num_total_queries=177]
+[v2,rank=195,overall_time=8.650,comp_time=2.872,steal_time=0.111,poll_time=5.433,resp_time=0.000,iallreduce_time=0.234,num_trees_stolen=0,num_steal_reqs_recv=546,num_steal_reqs_sent=273] completed queries [num_total_queries=130]
+[v2,rank=67,overall_time=8.731,comp_time=4.046,steal_time=0.085,poll_time=4.398,resp_time=0.018,iallreduce_time=0.184,num_trees_stolen=0,num_steal_reqs_recv=496,num_steal_reqs_sent=206] completed queries [num_total_queries=194]
+[v2,rank=3,overall_time=8.692,comp_time=3.602,steal_time=0.098,poll_time=4.743,resp_time=0.040,iallreduce_time=0.209,num_trees_stolen=0,num_steal_reqs_recv=581,num_steal_reqs_sent=194] completed queries [num_total_queries=169]
+[v2,rank=132,overall_time=8.772,comp_time=4.759,steal_time=0.073,poll_time=3.786,resp_time=0.001,iallreduce_time=0.154,num_trees_stolen=5,num_steal_reqs_recv=553,num_steal_reqs_sent=790] completed queries [num_total_queries=233]
+[v2,rank=196,overall_time=8.734,comp_time=3.959,steal_time=0.084,poll_time=4.436,resp_time=0.075,iallreduce_time=0.180,num_trees_stolen=3,num_steal_reqs_recv=570,num_steal_reqs_sent=476] completed queries [num_total_queries=184]
+[v2,rank=68,overall_time=8.810,comp_time=5.401,steal_time=0.061,poll_time=3.199,resp_time=0.017,iallreduce_time=0.132,num_trees_stolen=1,num_steal_reqs_recv=613,num_steal_reqs_sent=560] completed queries [num_total_queries=288]
+[v2,rank=4,overall_time=8.718,comp_time=4.192,steal_time=0.089,poll_time=4.233,resp_time=0.012,iallreduce_time=0.192,num_trees_stolen=2,num_steal_reqs_recv=583,num_steal_reqs_sent=477] completed queries [num_total_queries=202]
+[v2,rank=133,overall_time=8.723,comp_time=4.200,steal_time=0.088,poll_time=4.244,resp_time=0.000,iallreduce_time=0.191,num_trees_stolen=3,num_steal_reqs_recv=510,num_steal_reqs_sent=215] completed queries [num_total_queries=212]
+[v2,rank=197,overall_time=8.762,comp_time=4.767,steal_time=0.076,poll_time=3.755,resp_time=0.002,iallreduce_time=0.162,num_trees_stolen=4,num_steal_reqs_recv=557,num_steal_reqs_sent=1176] completed queries [num_total_queries=244]
+[v2,rank=69,overall_time=8.683,comp_time=3.582,steal_time=0.100,poll_time=4.784,resp_time=0.001,iallreduce_time=0.216,num_trees_stolen=0,num_steal_reqs_recv=558,num_steal_reqs_sent=696] completed queries [num_total_queries=166]
+[v2,rank=5,overall_time=8.755,comp_time=4.469,steal_time=0.078,poll_time=4.030,resp_time=0.010,iallreduce_time=0.168,num_trees_stolen=1,num_steal_reqs_recv=572,num_steal_reqs_sent=310] completed queries [num_total_queries=217]
+[v2,rank=134,overall_time=8.769,comp_time=4.674,steal_time=0.074,poll_time=3.802,resp_time=0.061,iallreduce_time=0.158,num_trees_stolen=0,num_steal_reqs_recv=571,num_steal_reqs_sent=1321] completed queries [num_total_queries=254]
+[v2,rank=198,overall_time=8.911,comp_time=7.230,steal_time=0.029,poll_time=1.525,resp_time=0.067,iallreduce_time=0.061,num_trees_stolen=0,num_steal_reqs_recv=576,num_steal_reqs_sent=443] completed queries [num_total_queries=427]
+[v2,rank=70,overall_time=8.705,comp_time=3.501,steal_time=0.094,poll_time=4.829,resp_time=0.080,iallreduce_time=0.202,num_trees_stolen=1,num_steal_reqs_recv=519,num_steal_reqs_sent=152] completed queries [num_total_queries=171]
+[v2,rank=6,overall_time=8.758,comp_time=4.449,steal_time=0.077,poll_time=4.070,resp_time=0.001,iallreduce_time=0.162,num_trees_stolen=4,num_steal_reqs_recv=543,num_steal_reqs_sent=538] completed queries [num_total_queries=214]
+[v2,rank=135,overall_time=8.779,comp_time=5.199,steal_time=0.070,poll_time=3.358,resp_time=0.001,iallreduce_time=0.150,num_trees_stolen=1,num_steal_reqs_recv=539,num_steal_reqs_sent=428] completed queries [num_total_queries=265]
+[v2,rank=199,overall_time=8.668,comp_time=2.787,steal_time=0.106,poll_time=5.530,resp_time=0.022,iallreduce_time=0.223,num_trees_stolen=0,num_steal_reqs_recv=551,num_steal_reqs_sent=1357] completed queries [num_total_queries=127]
+[v2,rank=71,overall_time=8.689,comp_time=3.593,steal_time=0.099,poll_time=4.742,resp_time=0.041,iallreduce_time=0.215,num_trees_stolen=0,num_steal_reqs_recv=534,num_steal_reqs_sent=715] completed queries [num_total_queries=168]
+[v2,rank=7,overall_time=8.647,comp_time=2.860,steal_time=0.112,poll_time=5.408,resp_time=0.027,iallreduce_time=0.240,num_trees_stolen=0,num_steal_reqs_recv=565,num_steal_reqs_sent=498] completed queries [num_total_queries=130]
+[v2,rank=136,overall_time=8.778,comp_time=4.935,steal_time=0.071,poll_time=3.607,resp_time=0.012,iallreduce_time=0.153,num_trees_stolen=1,num_steal_reqs_recv=547,num_steal_reqs_sent=529] completed queries [num_total_queries=269]
+[v2,rank=200,overall_time=8.751,comp_time=4.628,steal_time=0.079,poll_time=3.849,resp_time=0.030,iallreduce_time=0.166,num_trees_stolen=0,num_steal_reqs_recv=563,num_steal_reqs_sent=1021] completed queries [num_total_queries=252]
+[v2,rank=72,overall_time=8.674,comp_time=3.361,steal_time=0.103,poll_time=4.967,resp_time=0.019,iallreduce_time=0.224,num_trees_stolen=2,num_steal_reqs_recv=545,num_steal_reqs_sent=591] completed queries [num_total_queries=165]
+[v2,rank=8,overall_time=8.700,comp_time=3.515,steal_time=0.095,poll_time=4.865,resp_time=0.024,iallreduce_time=0.201,num_trees_stolen=2,num_steal_reqs_recv=570,num_steal_reqs_sent=104] completed queries [num_total_queries=165]
+[v2,rank=137,overall_time=8.700,comp_time=3.400,steal_time=0.095,poll_time=5.004,resp_time=0.001,iallreduce_time=0.200,num_trees_stolen=1,num_steal_reqs_recv=580,num_steal_reqs_sent=639] completed queries [num_total_queries=153]
+[v2,rank=201,overall_time=8.691,comp_time=3.178,steal_time=0.098,poll_time=5.151,resp_time=0.053,iallreduce_time=0.210,num_trees_stolen=0,num_steal_reqs_recv=526,num_steal_reqs_sent=414] completed queries [num_total_queries=154]
+[v2,rank=73,overall_time=8.753,comp_time=4.480,steal_time=0.078,poll_time=4.026,resp_time=0.001,iallreduce_time=0.168,num_trees_stolen=1,num_steal_reqs_recv=580,num_steal_reqs_sent=860] completed queries [num_total_queries=217]
+[v2,rank=9,overall_time=8.712,comp_time=4.029,steal_time=0.091,poll_time=4.395,resp_time=0.001,iallreduce_time=0.195,num_trees_stolen=1,num_steal_reqs_recv=569,num_steal_reqs_sent=446] completed queries [num_total_queries=198]
+[v2,rank=138,overall_time=8.638,comp_time=2.829,steal_time=0.115,poll_time=5.445,resp_time=0.001,iallreduce_time=0.248,num_trees_stolen=0,num_steal_reqs_recv=535,num_steal_reqs_sent=837] completed queries [num_total_queries=131]
+[v2,rank=202,overall_time=8.728,comp_time=4.191,steal_time=0.086,poll_time=4.249,resp_time=0.017,iallreduce_time=0.185,num_trees_stolen=1,num_steal_reqs_recv=586,num_steal_reqs_sent=727] completed queries [num_total_queries=206]
+[v2,rank=74,overall_time=8.710,comp_time=3.551,steal_time=0.092,poll_time=4.820,resp_time=0.042,iallreduce_time=0.204,num_trees_stolen=0,num_steal_reqs_recv=569,num_steal_reqs_sent=1411] completed queries [num_total_queries=169]
+[v2,rank=10,overall_time=8.675,comp_time=3.099,steal_time=0.103,poll_time=5.251,resp_time=0.001,iallreduce_time=0.222,num_trees_stolen=1,num_steal_reqs_recv=570,num_steal_reqs_sent=791] completed queries [num_total_queries=144]
+[v2,rank=139,overall_time=8.697,comp_time=3.368,steal_time=0.096,poll_time=4.961,resp_time=0.066,iallreduce_time=0.206,num_trees_stolen=0,num_steal_reqs_recv=613,num_steal_reqs_sent=648] completed queries [num_total_queries=162]
+[v2,rank=203,overall_time=8.713,comp_time=3.928,steal_time=0.091,poll_time=4.486,resp_time=0.017,iallreduce_time=0.192,num_trees_stolen=2,num_steal_reqs_recv=562,num_steal_reqs_sent=258] completed queries [num_total_queries=185]
+[v2,rank=75,overall_time=8.665,comp_time=3.246,steal_time=0.106,poll_time=5.063,resp_time=0.016,iallreduce_time=0.234,num_trees_stolen=0,num_steal_reqs_recv=579,num_steal_reqs_sent=372] completed queries [num_total_queries=154]
+[v2,rank=11,overall_time=8.741,comp_time=4.155,steal_time=0.082,poll_time=4.288,resp_time=0.041,iallreduce_time=0.175,num_trees_stolen=1,num_steal_reqs_recv=578,num_steal_reqs_sent=780] completed queries [num_total_queries=197]
+[v2,rank=140,overall_time=8.659,comp_time=3.091,steal_time=0.108,poll_time=5.193,resp_time=0.029,iallreduce_time=0.237,num_trees_stolen=0,num_steal_reqs_recv=589,num_steal_reqs_sent=904] completed queries [num_total_queries=146]
+[v2,rank=204,overall_time=8.724,comp_time=3.770,steal_time=0.088,poll_time=4.668,resp_time=0.009,iallreduce_time=0.189,num_trees_stolen=1,num_steal_reqs_recv=524,num_steal_reqs_sent=574] completed queries [num_total_queries=186]
+[v2,rank=76,overall_time=8.689,comp_time=3.194,steal_time=0.099,poll_time=5.174,resp_time=0.000,iallreduce_time=0.222,num_trees_stolen=1,num_steal_reqs_recv=572,num_steal_reqs_sent=174] completed queries [num_total_queries=143]
+[v2,rank=12,overall_time=8.786,comp_time=5.088,steal_time=0.068,poll_time=3.466,resp_time=0.018,iallreduce_time=0.147,num_trees_stolen=2,num_steal_reqs_recv=556,num_steal_reqs_sent=663] completed queries [num_total_queries=274]
+[v2,rank=141,overall_time=8.733,comp_time=4.036,steal_time=0.085,poll_time=4.406,resp_time=0.027,iallreduce_time=0.179,num_trees_stolen=1,num_steal_reqs_recv=590,num_steal_reqs_sent=501] completed queries [num_total_queries=186]
+[v2,rank=205,overall_time=8.709,comp_time=3.874,steal_time=0.092,poll_time=4.547,resp_time=0.001,iallreduce_time=0.194,num_trees_stolen=2,num_steal_reqs_recv=545,num_steal_reqs_sent=875] completed queries [num_total_queries=185]
+[v2,rank=77,overall_time=8.730,comp_time=4.298,steal_time=0.086,poll_time=4.139,resp_time=0.020,iallreduce_time=0.187,num_trees_stolen=0,num_steal_reqs_recv=554,num_steal_reqs_sent=978] completed queries [num_total_queries=206]
+[v2,rank=13,overall_time=8.724,comp_time=3.937,steal_time=0.088,poll_time=4.509,resp_time=0.002,iallreduce_time=0.187,num_trees_stolen=1,num_steal_reqs_recv=595,num_steal_reqs_sent=1576] completed queries [num_total_queries=175]
+[v2,rank=142,overall_time=8.651,comp_time=3.010,steal_time=0.110,poll_time=5.260,resp_time=0.037,iallreduce_time=0.234,num_trees_stolen=0,num_steal_reqs_recv=536,num_steal_reqs_sent=594] completed queries [num_total_queries=142]
+[v2,rank=206,overall_time=8.743,comp_time=4.358,steal_time=0.082,poll_time=4.078,resp_time=0.050,iallreduce_time=0.176,num_trees_stolen=0,num_steal_reqs_recv=557,num_steal_reqs_sent=212] completed queries [num_total_queries=214]
+[v2,rank=78,overall_time=8.749,comp_time=4.388,steal_time=0.080,poll_time=4.105,resp_time=0.000,iallreduce_time=0.175,num_trees_stolen=0,num_steal_reqs_recv=527,num_steal_reqs_sent=166] completed queries [num_total_queries=218]
+[v2,rank=16,overall_time=8.717,comp_time=3.823,steal_time=0.089,poll_time=4.605,resp_time=0.009,iallreduce_time=0.190,num_trees_stolen=2,num_steal_reqs_recv=549,num_steal_reqs_sent=111] completed queries [num_total_queries=174]
+[v2,rank=143,overall_time=8.637,comp_time=2.730,steal_time=0.114,poll_time=5.515,resp_time=0.033,iallreduce_time=0.245,num_trees_stolen=0,num_steal_reqs_recv=584,num_steal_reqs_sent=305] completed queries [num_total_queries=122]
+[v2,rank=207,overall_time=8.748,comp_time=4.299,steal_time=0.080,poll_time=4.167,resp_time=0.034,iallreduce_time=0.168,num_trees_stolen=2,num_steal_reqs_recv=564,num_steal_reqs_sent=165] completed queries [num_total_queries=204]
+[v2,rank=79,overall_time=8.583,comp_time=1.807,steal_time=0.132,poll_time=6.318,resp_time=0.039,iallreduce_time=0.286,num_trees_stolen=0,num_steal_reqs_recv=595,num_steal_reqs_sent=930] completed queries [num_total_queries=86]
+[v2,rank=17,overall_time=8.709,comp_time=4.016,steal_time=0.092,poll_time=4.403,resp_time=0.001,iallreduce_time=0.197,num_trees_stolen=2,num_steal_reqs_recv=551,num_steal_reqs_sent=670] completed queries [num_total_queries=189]
+[v2,rank=144,overall_time=8.696,comp_time=3.746,steal_time=0.096,poll_time=4.647,resp_time=0.000,iallreduce_time=0.206,num_trees_stolen=1,num_steal_reqs_recv=590,num_steal_reqs_sent=245] completed queries [num_total_queries=181]
+[v2,rank=208,overall_time=8.681,comp_time=3.331,steal_time=0.101,poll_time=5.018,resp_time=0.010,iallreduce_time=0.220,num_trees_stolen=0,num_steal_reqs_recv=535,num_steal_reqs_sent=470] completed queries [num_total_queries=153]
+[v2,rank=80,overall_time=8.688,comp_time=3.623,steal_time=0.099,poll_time=4.736,resp_time=0.012,iallreduce_time=0.218,num_trees_stolen=0,num_steal_reqs_recv=557,num_steal_reqs_sent=331] completed queries [num_total_queries=166]
+[v2,rank=18,overall_time=8.723,comp_time=3.922,steal_time=0.088,poll_time=4.526,resp_time=0.002,iallreduce_time=0.186,num_trees_stolen=2,num_steal_reqs_recv=572,num_steal_reqs_sent=1217] completed queries [num_total_queries=182]
+[v2,rank=145,overall_time=8.678,comp_time=3.510,steal_time=0.093,poll_time=4.865,resp_time=0.010,iallreduce_time=0.200,num_trees_stolen=1,num_steal_reqs_recv=551,num_steal_reqs_sent=201] completed queries [num_total_queries=165]
+[v2,rank=209,overall_time=8.746,comp_time=4.178,steal_time=0.081,poll_time=4.291,resp_time=0.027,iallreduce_time=0.170,num_trees_stolen=0,num_steal_reqs_recv=559,num_steal_reqs_sent=502] completed queries [num_total_queries=198]
+[v2,rank=81,overall_time=8.659,comp_time=3.137,steal_time=0.108,poll_time=5.183,resp_time=0.000,iallreduce_time=0.231,num_trees_stolen=0,num_steal_reqs_recv=518,num_steal_reqs_sent=178] completed queries [num_total_queries=146]
+[v2,rank=19,overall_time=8.949,comp_time=8.077,steal_time=0.017,poll_time=0.817,resp_time=0.000,iallreduce_time=0.038,num_trees_stolen=1,num_steal_reqs_recv=612,num_steal_reqs_sent=322] completed queries [num_total_queries=468]
+[v2,rank=146,overall_time=8.818,comp_time=5.866,steal_time=0.058,poll_time=2.769,resp_time=0.000,iallreduce_time=0.124,num_trees_stolen=1,num_steal_reqs_recv=536,num_steal_reqs_sent=266] completed queries [num_total_queries=313]
+[v2,rank=210,overall_time=8.744,comp_time=4.147,steal_time=0.081,poll_time=4.330,resp_time=0.012,iallreduce_time=0.174,num_trees_stolen=4,num_steal_reqs_recv=598,num_steal_reqs_sent=1073] completed queries [num_total_queries=193]
+[v2,rank=82,overall_time=8.719,comp_time=3.715,steal_time=0.089,poll_time=4.707,resp_time=0.012,iallreduce_time=0.197,num_trees_stolen=0,num_steal_reqs_recv=571,num_steal_reqs_sent=275] completed queries [num_total_queries=177]
+[v2,rank=20,overall_time=8.699,comp_time=3.878,steal_time=0.095,poll_time=4.518,resp_time=0.001,iallreduce_time=0.207,num_trees_stolen=1,num_steal_reqs_recv=577,num_steal_reqs_sent=675] completed queries [num_total_queries=179]
+[v2,rank=147,overall_time=8.755,comp_time=4.285,steal_time=0.078,poll_time=4.189,resp_time=0.037,iallreduce_time=0.167,num_trees_stolen=0,num_steal_reqs_recv=533,num_steal_reqs_sent=460] completed queries [num_total_queries=205]
+[v2,rank=211,overall_time=8.981,comp_time=8.544,steal_time=0.007,poll_time=0.416,resp_time=0.000,iallreduce_time=0.015,num_trees_stolen=5,num_steal_reqs_recv=562,num_steal_reqs_sent=228] completed queries [num_total_queries=513]
+[v2,rank=83,overall_time=8.743,comp_time=4.541,steal_time=0.081,poll_time=3.921,resp_time=0.019,iallreduce_time=0.181,num_trees_stolen=0,num_steal_reqs_recv=561,num_steal_reqs_sent=255] completed queries [num_total_queries=219]
+[v2,rank=21,overall_time=8.648,comp_time=2.917,steal_time=0.111,poll_time=5.322,resp_time=0.045,iallreduce_time=0.252,num_trees_stolen=0,num_steal_reqs_recv=577,num_steal_reqs_sent=712] completed queries [num_total_queries=136]
+[v2,rank=148,overall_time=8.673,comp_time=3.328,steal_time=0.103,poll_time=4.985,resp_time=0.038,iallreduce_time=0.219,num_trees_stolen=0,num_steal_reqs_recv=548,num_steal_reqs_sent=129] completed queries [num_total_queries=155]
+[v2,rank=212,overall_time=8.650,comp_time=2.802,steal_time=0.111,poll_time=5.465,resp_time=0.038,iallreduce_time=0.235,num_trees_stolen=2,num_steal_reqs_recv=527,num_steal_reqs_sent=790] completed queries [num_total_queries=130]
+[v2,rank=84,overall_time=8.708,comp_time=3.640,steal_time=0.092,poll_time=4.755,resp_time=0.019,iallreduce_time=0.202,num_trees_stolen=1,num_steal_reqs_recv=584,num_steal_reqs_sent=596] completed queries [num_total_queries=169]
+[v2,rank=22,overall_time=8.753,comp_time=4.483,steal_time=0.078,poll_time=4.014,resp_time=0.009,iallreduce_time=0.169,num_trees_stolen=1,num_steal_reqs_recv=542,num_steal_reqs_sent=183] completed queries [num_total_queries=218]
+[v2,rank=149,overall_time=8.849,comp_time=6.223,steal_time=0.048,poll_time=2.474,resp_time=0.000,iallreduce_time=0.103,num_trees_stolen=1,num_steal_reqs_recv=523,num_steal_reqs_sent=95] completed queries [num_total_queries=344]
+[v2,rank=213,overall_time=8.661,comp_time=2.986,steal_time=0.107,poll_time=5.315,resp_time=0.025,iallreduce_time=0.228,num_trees_stolen=1,num_steal_reqs_recv=580,num_steal_reqs_sent=497] completed queries [num_total_queries=147]
+[v2,rank=85,overall_time=8.787,comp_time=5.004,steal_time=0.068,poll_time=3.563,resp_time=0.000,iallreduce_time=0.152,num_trees_stolen=4,num_steal_reqs_recv=519,num_steal_reqs_sent=213] completed queries [num_total_queries=252]
+[v2,rank=23,overall_time=8.711,comp_time=3.956,steal_time=0.091,poll_time=4.393,resp_time=0.073,iallreduce_time=0.197,num_trees_stolen=2,num_steal_reqs_recv=573,num_steal_reqs_sent=384] completed queries [num_total_queries=191]
+[v2,rank=150,overall_time=8.642,comp_time=2.798,steal_time=0.114,poll_time=5.448,resp_time=0.040,iallreduce_time=0.242,num_trees_stolen=0,num_steal_reqs_recv=564,num_steal_reqs_sent=1201] completed queries [num_total_queries=132]
+[v2,rank=214,overall_time=8.702,comp_time=3.249,steal_time=0.094,poll_time=5.151,resp_time=0.010,iallreduce_time=0.198,num_trees_stolen=0,num_steal_reqs_recv=551,num_steal_reqs_sent=1275] completed queries [num_total_queries=152]
+[v2,rank=86,overall_time=8.691,comp_time=3.631,steal_time=0.098,poll_time=4.735,resp_time=0.014,iallreduce_time=0.213,num_trees_stolen=0,num_steal_reqs_recv=583,num_steal_reqs_sent=132] completed queries [num_total_queries=170]
+[v2,rank=24,overall_time=8.695,comp_time=3.397,steal_time=0.097,poll_time=4.932,resp_time=0.056,iallreduce_time=0.212,num_trees_stolen=0,num_steal_reqs_recv=545,num_steal_reqs_sent=182] completed queries [num_total_queries=156]
+[v2,rank=151,overall_time=8.759,comp_time=4.594,steal_time=0.077,poll_time=3.909,resp_time=0.016,iallreduce_time=0.163,num_trees_stolen=1,num_steal_reqs_recv=560,num_steal_reqs_sent=575] completed queries [num_total_queries=231]
+[v2,rank=215,overall_time=8.723,comp_time=4.105,steal_time=0.088,poll_time=4.332,resp_time=0.009,iallreduce_time=0.189,num_trees_stolen=0,num_steal_reqs_recv=581,num_steal_reqs_sent=670] completed queries [num_total_queries=199]
+[v2,rank=87,overall_time=8.642,comp_time=2.800,steal_time=0.114,poll_time=5.455,resp_time=0.028,iallreduce_time=0.246,num_trees_stolen=0,num_steal_reqs_recv=571,num_steal_reqs_sent=1203] completed queries [num_total_queries=133]
+[v2,rank=25,overall_time=8.674,comp_time=3.097,steal_time=0.103,poll_time=5.230,resp_time=0.025,iallreduce_time=0.218,num_trees_stolen=0,num_steal_reqs_recv=556,num_steal_reqs_sent=854] completed queries [num_total_queries=155]
+[v2,rank=152,overall_time=8.677,comp_time=3.007,steal_time=0.103,poll_time=5.322,resp_time=0.023,iallreduce_time=0.223,num_trees_stolen=0,num_steal_reqs_recv=563,num_steal_reqs_sent=610] completed queries [num_total_queries=138]
+[v2,rank=216,overall_time=8.692,comp_time=3.574,steal_time=0.098,poll_time=4.811,resp_time=0.001,iallreduce_time=0.208,num_trees_stolen=0,num_steal_reqs_recv=594,num_steal_reqs_sent=885] completed queries [num_total_queries=163]
+[v2,rank=88,overall_time=8.697,comp_time=3.455,steal_time=0.096,poll_time=4.937,resp_time=0.001,iallreduce_time=0.208,num_trees_stolen=1,num_steal_reqs_recv=547,num_steal_reqs_sent=667] completed queries [num_total_queries=160]
+[v2,rank=26,overall_time=8.670,comp_time=2.987,steal_time=0.104,poll_time=5.345,resp_time=0.009,iallreduce_time=0.225,num_trees_stolen=0,num_steal_reqs_recv=523,num_steal_reqs_sent=731] completed queries [num_total_queries=136]
+[v2,rank=153,overall_time=8.688,comp_time=3.306,steal_time=0.098,poll_time=5.065,resp_time=0.012,iallreduce_time=0.208,num_trees_stolen=0,num_steal_reqs_recv=618,num_steal_reqs_sent=442] completed queries [num_total_queries=152]
+[v2,rank=217,overall_time=8.742,comp_time=4.082,steal_time=0.082,poll_time=4.401,resp_time=0.001,iallreduce_time=0.177,num_trees_stolen=1,num_steal_reqs_recv=553,num_steal_reqs_sent=439] completed queries [num_total_queries=184]
+[v2,rank=89,overall_time=8.762,comp_time=4.889,steal_time=0.075,poll_time=3.622,resp_time=0.011,iallreduce_time=0.165,num_trees_stolen=3,num_steal_reqs_recv=589,num_steal_reqs_sent=121] completed queries [num_total_queries=264]
+[v2,rank=27,overall_time=8.702,comp_time=3.582,steal_time=0.095,poll_time=4.821,resp_time=0.001,iallreduce_time=0.203,num_trees_stolen=0,num_steal_reqs_recv=555,num_steal_reqs_sent=802] completed queries [num_total_queries=161]
+[v2,rank=154,overall_time=8.736,comp_time=4.459,steal_time=0.084,poll_time=3.972,resp_time=0.042,iallreduce_time=0.179,num_trees_stolen=0,num_steal_reqs_recv=551,num_steal_reqs_sent=524] completed queries [num_total_queries=246]
+[v2,rank=218,overall_time=8.767,comp_time=4.569,steal_time=0.074,poll_time=3.945,resp_time=0.019,iallreduce_time=0.159,num_trees_stolen=1,num_steal_reqs_recv=592,num_steal_reqs_sent=575] completed queries [num_total_queries=220]
+[v2,rank=90,overall_time=8.760,comp_time=4.493,steal_time=0.076,poll_time=4.023,resp_time=0.001,iallreduce_time=0.166,num_trees_stolen=3,num_steal_reqs_recv=518,num_steal_reqs_sent=553] completed queries [num_total_queries=222]
+[v2,rank=28,overall_time=8.731,comp_time=4.065,steal_time=0.085,poll_time=4.395,resp_time=0.000,iallreduce_time=0.186,num_trees_stolen=0,num_steal_reqs_recv=545,num_steal_reqs_sent=228] completed queries [num_total_queries=187]
+[v2,rank=155,overall_time=8.667,comp_time=3.241,steal_time=0.105,poll_time=5.085,resp_time=0.009,iallreduce_time=0.227,num_trees_stolen=1,num_steal_reqs_recv=610,num_steal_reqs_sent=224] completed queries [num_total_queries=151]
+[v2,rank=219,overall_time=8.735,comp_time=3.925,steal_time=0.084,poll_time=4.501,resp_time=0.045,iallreduce_time=0.180,num_trees_stolen=2,num_steal_reqs_recv=596,num_steal_reqs_sent=547] completed queries [num_total_queries=190]
+[v2,rank=91,overall_time=8.679,comp_time=3.069,steal_time=0.102,poll_time=5.262,resp_time=0.021,iallreduce_time=0.224,num_trees_stolen=0,num_steal_reqs_recv=540,num_steal_reqs_sent=814] completed queries [num_total_queries=137]
+[v2,rank=29,overall_time=8.775,comp_time=4.705,steal_time=0.072,poll_time=3.817,resp_time=0.027,iallreduce_time=0.155,num_trees_stolen=7,num_steal_reqs_recv=580,num_steal_reqs_sent=1510] completed queries [num_total_queries=224]
+[v2,rank=156,overall_time=8.695,comp_time=3.738,steal_time=0.097,poll_time=4.590,resp_time=0.058,iallreduce_time=0.213,num_trees_stolen=1,num_steal_reqs_recv=549,num_steal_reqs_sent=628] completed queries [num_total_queries=189]
+[v2,rank=220,overall_time=8.757,comp_time=4.650,steal_time=0.077,poll_time=3.859,resp_time=0.001,iallreduce_time=0.169,num_trees_stolen=5,num_steal_reqs_recv=524,num_steal_reqs_sent=889] completed queries [num_total_queries=243]
+[v2,rank=92,overall_time=8.896,comp_time=6.862,steal_time=0.034,poll_time=1.925,resp_time=0.001,iallreduce_time=0.074,num_trees_stolen=5,num_steal_reqs_recv=525,num_steal_reqs_sent=750] completed queries [num_total_queries=385]
+[v2,rank=30,overall_time=8.701,comp_time=3.883,steal_time=0.095,poll_time=4.522,resp_time=0.001,iallreduce_time=0.201,num_trees_stolen=2,num_steal_reqs_recv=579,num_steal_reqs_sent=530] completed queries [num_total_queries=182]
+[v2,rank=157,overall_time=8.791,comp_time=5.371,steal_time=0.067,poll_time=3.201,resp_time=0.010,iallreduce_time=0.143,num_trees_stolen=3,num_steal_reqs_recv=549,num_steal_reqs_sent=939] completed queries [num_total_queries=273]
+[v2,rank=221,overall_time=8.708,comp_time=3.472,steal_time=0.093,poll_time=4.936,resp_time=0.009,iallreduce_time=0.198,num_trees_stolen=0,num_steal_reqs_recv=572,num_steal_reqs_sent=386] completed queries [num_total_queries=155]
+[v2,rank=93,overall_time=8.708,comp_time=3.995,steal_time=0.093,poll_time=4.405,resp_time=0.017,iallreduce_time=0.199,num_trees_stolen=0,num_steal_reqs_recv=588,num_steal_reqs_sent=408] completed queries [num_total_queries=203]
+[v2,rank=31,overall_time=8.675,comp_time=3.099,steal_time=0.103,poll_time=5.257,resp_time=0.001,iallreduce_time=0.216,num_trees_stolen=0,num_steal_reqs_recv=603,num_steal_reqs_sent=378] completed queries [num_total_queries=137]
+[v2,rank=158,overall_time=8.803,comp_time=5.541,steal_time=0.063,poll_time=3.063,resp_time=0.000,iallreduce_time=0.136,num_trees_stolen=2,num_steal_reqs_recv=543,num_steal_reqs_sent=194] completed queries [num_total_queries=297]
+[v2,rank=222,overall_time=8.784,comp_time=4.910,steal_time=0.069,poll_time=3.630,resp_time=0.031,iallreduce_time=0.146,num_trees_stolen=0,num_steal_reqs_recv=537,num_steal_reqs_sent=421] completed queries [num_total_queries=248]
+[v2,rank=94,overall_time=8.665,comp_time=2.757,steal_time=0.107,poll_time=5.549,resp_time=0.019,iallreduce_time=0.233,num_trees_stolen=1,num_steal_reqs_recv=548,num_steal_reqs_sent=312] completed queries [num_total_queries=128]
+[v2,rank=32,overall_time=8.771,comp_time=4.882,steal_time=0.073,poll_time=3.662,resp_time=0.000,iallreduce_time=0.154,num_trees_stolen=0,num_steal_reqs_recv=558,num_steal_reqs_sent=195] completed queries [num_total_queries=249]
+[v2,rank=159,overall_time=8.617,comp_time=2.467,steal_time=0.121,poll_time=5.754,resp_time=0.019,iallreduce_time=0.256,num_trees_stolen=0,num_steal_reqs_recv=568,num_steal_reqs_sent=301] completed queries [num_total_queries=117]
+[v2,rank=223,overall_time=8.728,comp_time=4.188,steal_time=0.086,poll_time=4.250,resp_time=0.016,iallreduce_time=0.188,num_trees_stolen=1,num_steal_reqs_recv=586,num_steal_reqs_sent=27] completed queries [num_total_queries=211]
+[v2,rank=96,overall_time=8.756,comp_time=4.417,steal_time=0.077,poll_time=3.966,resp_time=0.126,iallreduce_time=0.169,num_trees_stolen=1,num_steal_reqs_recv=530,num_steal_reqs_sent=884] completed queries [num_total_queries=220]
+[v2,rank=33,overall_time=8.737,comp_time=4.146,steal_time=0.083,poll_time=4.315,resp_time=0.011,iallreduce_time=0.181,num_trees_stolen=0,num_steal_reqs_recv=554,num_steal_reqs_sent=531] completed queries [num_total_queries=194]
+[v2,rank=160,overall_time=8.741,comp_time=4.214,steal_time=0.083,poll_time=4.264,resp_time=0.003,iallreduce_time=0.177,num_trees_stolen=1,num_steal_reqs_recv=552,num_steal_reqs_sent=2308] completed queries [num_total_queries=199]
+[v2,rank=224,overall_time=8.771,comp_time=4.946,steal_time=0.072,poll_time=3.546,resp_time=0.046,iallreduce_time=0.162,num_trees_stolen=0,num_steal_reqs_recv=558,num_steal_reqs_sent=264] completed queries [num_total_queries=269]
+[v2,rank=97,overall_time=8.711,comp_time=4.018,steal_time=0.092,poll_time=4.401,resp_time=0.001,iallreduce_time=0.200,num_trees_stolen=0,num_steal_reqs_recv=570,num_steal_reqs_sent=460] completed queries [num_total_queries=191]
+[v2,rank=34,overall_time=8.697,comp_time=3.816,steal_time=0.096,poll_time=4.574,resp_time=0.001,iallreduce_time=0.209,num_trees_stolen=1,num_steal_reqs_recv=534,num_steal_reqs_sent=1020] completed queries [num_total_queries=176]
+[v2,rank=161,overall_time=8.801,comp_time=5.307,steal_time=0.064,poll_time=3.295,resp_time=0.001,iallreduce_time=0.134,num_trees_stolen=2,num_steal_reqs_recv=534,num_steal_reqs_sent=796] completed queries [num_total_queries=271]
+[v2,rank=225,overall_time=8.700,comp_time=3.758,steal_time=0.095,poll_time=4.643,resp_time=0.001,iallreduce_time=0.203,num_trees_stolen=0,num_steal_reqs_recv=560,num_steal_reqs_sent=507] completed queries [num_total_queries=174]
+[v2,rank=98,overall_time=8.663,comp_time=3.194,steal_time=0.107,poll_time=5.109,resp_time=0.009,iallreduce_time=0.244,num_trees_stolen=1,num_steal_reqs_recv=573,num_steal_reqs_sent=586] completed queries [num_total_queries=147]
+[v2,rank=35,overall_time=8.908,comp_time=7.245,steal_time=0.030,poll_time=1.526,resp_time=0.044,iallreduce_time=0.064,num_trees_stolen=0,num_steal_reqs_recv=566,num_steal_reqs_sent=457] completed queries [num_total_queries=419]
+[v2,rank=162,overall_time=8.740,comp_time=4.174,steal_time=0.082,poll_time=4.269,resp_time=0.038,iallreduce_time=0.177,num_trees_stolen=0,num_steal_reqs_recv=555,num_steal_reqs_sent=375] completed queries [num_total_queries=210]
+[v2,rank=226,overall_time=8.748,comp_time=4.432,steal_time=0.080,poll_time=4.060,resp_time=0.001,iallreduce_time=0.175,num_trees_stolen=2,num_steal_reqs_recv=583,num_steal_reqs_sent=709] completed queries [num_total_queries=218]
+[v2,rank=99,overall_time=8.740,comp_time=4.456,steal_time=0.083,poll_time=4.023,resp_time=0.001,iallreduce_time=0.177,num_trees_stolen=4,num_steal_reqs_recv=570,num_steal_reqs_sent=383] completed queries [num_total_queries=217]
+[v2,rank=36,overall_time=8.723,comp_time=4.266,steal_time=0.088,poll_time=4.180,resp_time=0.001,iallreduce_time=0.188,num_trees_stolen=0,num_steal_reqs_recv=582,num_steal_reqs_sent=531] completed queries [num_total_queries=208]
+[v2,rank=163,overall_time=8.684,comp_time=3.191,steal_time=0.100,poll_time=5.151,resp_time=0.030,iallreduce_time=0.212,num_trees_stolen=0,num_steal_reqs_recv=545,num_steal_reqs_sent=699] completed queries [num_total_queries=153]
+[v2,rank=227,overall_time=8.828,comp_time=5.556,steal_time=0.055,poll_time=3.095,resp_time=0.002,iallreduce_time=0.120,num_trees_stolen=6,num_steal_reqs_recv=550,num_steal_reqs_sent=1117] completed queries [num_total_queries=293]
+[v2,rank=100,overall_time=8.704,comp_time=3.545,steal_time=0.094,poll_time=4.846,resp_time=0.018,iallreduce_time=0.201,num_trees_stolen=1,num_steal_reqs_recv=538,num_steal_reqs_sent=807] completed queries [num_total_queries=163]
+[v2,rank=37,overall_time=8.696,comp_time=3.782,steal_time=0.094,poll_time=4.537,resp_time=0.034,iallreduce_time=0.249,num_trees_stolen=2,num_steal_reqs_recv=566,num_steal_reqs_sent=571] completed queries [num_total_queries=187]
+[v2,rank=164,overall_time=8.710,comp_time=3.997,steal_time=0.092,poll_time=4.425,resp_time=0.001,iallreduce_time=0.195,num_trees_stolen=0,num_steal_reqs_recv=565,num_steal_reqs_sent=622] completed queries [num_total_queries=188]
+[v2,rank=228,overall_time=8.814,comp_time=5.444,steal_time=0.059,poll_time=3.183,resp_time=0.001,iallreduce_time=0.126,num_trees_stolen=2,num_steal_reqs_recv=576,num_steal_reqs_sent=508] completed queries [num_total_queries=274]
+[v2,rank=101,overall_time=8.776,comp_time=4.867,steal_time=0.071,poll_time=3.681,resp_time=0.001,iallreduce_time=0.156,num_trees_stolen=1,num_steal_reqs_recv=533,num_steal_reqs_sent=376] completed queries [num_total_queries=252]
+[v2,rank=38,overall_time=8.735,comp_time=4.469,steal_time=0.084,poll_time=3.990,resp_time=0.013,iallreduce_time=0.180,num_trees_stolen=0,num_steal_reqs_recv=571,num_steal_reqs_sent=653] completed queries [num_total_queries=216]
+[v2,rank=165,overall_time=8.698,comp_time=3.437,steal_time=0.096,poll_time=4.959,resp_time=0.001,iallreduce_time=0.206,num_trees_stolen=0,num_steal_reqs_recv=586,num_steal_reqs_sent=359] completed queries [num_total_queries=159]
+[v2,rank=229,overall_time=8.724,comp_time=3.756,steal_time=0.087,poll_time=4.665,resp_time=0.029,iallreduce_time=0.187,num_trees_stolen=0,num_steal_reqs_recv=568,num_steal_reqs_sent=247] completed queries [num_total_queries=184]
+[v2,rank=102,overall_time=8.715,comp_time=4.052,steal_time=0.090,poll_time=4.369,resp_time=0.000,iallreduce_time=0.203,num_trees_stolen=3,num_steal_reqs_recv=545,num_steal_reqs_sent=220] completed queries [num_total_queries=193]
+[v2,rank=39,overall_time=8.696,comp_time=3.648,steal_time=0.096,poll_time=4.716,resp_time=0.029,iallreduce_time=0.208,num_trees_stolen=1,num_steal_reqs_recv=492,num_steal_reqs_sent=510] completed queries [num_total_queries=165]
+[v2,rank=166,overall_time=8.655,comp_time=3.059,steal_time=0.109,poll_time=5.242,resp_time=0.011,iallreduce_time=0.235,num_trees_stolen=1,num_steal_reqs_recv=529,num_steal_reqs_sent=437] completed queries [num_total_queries=139]
+[v2,rank=230,overall_time=8.739,comp_time=3.991,steal_time=0.083,poll_time=4.487,resp_time=0.001,iallreduce_time=0.177,num_trees_stolen=2,num_steal_reqs_recv=560,num_steal_reqs_sent=525] completed queries [num_total_queries=180]
+[v2,rank=103,overall_time=8.639,comp_time=2.797,steal_time=0.113,poll_time=5.473,resp_time=0.012,iallreduce_time=0.243,num_trees_stolen=1,num_steal_reqs_recv=558,num_steal_reqs_sent=297] completed queries [num_total_queries=124]
+[v2,rank=40,overall_time=8.744,comp_time=4.538,steal_time=0.081,poll_time=3.913,resp_time=0.037,iallreduce_time=0.175,num_trees_stolen=2,num_steal_reqs_recv=618,num_steal_reqs_sent=494] completed queries [num_total_queries=219]
+[v2,rank=167,overall_time=8.717,comp_time=3.754,steal_time=0.089,poll_time=4.658,resp_time=0.027,iallreduce_time=0.189,num_trees_stolen=0,num_steal_reqs_recv=515,num_steal_reqs_sent=323] completed queries [num_total_queries=183]
+[v2,rank=231,overall_time=8.732,comp_time=3.841,steal_time=0.085,poll_time=4.621,resp_time=0.001,iallreduce_time=0.185,num_trees_stolen=2,num_steal_reqs_recv=549,num_steal_reqs_sent=495] completed queries [num_total_queries=181]
+[v2,rank=104,overall_time=8.847,comp_time=6.099,steal_time=0.049,poll_time=2.593,resp_time=0.000,iallreduce_time=0.107,num_trees_stolen=5,num_steal_reqs_recv=529,num_steal_reqs_sent=267] completed queries [num_total_queries=335]
+[v2,rank=41,overall_time=8.633,comp_time=2.780,steal_time=0.116,poll_time=5.482,resp_time=0.009,iallreduce_time=0.245,num_trees_stolen=0,num_steal_reqs_recv=552,num_steal_reqs_sent=105] completed queries [num_total_queries=128]
+[v2,rank=168,overall_time=8.652,comp_time=2.982,steal_time=0.110,poll_time=5.323,resp_time=0.001,iallreduce_time=0.236,num_trees_stolen=0,num_steal_reqs_recv=545,num_steal_reqs_sent=512] completed queries [num_total_queries=140]
+[v2,rank=232,overall_time=8.687,comp_time=3.457,steal_time=0.099,poll_time=4.869,resp_time=0.050,iallreduce_time=0.212,num_trees_stolen=0,num_steal_reqs_recv=570,num_steal_reqs_sent=278] completed queries [num_total_queries=158]
+[v2,rank=105,overall_time=8.720,comp_time=4.132,steal_time=0.089,poll_time=4.283,resp_time=0.020,iallreduce_time=0.196,num_trees_stolen=1,num_steal_reqs_recv=531,num_steal_reqs_sent=833] completed queries [num_total_queries=201]
+[v2,rank=42,overall_time=8.683,comp_time=3.534,steal_time=0.101,poll_time=4.803,resp_time=0.030,iallreduce_time=0.215,num_trees_stolen=0,num_steal_reqs_recv=562,num_steal_reqs_sent=1023] completed queries [num_total_queries=166]
+[v2,rank=169,overall_time=8.730,comp_time=4.039,steal_time=0.086,poll_time=4.392,resp_time=0.029,iallreduce_time=0.184,num_trees_stolen=0,num_steal_reqs_recv=561,num_steal_reqs_sent=688] completed queries [num_total_queries=193]
+[v2,rank=233,overall_time=8.744,comp_time=4.168,steal_time=0.081,poll_time=4.323,resp_time=0.001,iallreduce_time=0.171,num_trees_stolen=0,num_steal_reqs_recv=527,num_steal_reqs_sent=493] completed queries [num_total_queries=193]
+[v2,rank=106,overall_time=8.730,comp_time=4.371,steal_time=0.086,poll_time=4.087,resp_time=0.001,iallreduce_time=0.186,num_trees_stolen=2,num_steal_reqs_recv=598,num_steal_reqs_sent=932] completed queries [num_total_queries=217]
+[v2,rank=43,overall_time=8.593,comp_time=2.002,steal_time=0.128,poll_time=6.192,resp_time=0.001,iallreduce_time=0.269,num_trees_stolen=0,num_steal_reqs_recv=565,num_steal_reqs_sent=739] completed queries [num_total_queries=90]
+[v2,rank=170,overall_time=8.714,comp_time=3.651,steal_time=0.091,poll_time=4.778,resp_time=0.000,iallreduce_time=0.194,num_trees_stolen=1,num_steal_reqs_recv=579,num_steal_reqs_sent=303] completed queries [num_total_queries=167]
+[v2,rank=234,overall_time=8.757,comp_time=4.390,steal_time=0.077,poll_time=4.114,resp_time=0.002,iallreduce_time=0.174,num_trees_stolen=1,num_steal_reqs_recv=558,num_steal_reqs_sent=953] completed queries [num_total_queries=206]
+[v2,rank=107,overall_time=8.739,comp_time=4.126,steal_time=0.083,poll_time=4.330,resp_time=0.020,iallreduce_time=0.180,num_trees_stolen=1,num_steal_reqs_recv=581,num_steal_reqs_sent=1060] completed queries [num_total_queries=199]
+[v2,rank=44,overall_time=8.639,comp_time=2.841,steal_time=0.114,poll_time=5.428,resp_time=0.010,iallreduce_time=0.245,num_trees_stolen=0,num_steal_reqs_recv=613,num_steal_reqs_sent=392] completed queries [num_total_queries=127]
+[v2,rank=171,overall_time=8.721,comp_time=3.899,steal_time=0.088,poll_time=4.546,resp_time=0.001,iallreduce_time=0.187,num_trees_stolen=0,num_steal_reqs_recv=571,num_steal_reqs_sent=441] completed queries [num_total_queries=181]
+[v2,rank=235,overall_time=8.807,comp_time=5.573,steal_time=0.061,poll_time=3.042,resp_time=0.000,iallreduce_time=0.130,num_trees_stolen=2,num_steal_reqs_recv=591,num_steal_reqs_sent=283] completed queries [num_total_queries=299]
+[v2,rank=108,overall_time=8.659,comp_time=3.033,steal_time=0.108,poll_time=5.242,resp_time=0.043,iallreduce_time=0.233,num_trees_stolen=0,num_steal_reqs_recv=548,num_steal_reqs_sent=671] completed queries [num_total_queries=145]
+[v2,rank=45,overall_time=8.716,comp_time=4.122,steal_time=0.090,poll_time=4.300,resp_time=0.008,iallreduce_time=0.195,num_trees_stolen=0,num_steal_reqs_recv=529,num_steal_reqs_sent=573] completed queries [num_total_queries=198]
+[v2,rank=172,overall_time=8.772,comp_time=4.715,steal_time=0.072,poll_time=3.812,resp_time=0.019,iallreduce_time=0.153,num_trees_stolen=2,num_steal_reqs_recv=588,num_steal_reqs_sent=183] completed queries [num_total_queries=239]
+[v2,rank=236,overall_time=8.758,comp_time=4.348,steal_time=0.077,poll_time=4.150,resp_time=0.018,iallreduce_time=0.165,num_trees_stolen=3,num_steal_reqs_recv=589,num_steal_reqs_sent=660] completed queries [num_total_queries=202]
+[v2,rank=109,overall_time=8.696,comp_time=3.773,steal_time=0.096,poll_time=4.617,resp_time=0.000,iallreduce_time=0.210,num_trees_stolen=1,num_steal_reqs_recv=579,num_steal_reqs_sent=153] completed queries [num_total_queries=176]
+[v2,rank=46,overall_time=8.718,comp_time=3.821,steal_time=0.089,poll_time=4.613,resp_time=0.001,iallreduce_time=0.195,num_trees_stolen=1,num_steal_reqs_recv=540,num_steal_reqs_sent=399] completed queries [num_total_queries=170]
+[v2,rank=173,overall_time=8.767,comp_time=4.713,steal_time=0.074,poll_time=3.820,resp_time=0.001,iallreduce_time=0.159,num_trees_stolen=0,num_steal_reqs_recv=565,num_steal_reqs_sent=506] completed queries [num_total_queries=234]
+[v2,rank=237,overall_time=8.678,comp_time=3.341,steal_time=0.102,poll_time=5.018,resp_time=0.001,iallreduce_time=0.216,num_trees_stolen=0,num_steal_reqs_recv=549,num_steal_reqs_sent=443] completed queries [num_total_queries=150]
+[v2,rank=110,overall_time=8.679,comp_time=3.404,steal_time=0.101,poll_time=4.891,resp_time=0.064,iallreduce_time=0.219,num_trees_stolen=0,num_steal_reqs_recv=545,num_steal_reqs_sent=275] completed queries [num_total_queries=171]
+[v2,rank=47,overall_time=8.738,comp_time=4.197,steal_time=0.083,poll_time=4.267,resp_time=0.011,iallreduce_time=0.179,num_trees_stolen=1,num_steal_reqs_recv=564,num_steal_reqs_sent=651] completed queries [num_total_queries=201]
+[v2,rank=174,overall_time=8.718,comp_time=3.818,steal_time=0.089,poll_time=4.578,resp_time=0.040,iallreduce_time=0.192,num_trees_stolen=0,num_steal_reqs_recv=525,num_steal_reqs_sent=405] completed queries [num_total_queries=192]
+[v2,rank=238,overall_time=8.707,comp_time=3.485,steal_time=0.093,poll_time=4.931,resp_time=0.000,iallreduce_time=0.199,num_trees_stolen=1,num_steal_reqs_recv=540,num_steal_reqs_sent=264] completed queries [num_total_queries=169]
+[v2,rank=111,overall_time=8.705,comp_time=3.583,steal_time=0.093,poll_time=4.824,resp_time=0.000,iallreduce_time=0.204,num_trees_stolen=0,num_steal_reqs_recv=554,num_steal_reqs_sent=140] completed queries [num_total_queries=169]
+[v2,rank=48,overall_time=8.746,comp_time=4.259,steal_time=0.081,poll_time=4.231,resp_time=0.001,iallreduce_time=0.174,num_trees_stolen=2,num_steal_reqs_recv=602,num_steal_reqs_sent=405] completed queries [num_total_queries=198]
+[v2,rank=175,overall_time=8.783,comp_time=5.168,steal_time=0.077,poll_time=3.399,resp_time=0.001,iallreduce_time=0.138,num_trees_stolen=2,num_steal_reqs_recv=575,num_steal_reqs_sent=467] completed queries [num_total_queries=260]
+[v2,rank=239,overall_time=8.801,comp_time=5.235,steal_time=0.063,poll_time=3.340,resp_time=0.028,iallreduce_time=0.136,num_trees_stolen=1,num_steal_reqs_recv=578,num_steal_reqs_sent=215] completed queries [num_total_queries=268]
+[v2,rank=112,overall_time=8.743,comp_time=4.557,steal_time=0.081,poll_time=3.922,resp_time=0.008,iallreduce_time=0.175,num_trees_stolen=3,num_steal_reqs_recv=548,num_steal_reqs_sent=233] completed queries [num_total_queries=231]
+[v2,rank=49,overall_time=8.744,comp_time=4.191,steal_time=0.081,poll_time=4.173,resp_time=0.125,iallreduce_time=0.174,num_trees_stolen=5,num_steal_reqs_recv=573,num_steal_reqs_sent=650] completed queries [num_total_queries=202]
+[v2,rank=176,overall_time=8.661,comp_time=3.167,steal_time=0.107,poll_time=5.122,resp_time=0.038,iallreduce_time=0.227,num_trees_stolen=0,num_steal_reqs_recv=559,num_steal_reqs_sent=611] completed queries [num_total_queries=148]
+[v2,rank=240,overall_time=8.820,comp_time=5.580,steal_time=0.057,poll_time=3.057,resp_time=0.001,iallreduce_time=0.124,num_trees_stolen=1,num_steal_reqs_recv=501,num_steal_reqs_sent=368] completed queries [num_total_queries=295]
+[v2,rank=113,overall_time=8.711,comp_time=3.666,steal_time=0.092,poll_time=4.744,resp_time=0.011,iallreduce_time=0.198,num_trees_stolen=0,num_steal_reqs_recv=539,num_steal_reqs_sent=1305] completed queries [num_total_queries=169]
+[v2,rank=50,overall_time=8.725,comp_time=4.016,steal_time=0.087,poll_time=4.436,resp_time=0.001,iallreduce_time=0.185,num_trees_stolen=1,num_steal_reqs_recv=553,num_steal_reqs_sent=705] completed queries [num_total_queries=181]
+[v2,rank=177,overall_time=8.598,comp_time=1.975,steal_time=0.127,poll_time=6.192,resp_time=0.029,iallreduce_time=0.275,num_trees_stolen=0,num_steal_reqs_recv=574,num_steal_reqs_sent=573] completed queries [num_total_queries=91]
+[v2,rank=241,overall_time=8.677,comp_time=3.232,steal_time=0.102,poll_time=5.090,resp_time=0.030,iallreduce_time=0.223,num_trees_stolen=0,num_steal_reqs_recv=560,num_steal_reqs_sent=595] completed queries [num_total_queries=153]
+[v2,rank=114,overall_time=8.801,comp_time=5.278,steal_time=0.063,poll_time=3.320,resp_time=0.000,iallreduce_time=0.139,num_trees_stolen=5,num_steal_reqs_recv=569,num_steal_reqs_sent=197] completed queries [num_total_queries=274]
+[v2,rank=51,overall_time=8.656,comp_time=3.177,steal_time=0.109,poll_time=5.118,resp_time=0.018,iallreduce_time=0.234,num_trees_stolen=0,num_steal_reqs_recv=550,num_steal_reqs_sent=238] completed queries [num_total_queries=147]
+[v2,rank=178,overall_time=8.705,comp_time=3.640,steal_time=0.094,poll_time=4.754,resp_time=0.019,iallreduce_time=0.198,num_trees_stolen=0,num_steal_reqs_recv=575,num_steal_reqs_sent=392] completed queries [num_total_queries=165]
+[v2,rank=242,overall_time=8.661,comp_time=3.023,steal_time=0.108,poll_time=5.260,resp_time=0.039,iallreduce_time=0.230,num_trees_stolen=0,num_steal_reqs_recv=603,num_steal_reqs_sent=582] completed queries [num_total_queries=140]
+[v2,rank=115,overall_time=8.677,comp_time=3.434,steal_time=0.102,poll_time=4.913,resp_time=0.009,iallreduce_time=0.220,num_trees_stolen=0,num_steal_reqs_recv=553,num_steal_reqs_sent=163] completed queries [num_total_queries=167]
+[v2,rank=52,overall_time=8.663,comp_time=3.202,steal_time=0.107,poll_time=5.105,resp_time=0.021,iallreduce_time=0.228,num_trees_stolen=0,num_steal_reqs_recv=603,num_steal_reqs_sent=439] completed queries [num_total_queries=150]
+[v2,rank=179,overall_time=8.754,comp_time=4.661,steal_time=0.078,poll_time=3.849,resp_time=0.001,iallreduce_time=0.165,num_trees_stolen=6,num_steal_reqs_recv=570,num_steal_reqs_sent=393] completed queries [num_total_queries=230]
+[v2,rank=243,overall_time=8.759,comp_time=4.344,steal_time=0.077,poll_time=4.173,resp_time=0.001,iallreduce_time=0.164,num_trees_stolen=0,num_steal_reqs_recv=526,num_steal_reqs_sent=778] completed queries [num_total_queries=215]
+[v2,rank=116,overall_time=8.694,comp_time=3.708,steal_time=0.097,poll_time=4.633,resp_time=0.046,iallreduce_time=0.209,num_trees_stolen=1,num_steal_reqs_recv=530,num_steal_reqs_sent=665] completed queries [num_total_queries=194]
+[v2,rank=53,overall_time=8.784,comp_time=5.113,steal_time=0.069,poll_time=3.444,resp_time=0.009,iallreduce_time=0.148,num_trees_stolen=0,num_steal_reqs_recv=582,num_steal_reqs_sent=641] completed queries [num_total_queries=265]
+[v2,rank=180,overall_time=8.744,comp_time=4.490,steal_time=0.081,poll_time=3.981,resp_time=0.019,iallreduce_time=0.173,num_trees_stolen=2,num_steal_reqs_recv=552,num_steal_reqs_sent=1101] completed queries [num_total_queries=227]
+[v2,rank=244,overall_time=8.753,comp_time=4.293,steal_time=0.079,poll_time=4.213,resp_time=0.001,iallreduce_time=0.167,num_trees_stolen=2,num_steal_reqs_recv=611,num_steal_reqs_sent=598] completed queries [num_total_queries=225]
+[v2,rank=117,overall_time=8.774,comp_time=4.772,steal_time=0.072,poll_time=3.753,resp_time=0.021,iallreduce_time=0.156,num_trees_stolen=0,num_steal_reqs_recv=616,num_steal_reqs_sent=882] completed queries [num_total_queries=246]
+[v2,rank=54,overall_time=8.723,comp_time=4.163,steal_time=0.088,poll_time=4.278,resp_time=0.001,iallreduce_time=0.194,num_trees_stolen=1,num_steal_reqs_recv=565,num_steal_reqs_sent=597] completed queries [num_total_queries=207]
+[v2,rank=181,overall_time=8.650,comp_time=3.007,steal_time=0.111,poll_time=5.287,resp_time=0.009,iallreduce_time=0.237,num_trees_stolen=0,num_steal_reqs_recv=581,num_steal_reqs_sent=434] completed queries [num_total_queries=143]
+[v2,rank=245,overall_time=8.718,comp_time=3.669,steal_time=0.087,poll_time=4.770,resp_time=0.001,iallreduce_time=0.191,num_trees_stolen=2,num_steal_reqs_recv=528,num_steal_reqs_sent=754] completed queries [num_total_queries=165]
+[v2,rank=118,overall_time=8.694,comp_time=3.430,steal_time=0.097,poll_time=4.927,resp_time=0.029,iallreduce_time=0.211,num_trees_stolen=0,num_steal_reqs_recv=552,num_steal_reqs_sent=736] completed queries [num_total_queries=160]
+[v2,rank=55,overall_time=8.734,comp_time=4.444,steal_time=0.084,poll_time=4.024,resp_time=0.001,iallreduce_time=0.181,num_trees_stolen=0,num_steal_reqs_recv=564,num_steal_reqs_sent=452] completed queries [num_total_queries=229]
+[v2,rank=182,overall_time=8.722,comp_time=3.802,steal_time=0.088,poll_time=4.639,resp_time=0.001,iallreduce_time=0.192,num_trees_stolen=1,num_steal_reqs_recv=549,num_steal_reqs_sent=575] completed queries [num_total_queries=179]
+[v2,rank=246,overall_time=8.653,comp_time=2.522,steal_time=0.110,poll_time=5.749,resp_time=0.035,iallreduce_time=0.237,num_trees_stolen=0,num_steal_reqs_recv=569,num_steal_reqs_sent=249] completed queries [num_total_queries=119]
+[v2,rank=119,overall_time=8.674,comp_time=3.373,steal_time=0.103,poll_time=4.972,resp_time=0.001,iallreduce_time=0.224,num_trees_stolen=0,num_steal_reqs_recv=577,num_steal_reqs_sent=887] completed queries [num_total_queries=157]
+[v2,rank=56,overall_time=8.828,comp_time=5.814,steal_time=0.055,poll_time=2.841,resp_time=0.001,iallreduce_time=0.119,num_trees_stolen=4,num_steal_reqs_recv=541,num_steal_reqs_sent=420] completed queries [num_total_queries=306]
+[v2,rank=183,overall_time=8.669,comp_time=2.752,steal_time=0.105,poll_time=5.564,resp_time=0.021,iallreduce_time=0.226,num_trees_stolen=0,num_steal_reqs_recv=567,num_steal_reqs_sent=293] completed queries [num_total_queries=126]
+[v2,rank=247,overall_time=8.721,comp_time=3.605,steal_time=0.089,poll_time=4.770,resp_time=0.031,iallreduce_time=0.227,num_trees_stolen=0,num_steal_reqs_recv=609,num_steal_reqs_sent=349] completed queries [num_total_queries=165]
+[v2,rank=120,overall_time=8.678,comp_time=3.011,steal_time=0.102,poll_time=5.345,resp_time=0.001,iallreduce_time=0.219,num_trees_stolen=0,num_steal_reqs_recv=542,num_steal_reqs_sent=966] completed queries [num_total_queries=134]
+[v2,rank=57,overall_time=8.703,comp_time=3.973,steal_time=0.094,poll_time=4.405,resp_time=0.033,iallreduce_time=0.199,num_trees_stolen=0,num_steal_reqs_recv=550,num_steal_reqs_sent=675] completed queries [num_total_queries=207]
+[v2,rank=184,overall_time=8.867,comp_time=6.639,steal_time=0.043,poll_time=2.037,resp_time=0.056,iallreduce_time=0.092,num_trees_stolen=0,num_steal_reqs_recv=573,num_steal_reqs_sent=531] completed queries [num_total_queries=380]
+[v2,rank=248,overall_time=8.718,comp_time=3.631,steal_time=0.090,poll_time=4.785,resp_time=0.022,iallreduce_time=0.190,num_trees_stolen=2,num_steal_reqs_recv=632,num_steal_reqs_sent=721] completed queries [num_total_queries=165]
+[v2,rank=121,overall_time=8.629,comp_time=2.617,steal_time=0.117,poll_time=5.640,resp_time=0.001,iallreduce_time=0.254,num_trees_stolen=1,num_steal_reqs_recv=566,num_steal_reqs_sent=358] completed queries [num_total_queries=119]
+[v2,rank=58,overall_time=8.692,comp_time=3.364,steal_time=0.097,poll_time=4.993,resp_time=0.028,iallreduce_time=0.210,num_trees_stolen=0,num_steal_reqs_recv=586,num_steal_reqs_sent=172] completed queries [num_total_queries=165]
+[v2,rank=185,overall_time=8.697,comp_time=3.390,steal_time=0.096,poll_time=4.990,resp_time=0.018,iallreduce_time=0.202,num_trees_stolen=0,num_steal_reqs_recv=570,num_steal_reqs_sent=436] completed queries [num_total_queries=161]
+[v2,rank=249,overall_time=8.727,comp_time=4.132,steal_time=0.087,poll_time=4.310,resp_time=0.012,iallreduce_time=0.186,num_trees_stolen=3,num_steal_reqs_recv=559,num_steal_reqs_sent=2467] completed queries [num_total_queries=196]
+[v2,rank=122,overall_time=8.721,comp_time=3.875,steal_time=0.088,poll_time=4.543,resp_time=0.022,iallreduce_time=0.192,num_trees_stolen=1,num_steal_reqs_recv=582,num_steal_reqs_sent=388] completed queries [num_total_queries=180]
+[v2,rank=59,overall_time=8.689,comp_time=3.385,steal_time=0.098,poll_time=4.974,resp_time=0.017,iallreduce_time=0.215,num_trees_stolen=0,num_steal_reqs_recv=573,num_steal_reqs_sent=763] completed queries [num_total_queries=161]
+[v2,rank=186,overall_time=8.730,comp_time=4.252,steal_time=0.086,poll_time=4.171,resp_time=0.001,iallreduce_time=0.220,num_trees_stolen=2,num_steal_reqs_recv=578,num_steal_reqs_sent=638] completed queries [num_total_queries=203]
+[v2,rank=250,overall_time=8.716,comp_time=3.942,steal_time=0.091,poll_time=4.480,resp_time=0.011,iallreduce_time=0.192,num_trees_stolen=0,num_steal_reqs_recv=540,num_steal_reqs_sent=1748] completed queries [num_total_queries=189]
+[v2,rank=123,overall_time=8.691,comp_time=3.238,steal_time=0.098,poll_time=5.125,resp_time=0.020,iallreduce_time=0.211,num_trees_stolen=0,num_steal_reqs_recv=565,num_steal_reqs_sent=772] completed queries [num_total_queries=152]
+[v2,rank=60,overall_time=8.686,comp_time=3.657,steal_time=0.099,poll_time=4.715,resp_time=0.000,iallreduce_time=0.215,num_trees_stolen=0,num_steal_reqs_recv=537,num_steal_reqs_sent=108] completed queries [num_total_queries=167]
+[v2,rank=187,overall_time=8.723,comp_time=3.760,steal_time=0.088,poll_time=4.685,resp_time=0.001,iallreduce_time=0.190,num_trees_stolen=1,num_steal_reqs_recv=587,num_steal_reqs_sent=402] completed queries [num_total_queries=169]
+[v2,rank=251,overall_time=8.694,comp_time=3.521,steal_time=0.097,poll_time=4.866,resp_time=0.001,iallreduce_time=0.209,num_trees_stolen=0,num_steal_reqs_recv=605,num_steal_reqs_sent=513] completed queries [num_total_queries=166]
+[v2,rank=124,overall_time=8.738,comp_time=4.161,steal_time=0.083,poll_time=4.316,resp_time=0.000,iallreduce_time=0.178,num_trees_stolen=2,num_steal_reqs_recv=585,num_steal_reqs_sent=287] completed queries [num_total_queries=206]
+[v2,rank=61,overall_time=8.687,comp_time=3.658,steal_time=0.099,poll_time=4.700,resp_time=0.017,iallreduce_time=0.214,num_trees_stolen=1,num_steal_reqs_recv=538,num_steal_reqs_sent=405] completed queries [num_total_queries=172]
+[v2,rank=188,overall_time=8.758,comp_time=4.799,steal_time=0.077,poll_time=3.718,resp_time=0.000,iallreduce_time=0.163,num_trees_stolen=4,num_steal_reqs_recv=549,num_steal_reqs_sent=342] completed queries [num_total_queries=255]
+[v2,rank=252,overall_time=8.787,comp_time=4.858,steal_time=0.068,poll_time=3.703,resp_time=0.014,iallreduce_time=0.144,num_trees_stolen=3,num_steal_reqs_recv=588,num_steal_reqs_sent=639] completed queries [num_total_queries=253]
+[v2,rank=125,overall_time=8.806,comp_time=5.281,steal_time=0.062,poll_time=3.313,resp_time=0.017,iallreduce_time=0.134,num_trees_stolen=4,num_steal_reqs_recv=546,num_steal_reqs_sent=440] completed queries [num_total_queries=280]
+[v2,rank=62,overall_time=8.687,comp_time=3.604,steal_time=0.099,poll_time=4.763,resp_time=0.002,iallreduce_time=0.219,num_trees_stolen=1,num_steal_reqs_recv=580,num_steal_reqs_sent=1086] completed queries [num_total_queries=162]
+[v2,rank=189,overall_time=8.687,comp_time=3.150,steal_time=0.099,poll_time=5.205,resp_time=0.024,iallreduce_time=0.209,num_trees_stolen=0,num_steal_reqs_recv=558,num_steal_reqs_sent=315] completed queries [num_total_queries=146]
+[v2,rank=253,overall_time=8.708,comp_time=3.367,steal_time=0.093,poll_time=5.042,resp_time=0.008,iallreduce_time=0.198,num_trees_stolen=1,num_steal_reqs_recv=550,num_steal_reqs_sent=459] completed queries [num_total_queries=152]
+[v2,rank=126,overall_time=8.742,comp_time=4.267,steal_time=0.082,poll_time=4.179,resp_time=0.039,iallreduce_time=0.176,num_trees_stolen=0,num_steal_reqs_recv=574,num_steal_reqs_sent=221] completed queries [num_total_queries=209]
+[v2,rank=63,overall_time=8.686,comp_time=3.651,steal_time=0.099,poll_time=4.719,resp_time=0.001,iallreduce_time=0.216,num_trees_stolen=2,num_steal_reqs_recv=544,num_steal_reqs_sent=373] completed queries [num_total_queries=170]
+[v2,rank=190,overall_time=8.703,comp_time=3.497,steal_time=0.094,poll_time=4.912,resp_time=0.000,iallreduce_time=0.199,num_trees_stolen=1,num_steal_reqs_recv=544,num_steal_reqs_sent=160] completed queries [num_total_queries=166]
+[v2,rank=254,overall_time=8.689,comp_time=3.029,steal_time=0.099,poll_time=5.316,resp_time=0.033,iallreduce_time=0.211,num_trees_stolen=1,num_steal_reqs_recv=536,num_steal_reqs_sent=555] completed queries [num_total_queries=138]
+[v2,rank=127,overall_time=8.767,comp_time=4.911,steal_time=0.074,poll_time=3.615,resp_time=0.001,iallreduce_time=0.166,num_trees_stolen=2,num_steal_reqs_recv=529,num_steal_reqs_sent=707] completed queries [num_total_queries=248]
+[v2,rank=191,overall_time=8.800,comp_time=5.588,steal_time=0.064,poll_time=3.011,resp_time=0.001,iallreduce_time=0.137,num_trees_stolen=0,num_steal_reqs_recv=553,num_steal_reqs_sent=791] completed queries [num_total_queries=295]
+[v2,rank=255,overall_time=8.736,comp_time=3.973,steal_time=0.084,poll_time=4.493,resp_time=0.010,iallreduce_time=0.177,num_trees_stolen=2,num_steal_reqs_recv=533,num_steal_reqs_sent=416] completed queries [num_total_queries=202]
+[v2,rank=95,overall_time=8.730,comp_time=3.931,steal_time=0.086,poll_time=4.491,resp_time=0.037,iallreduce_time=0.185,num_trees_stolen=0,num_steal_reqs_recv=542,num_steal_reqs_sent=184] completed queries [num_total_queries=171]
+[v2,rank=14,overall_time=8.715,comp_time=4.150,steal_time=0.090,poll_time=4.280,resp_time=0.000,iallreduce_time=0.194,num_trees_stolen=0,num_steal_reqs_recv=583,num_steal_reqs_sent=182] completed queries [num_total_queries=194]
+[v2,rank=15,overall_time=8.724,comp_time=4.314,steal_time=0.088,poll_time=4.132,resp_time=0.002,iallreduce_time=0.189,num_trees_stolen=0,num_steal_reqs_recv=561,num_steal_reqs_sent=1132] completed queries [num_total_queries=206]
+[v1,time=9.111] completed queries [edges=3450620,density=69.012]
+
+[total_runtime=31.494,nprocs=256]
+

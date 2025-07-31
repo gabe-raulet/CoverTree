@@ -1,0 +1,44 @@
+[v1,time=0.555] read file 'scratch/datasets/covtype.fvecs' [size=581012,dim=55]
+[v1,time=0.467] found 400 centers [separation=541.091,minsize=21,maxsize=10318,avgsize=1452.530]
+[v1,time=0.256] found 5709179 ghost points [avgprocsize=356823.688]
+[v1,time=0.000] computed tree-to-rank assignments
+[v1,time=0.069] loaded alltoall outbufs
+[v1,time=0.315] alltoall exchange
+[v1,time=0.050] built local cell vectors
+[v2,rank=7,time=0.441] completed 25 local trees
+[v2,rank=13,time=0.558] completed 25 local trees
+[v2,rank=3,time=0.568] completed 25 local trees
+[v2,rank=9,time=0.590] completed 25 local trees
+[v2,rank=15,time=0.604] completed 25 local trees
+[v2,rank=5,time=0.637] completed 25 local trees
+[v2,rank=8,time=0.661] completed 25 local trees
+[v2,rank=6,time=0.672] completed 25 local trees
+[v2,rank=14,time=0.688] completed 25 local trees
+[v2,rank=12,time=0.729] completed 25 local trees
+[v2,rank=4,time=0.752] completed 25 local trees
+[v2,rank=11,time=0.782] completed 25 local trees
+[v2,rank=10,time=0.786] completed 25 local trees
+[v2,rank=2,time=0.820] completed 25 local trees
+[v2,rank=0,time=0.948] completed 25 local trees
+[v1,time=1.001] built 400 cover trees
+[v2,rank=1,time=1.001] completed 25 local trees
+[v2,rank=0,overall_time=4.352,comp_time=3.773,steal_time=0.141,poll_time=0.231,resp_time=0.000,iallreduce_time=0.207,num_trees_stolen=5,num_steal_reqs_recv=27,num_steal_reqs_sent=43] completed queries [num_total_queries=31877]
+[v2,rank=1,overall_time=4.261,comp_time=3.556,steal_time=0.169,poll_time=0.282,resp_time=0.005,iallreduce_time=0.249,num_trees_stolen=4,num_steal_reqs_recv=28,num_steal_reqs_sent=18] completed queries [num_total_queries=28761]
+[v2,rank=2,overall_time=4.524,comp_time=4.169,steal_time=0.087,poll_time=0.142,resp_time=0.000,iallreduce_time=0.126,num_trees_stolen=3,num_steal_reqs_recv=25,num_steal_reqs_sent=8] completed queries [num_total_queries=37084]
+[v2,rank=3,overall_time=4.069,comp_time=3.148,steal_time=0.229,poll_time=0.345,resp_time=0.009,iallreduce_time=0.338,num_trees_stolen=1,num_steal_reqs_recv=40,num_steal_reqs_sent=8] completed queries [num_total_queries=39611]
+[v2,rank=4,overall_time=4.293,comp_time=3.648,steal_time=0.159,poll_time=0.244,resp_time=0.008,iallreduce_time=0.234,num_trees_stolen=1,num_steal_reqs_recv=28,num_steal_reqs_sent=21] completed queries [num_total_queries=38470]
+[v2,rank=5,overall_time=4.065,comp_time=3.144,steal_time=0.230,poll_time=0.350,resp_time=0.002,iallreduce_time=0.339,num_trees_stolen=1,num_steal_reqs_recv=32,num_steal_reqs_sent=19] completed queries [num_total_queries=33782]
+[v2,rank=6,overall_time=3.998,comp_time=2.990,steal_time=0.252,poll_time=0.385,resp_time=0.000,iallreduce_time=0.371,num_trees_stolen=0,num_steal_reqs_recv=28,num_steal_reqs_sent=36] completed queries [num_total_queries=35041]
+[v2,rank=7,overall_time=3.840,comp_time=2.655,steal_time=0.300,poll_time=0.448,resp_time=0.004,iallreduce_time=0.432,num_trees_stolen=0,num_steal_reqs_recv=24,num_steal_reqs_sent=54] completed queries [num_total_queries=32968]
+[v2,rank=8,overall_time=4.493,comp_time=4.089,steal_time=0.097,poll_time=0.150,resp_time=0.019,iallreduce_time=0.139,num_trees_stolen=2,num_steal_reqs_recv=26,num_steal_reqs_sent=28] completed queries [num_total_queries=42092]
+[v2,rank=9,overall_time=4.357,comp_time=3.813,steal_time=0.139,poll_time=0.206,resp_time=0.000,iallreduce_time=0.200,num_trees_stolen=0,num_steal_reqs_recv=20,num_steal_reqs_sent=42] completed queries [num_total_queries=35153]
+[v2,rank=10,overall_time=4.161,comp_time=3.358,steal_time=0.201,poll_time=0.307,resp_time=0.000,iallreduce_time=0.295,num_trees_stolen=2,num_steal_reqs_recv=30,num_steal_reqs_sent=16] completed queries [num_total_queries=34934]
+[v2,rank=11,overall_time=4.389,comp_time=3.881,steal_time=0.129,poll_time=0.193,resp_time=0.001,iallreduce_time=0.186,num_trees_stolen=1,num_steal_reqs_recv=15,num_steal_reqs_sent=27] completed queries [num_total_queries=40198]
+[v2,rank=12,overall_time=4.249,comp_time=3.545,steal_time=0.173,poll_time=0.262,resp_time=0.014,iallreduce_time=0.254,num_trees_stolen=2,num_steal_reqs_recv=33,num_steal_reqs_sent=11] completed queries [num_total_queries=43218]
+[v2,rank=13,overall_time=4.023,comp_time=3.048,steal_time=0.243,poll_time=0.368,resp_time=0.006,iallreduce_time=0.358,num_trees_stolen=1,num_steal_reqs_recv=33,num_steal_reqs_sent=36] completed queries [num_total_queries=35409]
+[v2,rank=14,overall_time=3.953,comp_time=2.909,steal_time=0.265,poll_time=0.396,resp_time=0.002,iallreduce_time=0.382,num_trees_stolen=0,num_steal_reqs_recv=28,num_steal_reqs_sent=28] completed queries [num_total_queries=36630]
+[v2,rank=15,overall_time=4.076,comp_time=3.162,steal_time=0.227,poll_time=0.345,resp_time=0.007,iallreduce_time=0.335,num_trees_stolen=0,num_steal_reqs_recv=26,num_steal_reqs_sent=41] completed queries [num_total_queries=35784]
+[v1,time=4.838] completed queries [edges=157365576,density=270.847]
+
+[total_runtime=6.850,nprocs=16]
+

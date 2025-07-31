@@ -1,0 +1,28 @@
+[v1,time=0.036] read file 'scratch/datasets/corel.fvecs' [size=68040,dim=32]
+[v1,time=0.033] found 200 centers [separation=0.422,minsize=2,maxsize=5154,avgsize=340.200]
+[v1,time=0.082] found 6591337 ghost points [avgprocsize=823917.125]
+[v1,time=0.000] computed tree-to-rank assignments
+[v1,time=0.117] loaded alltoall outbufs
+[v1,time=0.334] alltoall exchange
+[v1,time=0.057] built local cell vectors
+[v2,rank=7,time=0.968] completed 25 local trees
+[v2,rank=5,time=0.993] completed 25 local trees
+[v2,rank=3,time=1.094] completed 25 local trees
+[v2,rank=2,time=1.104] completed 25 local trees
+[v2,rank=1,time=1.214] completed 25 local trees
+[v2,rank=4,time=1.227] completed 25 local trees
+[v2,rank=0,time=1.253] completed 25 local trees
+[v1,time=1.276] built 200 cover trees
+[v2,rank=6,time=1.276] completed 25 local trees
+[v2,rank=2,time=1.199] completed queries [num_local_trees=25,num_total_queries=6276,num_local_edges=2504549,density=399.068]
+[v2,rank=7,time=1.319] completed queries [num_local_trees=25,num_total_queries=4791,num_local_edges=1787300,density=373.054]
+[v2,rank=5,time=2.086] completed queries [num_local_trees=25,num_total_queries=7561,num_local_edges=3596884,density=475.715]
+[v2,rank=6,time=2.181] completed queries [num_local_trees=25,num_total_queries=6281,num_local_edges=2731570,density=434.894]
+[v2,rank=4,time=2.203] completed queries [num_local_trees=25,num_total_queries=6786,num_local_edges=3606257,density=531.426]
+[v2,rank=3,time=2.523] completed queries [num_local_trees=25,num_total_queries=8317,num_local_edges=4112894,density=494.517]
+[v2,rank=0,time=5.728] completed queries [num_local_trees=25,num_total_queries=14452,num_local_edges=9509198,density=657.985]
+[v2,rank=1,time=6.478] completed queries [num_local_trees=25,num_total_queries=13576,num_local_edges=9710538,density=715.272]
+[v1,time=5.770] completed queries [edges=37559190,density=552.016]
+
+[total_runtime=8.376,nprocs=8]
+
