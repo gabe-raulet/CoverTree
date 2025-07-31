@@ -47,11 +47,11 @@ void PointVector::read_fvecs(const char *fname)
     fclose(f);
 }
 
-void PointVector::read_fvecs(const char *fname, MPI_Comm comm)
+void PointVector::read_fvecs(const char *fname, Index& myoffset, Index& totsize, MPI_Comm comm)
 {
     int d;
     FILE *f;
-    Index mysize, myoffset, totsize, filesize, myleft;
+    Index mysize, filesize, myleft;
     std::filesystem::path path;
 
     int myrank, nprocs;

@@ -9,6 +9,7 @@
 #include "point_vector.h"
 #include "dist_voronoi.h"
 #include "dist_query.h"
+#include "radius_neighbors_graph.h"
 
 MPI_Comm comm;
 int myrank, nprocs;
@@ -44,264 +45,268 @@ int main(int argc, char *argv[])
 
 int main_mpi(int argc, char *argv[])
 {
-    int dim;
-    Index mysize, totsize;
-    PointVector mypoints;
+    RadiusNeighborsGraph rnng(infile, radius, comm);
 
-    double tottime, mytime, maxtime, t;
 
-    /*
-     * Read input points file
-     */
 
-    mytime = -MPI_Wtime();
-    mypoints.read_fvecs(infile, comm);
-    mytime += MPI_Wtime();
+    //int dim;
+    //Index mysize, totsize;
+    //PointVector mypoints;
 
-    mysize = mypoints.num_points();
-    dim = mypoints.num_dimensions();
+    //double tottime, mytime, maxtime, t;
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim);
-        fflush(stdout);
-    }
+    ///*
+    // * Read input points file
+    // */
 
-    MPI_Barrier(comm);
-    tottime = -MPI_Wtime();
+    //mytime = -MPI_Wtime();
+    //mypoints.read_fvecs(infile, comm);
+    //mytime += MPI_Wtime();
 
-    /*
-     * Partition points into Voronoi cells
-     */
+    //mysize = mypoints.num_points();
+    //dim = mypoints.num_dimensions();
 
-    mytime = -MPI_Wtime();
-    DistVoronoi diagram(mypoints, 0, comm);
-    diagram.add_next_centers(num_centers);
-    mytime += MPI_Wtime();
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
+    //    if (!myrank) printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim);
+    //    fflush(stdout);
+    //}
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //MPI_Barrier(comm);
+    //tottime = -MPI_Wtime();
 
-        Index mincellsize, maxcellsize;
-        diagram.get_stats(mincellsize, maxcellsize, 0);
+    ///*
+    // * Partition points into Voronoi cells
+    // */
 
-        if (!myrank) printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers);
-        fflush(stdout);
-    }
+    //mytime = -MPI_Wtime();
+    //DistVoronoi diagram(mypoints, 0, comm);
+    //diagram.add_next_centers(num_centers);
+    //mytime += MPI_Wtime();
 
-    /*
-     * Gather cell points and find ghost points
-     */
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-    IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
+    //    Index mincellsize, maxcellsize;
+    //    diagram.get_stats(mincellsize, maxcellsize, 0);
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
-    diagram.gather_local_cell_ids(mycellids, mycellptrs);
-    diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
-    mytime += MPI_Wtime();
+    //    if (!myrank) printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers);
+    //    fflush(stdout);
+    //}
 
-    if (verbosity >= 1)
-    {
-        Index num_ghosts = myghostids.size();
+    ///*
+    // * Gather cell points and find ghost points
+    // */
 
-        const void *sendbuf = myrank == 0? MPI_IN_PLACE : &num_ghosts;
-        MPI_Reduce(sendbuf, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
 
-        if (!myrank) printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs);
-        fflush(stdout);
-    }
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
+    //diagram.gather_local_cell_ids(mycellids, mycellptrs);
+    //diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
+    //mytime += MPI_Wtime();
 
-    /*
-     * Compute tree-to-rank assignments
-     */
+    //if (verbosity >= 1)
+    //{
+    //    Index num_ghosts = myghostids.size();
 
-    Index s;
-    IndexVector mycells;
-    std::vector<int> dests; /* tree-to-rank assignments */
+    //    const void *sendbuf = myrank == 0? MPI_IN_PLACE : &num_ghosts;
+    //    MPI_Reduce(sendbuf, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
-    if      (!strcmp(tree_assignment, "static")) s = diagram.compute_static_cyclic_assignments(dests, mycells);
-    else if (!strcmp(tree_assignment, "multiway")) s = diagram.compute_multiway_number_partitioning_assignments(dests, mycells);
-    else throw std::runtime_error("invalid assignments_methods selected!");
-    mytime += MPI_Wtime();
+    //    if (!myrank) printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs);
+    //    fflush(stdout);
+    //}
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime);
-        fflush(stdout);
-    }
+    ///*
+    // * Compute tree-to-rank assignments
+    // */
 
-    /*
-     * Load alltoall buffers
-     */
+    //Index s;
+    //IndexVector mycells;
+    //std::vector<int> dests; /* tree-to-rank assignments */
 
-    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
-    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
+    //if      (!strcmp(tree_assignment, "static")) s = diagram.compute_static_cyclic_assignments(dests, mycells);
+    //else if (!strcmp(tree_assignment, "multiway")) s = diagram.compute_multiway_number_partitioning_assignments(dests, mycells);
+    //else throw std::runtime_error("invalid assignments_methods selected!");
+    //mytime += MPI_Wtime();
 
-    GlobalPointVector cell_sendbuf, cell_recvbuf;
-    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    if (!myrank) printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime);
+    //    fflush(stdout);
+    //}
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
-    diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
-    diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
-    mytime += MPI_Wtime();
+    ///*
+    // * Load alltoall buffers
+    // */
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime);
-        fflush(stdout);
-    }
+    //std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
+    //std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
 
-    /*
-     * Exchange points alltoall
-     */
+    //GlobalPointVector cell_sendbuf, cell_recvbuf;
+    //GlobalPointVector ghost_sendbuf, ghost_recvbuf;
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
+    //diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
+    //diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
+    //mytime += MPI_Wtime();
 
-    MPI_Request reqs[2];
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    if (!myrank) printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime);
+    //    fflush(stdout);
+    //}
 
-    MPI_Datatype MPI_GLOBAL_POINT;
-    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, dim);
+    ///*
+    // * Exchange points alltoall
+    // */
 
-    global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, comm, &reqs[0]);
-    global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, MPI_GLOBAL_POINT, ghost_recvbuf, comm, &reqs[1]);
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
 
-    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+    //MPI_Request reqs[2];
 
-    MPI_Type_free(&MPI_GLOBAL_POINT);
+    //MPI_Datatype MPI_GLOBAL_POINT;
+    //GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, dim);
 
-    mytime += MPI_Wtime();
+    //global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, comm, &reqs[0]);
+    //global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, MPI_GLOBAL_POINT, ghost_recvbuf, comm, &reqs[1]);
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] alltoall exchange\n", maxtime);
-        fflush(stdout);
-    }
+    //MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 
-    /*
-     * Build local cell vectors
-     */
+    //MPI_Type_free(&MPI_GLOBAL_POINT);
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
+    //mytime += MPI_Wtime();
 
-    IndexVector my_query_sizes(s,0);
-    std::vector<PointVector> my_cell_vectors(s, PointVector(dim));
-    std::vector<IndexVector> my_cell_indices(s);
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    if (!myrank) printf("[v1,time=%.3f] alltoall exchange\n", maxtime);
+    //    fflush(stdout);
+    //}
 
-    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes, false);
+    ///*
+    // * Build local cell vectors
+    // */
 
-    mytime += MPI_Wtime();
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) { printf("[v1,time=%.3f] built local cell vectors\n", maxtime); fflush(stdout); }
-    }
+    //IndexVector my_query_sizes(s,0);
+    //std::vector<PointVector> my_cell_vectors(s, PointVector(dim));
+    //std::vector<IndexVector> my_cell_indices(s);
 
-    /*
-     * Build local cover trees
-     */
+    //build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes, false);
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
+    //mytime += MPI_Wtime();
 
-    std::vector<CoverTree> mytrees(s);
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    if (!myrank) { printf("[v1,time=%.3f] built local cell vectors\n", maxtime); fflush(stdout); }
+    //}
 
-    for (Index i = 0; i < s; ++i)
-    {
-        t = -MPI_Wtime();
-        mytrees[i].build(my_cell_vectors[i], cover, leaf_size);
-        t += MPI_Wtime();
+    ///*
+    // * Build local cover trees
+    // */
 
-        if (verbosity >= 3) printf("[v3,rank=%d,time=%.3f] built cover tree [id=%lld,points=%lld,vertices=%lld]\n", myrank, t, mycells[i], my_cell_vectors[i].num_points(), mytrees[i].num_vertices());
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
 
-        fflush(stdout);
-    }
+    //std::vector<CoverTree> mytrees(s);
 
-    mytime += MPI_Wtime();
+    //for (Index i = 0; i < s; ++i)
+    //{
+    //    t = -MPI_Wtime();
+    //    mytrees[i].build(my_cell_vectors[i], cover, leaf_size);
+    //    t += MPI_Wtime();
 
-    if (verbosity >= 2)
-    {
-        printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s);
-        fflush(stdout);
-    }
+    //    if (verbosity >= 3) printf("[v3,rank=%d,time=%.3f] built cover tree [id=%lld,points=%lld,vertices=%lld]\n", myrank, t, mycells[i], my_cell_vectors[i].num_points(), mytrees[i].num_vertices());
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers);
-        fflush(stdout);
-    }
+    //    fflush(stdout);
+    //}
 
-    /*
-     * Compute epsilon neighbors
-     */
+    //mytime += MPI_Wtime();
 
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
-    DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
+    //if (verbosity >= 2)
+    //{
+    //    printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s);
+    //    fflush(stdout);
+    //}
 
-    if      (!strcmp(query_balancing, "static") || nprocs == 1) dist_query.static_balancing();
-    else if (!strcmp(query_balancing, "steal")) dist_query.random_stealing(queries_per_tree);
-    else throw std::runtime_error("Invalid balancing_method selected!");
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    if (!myrank) printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers);
+    //    fflush(stdout);
+    //}
 
-    mytime += MPI_Wtime();
-    tottime += MPI_Wtime();
+    ///*
+    // * Compute epsilon neighbors
+    // */
 
-    Index edges;
-    Index myedges = dist_query.my_edges_found();
-    MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
+    //MPI_Barrier(comm);
+    //mytime = -MPI_Wtime();
+    //DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
 
-    if (verbosity >= 1)
-    {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
-        fflush(stdout);
-    }
+    //if      (!strcmp(query_balancing, "static") || nprocs == 1) dist_query.static_balancing();
+    //else if (!strcmp(query_balancing, "steal")) dist_query.random_stealing(queries_per_tree);
+    //else throw std::runtime_error("Invalid balancing_method selected!");
 
-    if (outfile)
-    {
-        MPI_Barrier(comm);
-        mytime = -MPI_Wtime();
-        dist_query.write_to_file(outfile);
-        mytime += MPI_Wtime();
+    //mytime += MPI_Wtime();
+    //tottime += MPI_Wtime();
 
-        if (verbosity > 0)
-        {
-            MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-            if (!myrank) printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile);
-            fflush(stdout);
-        }
-    }
+    //Index edges;
+    //Index myedges = dist_query.my_edges_found();
+    //MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
 
-    MPI_Reduce(myrank == 0? MPI_IN_PLACE : &tottime, &tottime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //if (verbosity >= 1)
+    //{
+    //    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //    if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
+    //    fflush(stdout);
+    //}
 
-    if (verbosity >= 1)
-    {
-        if (!myrank) printf("\n[total_runtime=%.3f,nprocs=%d]\n\n", tottime, nprocs);
-    }
-    else
-    {
-        if (!myrank)
-        {
-            printf("[time=%.3f,nprocs=%d,edges=%lld,radius=%.3f,cover=%.3f,leaf_size=%lld,centers=%lld,queries_per_tree=%lld,assignment=%s,balancing=%s]\n",
-                     tottime, nprocs, edges, radius, cover, leaf_size, num_centers, queries_per_tree, tree_assignment, query_balancing);
-        }
-    }
+    //if (outfile)
+    //{
+    //    MPI_Barrier(comm);
+    //    mytime = -MPI_Wtime();
+    //    dist_query.write_to_file(outfile);
+    //    mytime += MPI_Wtime();
 
-    fflush(stdout);
+    //    if (verbosity > 0)
+    //    {
+    //        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    //        if (!myrank) printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile);
+    //        fflush(stdout);
+    //    }
+    //}
+
+    //MPI_Reduce(myrank == 0? MPI_IN_PLACE : &tottime, &tottime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
+    //if (verbosity >= 1)
+    //{
+    //    if (!myrank) printf("\n[total_runtime=%.3f,nprocs=%d]\n\n", tottime, nprocs);
+    //}
+    //else
+    //{
+    //    if (!myrank)
+    //    {
+    //        printf("[time=%.3f,nprocs=%d,edges=%lld,radius=%.3f,cover=%.3f,leaf_size=%lld,centers=%lld,queries_per_tree=%lld,assignment=%s,balancing=%s]\n",
+    //                 tottime, nprocs, edges, radius, cover, leaf_size, num_centers, queries_per_tree, tree_assignment, query_balancing);
+    //    }
+    //}
+
+    //fflush(stdout);
     return 0;
 }
 
