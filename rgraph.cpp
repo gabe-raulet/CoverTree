@@ -47,7 +47,12 @@ int main_mpi(int argc, char *argv[])
 {
     RadiusNeighborsGraph rnng(infile, radius, comm);
 
+    Index num_edges = rnng.brute_force_systolic();
+    Index num_points = rnng.gettotsize();
 
+    Real density = (num_edges+0.0) / num_points;
+
+    if (!myrank) printf("[num_points=%lld,num_edges=%lld,density=%.3f]\n", num_points, num_edges, density);
 
     //int dim;
     //Index mysize, totsize;

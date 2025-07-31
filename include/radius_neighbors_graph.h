@@ -11,7 +11,11 @@ class RadiusNeighborsGraph
 
         RadiusNeighborsGraph(const char *filename, Real radius, MPI_Comm comm);
 
+        Index brute_force_systolic();
 
+        Index getmysize() const { return mysize; }
+        Index getmyoffset() const { return myoffset; }
+        Index gettotsize() const { return totsize; }
 
     private:
 
@@ -22,8 +26,6 @@ class RadiusNeighborsGraph
         PointVector mypoints;
         Index mysize, myoffset, totsize;
         IndexVector myneighs, myqueries, myptrs;
-
-
 };
 
 #endif
