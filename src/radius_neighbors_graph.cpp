@@ -75,3 +75,53 @@ Index RadiusNeighborsGraph::brute_force_systolic()
 
     return num_edges;
 }
+
+void RadiusNeighborsGraph::write_graph_file(const char *filename) const
+{
+    std::ostringstream ss, ss2;
+    Index num_edges, my_num_edges = 0;
+    Index my_num_queries = myqueries.size();
+
+    for (Index i = 0; i < my_num_queries; ++i)
+    {
+        /* ss2 << (myqueries[i]+1) << " " << (myqueries[i]+1) << "\n"; */
+        /* my_num_edges++; */
+
+        for (Index p = myptrs[i]; p < myptrs[i+1]; ++p)
+            if (true)
+            {
+                ss2 << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
+                my_num_edges++;
+            }
+
+        /* for (Index p = myptrs[i]; p < myptrs[i+1]; ++p) */
+            /* if (myqueries[i] != myneighs[p]) */
+            /* { */
+                /* ss2 << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n"; */
+                /* my_num_edges++; */
+            /* } */
+    }
+
+    MPI_Reduce(&my_num_edges, &num_edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
+
+    if (!myrank) ss << totsize << " " << totsize << " " << num_edges << "\n" << ss2.str();
+    else std::swap(ss, ss2);
+
+    auto sbuf = ss.str();
+    std::vector<char> buf(sbuf.begin(), sbuf.end());
+
+    MPI_Offset mycount = buf.size(), fileoffset, filesize;
+    MPI_Exscan(&mycount, &fileoffset, 1, MPI_OFFSET, MPI_SUM, comm);
+    if (!myrank) fileoffset = 0;
+
+    int truncate = 0;
+
+    MPI_File fh;
+    MPI_File_open(comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    MPI_File_get_size(fh, &filesize);
+    truncate = (filesize > 0);
+    MPI_Bcast(&truncate, 1, MPI_INT, 0, comm);
+    if (truncate) MPI_File_set_size(fh, 0);
+    MPI_File_write_at_all(fh, fileoffset, buf.data(), static_cast<int>(buf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
+    MPI_File_close(&fh);
+}

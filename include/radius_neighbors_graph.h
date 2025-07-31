@@ -17,6 +17,8 @@ class RadiusNeighborsGraph
         Index getmyoffset() const { return myoffset; }
         Index gettotsize() const { return totsize; }
 
+        void write_graph_file(const char *filename) const;
+
     private:
 
         MPI_Comm comm;

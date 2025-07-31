@@ -45,14 +45,21 @@ int main(int argc, char *argv[])
 
 int main_mpi(int argc, char *argv[])
 {
+    double mytime = 0, maxtime, t;
+
     RadiusNeighborsGraph rnng(infile, radius, comm);
 
+    t = -MPI_Wtime();
     Index num_edges = rnng.brute_force_systolic();
-    Index num_points = rnng.gettotsize();
+    t += MPI_Wtime();
+    mytime += t;
 
+    Index num_points = rnng.gettotsize();
     Real density = (num_edges+0.0) / num_points;
 
-    if (!myrank) printf("[num_points=%lld,num_edges=%lld,density=%.3f]\n", num_points, num_edges, density);
+    if (!myrank) printf("[time=%.3f] [num_points=%lld,num_edges=%lld,density=%.3f]\n", mytime, num_points, num_edges, density);
+
+    if (outfile) rnng.write_graph_file(outfile);
 
     //int dim;
     //Index mysize, totsize;
