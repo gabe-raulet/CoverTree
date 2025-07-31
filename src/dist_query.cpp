@@ -230,11 +230,7 @@ void DistQuery::random_stealing(Index queries_per_tree)
 
     while (!work_stealer.finished())
     {
-        if (++iters % 100 == 0)
-        {
-            work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time, num_trees_stolen, num_steal_reqs_recv, num_steal_reqs_sent);
-            iters = 0;
-        }
+        work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time, num_trees_stolen, num_steal_reqs_recv, num_steal_reqs_sent);
 
         if (!myqueue.empty())
         {
