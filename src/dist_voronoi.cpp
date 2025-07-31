@@ -259,7 +259,7 @@ Index DistVoronoi::compute_multiway_number_partitioning_assignments(std::vector<
     IndexVector cellsizes(m, 0);
     for (Index cell : cells) cellsizes[cell]++;
 
-    MPI_Allreduce(MPI_IN_PLACE, cellsizes.data(), m, MPI_INDEX, MPI_SUM, comm);
+    MPI_Allreduce(MPI_IN_PLACE, cellsizes.data(), (int)m, MPI_INDEX, MPI_SUM, comm);
 
     IndexPairVector pairs;
 

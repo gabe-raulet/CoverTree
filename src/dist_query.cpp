@@ -42,29 +42,29 @@ bool DistQuery::make_tree_queries(GhostTree& tree, Index count)
     num_local_queries_made += queries_made;
     num_local_edges_found += edges_found;
 
-    if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,queries_made=%lld,queries_left=%lld,edges_found=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.num_queries - tree.header.cur_query, edges_found); fflush(stdout); }
+    if (verbosity >= 3) printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,queries_made=%lld,queries_left=%lld,edges_found=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.num_queries - tree.header.cur_query, edges_found);
+    fflush(stdout);
 
     if (tree.finished())
     {
         num_local_trees_completed++;
         return true;
     }
-    else
-    {
-        return false;
-    }
+    else return false;
 }
 
 void DistQuery::report_finished(double mytime)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-    printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
+    printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
+    fflush(stdout);
 }
 
 void DistQuery::report_finished(double mycomptime, double mycommtime)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-    printf("[v2,rank=%d,comptime=%.3f,commtime=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mycomptime, mycommtime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density); fflush(stdout);
+    printf("[v2,rank=%d,comptime=%.3f,commtime=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mycomptime, mycommtime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
+    fflush(stdout);
 }
 
 void DistQuery::write_to_file(const char *fname) const
@@ -254,7 +254,7 @@ void DistQuery::random_stealing(Index queries_per_tree)
         }
     }
 
-    if (verbosity > 1) report_finished(mycomptime, mycommtime);
+    if (verbosity >= 2) report_finished(mycomptime, mycommtime);
 
     MPI_Barrier(comm);
     fflush(stdout);

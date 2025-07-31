@@ -10,75 +10,67 @@
 #include "dist_voronoi.h"
 #include "dist_query.h"
 
-struct Parameters
-{
-    const char *infile;
-    const char *outfile;
-    Index leaf_size, num_centers, queries_per_tree;
-    std::string assignment_method;
-    std::string balancing_method;
-    Real cover, radius;
-    int verbosity;
-    int pinned;
-    int sort_cell_dists;
+MPI_Comm comm;
+int myrank, nprocs;
 
-    Parameters();
+Real radius = -1;
+const char *infile = NULL;
 
-    void parse_cmdline(int argc, char *argv[], MPI_Comm comm);
-};
+Real cover = 1.3;
+Index leaf_size = 10;
+Index queries_per_tree = -1;
+Index num_centers = 25;
+int verbosity = 1;
 
-int main_mpi(const Parameters& parameters, MPI_Comm comm);
+const char *outfile = NULL;
+const char *tree_assignment = "static";
+const char *query_balancing = "static";
+
+void parse_cmdline(int argc, char *argv[]);
+
+int main_mpi(int argc, char *argv[]);
 int main(int argc, char *argv[])
 {
-    Parameters parameters;
-
     MPI_Init(&argc, &argv);
-    parameters.parse_cmdline(argc, argv, MPI_COMM_WORLD);
-    int err = main_mpi(parameters, MPI_COMM_WORLD);
+    MPI_Comm_dup(MPI_COMM_WORLD, &comm);
+    MPI_Comm_rank(comm, &myrank);
+    MPI_Comm_size(comm, &nprocs);
+    parse_cmdline(argc, argv);
+    int err = main_mpi(argc, argv);
+    MPI_Comm_free(&comm);
     MPI_Finalize();
     return err;
 }
 
-int main_mpi(const Parameters& parameters, MPI_Comm comm)
+int main_mpi(int argc, char *argv[])
 {
-    double mytime, maxtime, t;
+    int dim;
+    Index mysize, totsize;
+    PointVector mypoints;
 
-    int myrank, nprocs;
-    MPI_Comm_rank(comm, &myrank);
-    MPI_Comm_size(comm, &nprocs);
-
-    const char *infile = parameters.infile;
-    const char *outfile = parameters.outfile;
-    Index num_centers = parameters.num_centers;
-    Index queries_per_tree = parameters.queries_per_tree;
-    Real radius = parameters.radius;
-    Real cover = parameters.cover;
-    Index leaf_size = parameters.leaf_size;
-    std::string assignment_method = parameters.assignment_method;
-    std::string balancing_method = parameters.balancing_method;
-    int verbosity = parameters.verbosity;
-    bool sort_cell_dists = static_cast<bool>(parameters.sort_cell_dists);
+    double tottime, mytime, maxtime, t;
 
     /*
      * Read input points file
      */
 
     mytime = -MPI_Wtime();
-    PointVector mypoints; mypoints.read_fvecs(infile, comm);
+    mypoints.read_fvecs(infile, comm);
     mytime += MPI_Wtime();
 
-    double tottime = -MPI_Wtime();
+    mysize = mypoints.num_points();
+    dim = mypoints.num_dimensions();
 
-    Index totsize;
-    Index mysize = mypoints.num_points();
-    int dim = mypoints.num_dimensions();
-
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         MPI_Reduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, 0, comm);
-        if (!myrank) { printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, totsize, dim);
+        fflush(stdout);
     }
+
+    MPI_Barrier(comm);
+    tottime = -MPI_Wtime();
 
     /*
      * Partition points into Voronoi cells
@@ -86,18 +78,18 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     mytime = -MPI_Wtime();
     DistVoronoi diagram(mypoints, 0, comm);
-    /* diagram.pick_random_centers(num_centers); */
     diagram.add_next_centers(num_centers);
     mytime += MPI_Wtime();
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
         Index mincellsize, maxcellsize;
         diagram.get_stats(mincellsize, maxcellsize, 0);
 
-        if (!myrank) { printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", maxtime, num_centers, diagram.center_separation(), mincellsize, maxcellsize, (totsize+0.0)/num_centers);
+        fflush(stdout);
     }
 
     /*
@@ -106,12 +98,13 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
     diagram.gather_local_cell_ids(mycellids, mycellptrs);
     diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
     mytime += MPI_Wtime();
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         Index num_ghosts = myghostids.size();
 
@@ -119,7 +112,8 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         MPI_Reduce(sendbuf, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-        if (!myrank) { printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] found %lld ghost points [avgprocsize=%.3f]\n", maxtime, num_ghosts, (num_ghosts+0.0)/nprocs);
+        fflush(stdout);
     }
 
     /*
@@ -130,16 +124,18 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     IndexVector mycells;
     std::vector<int> dests; /* tree-to-rank assignments */
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
-    if      (assignment_method == "cyclic") s = diagram.compute_static_cyclic_assignments(dests, mycells);
-    else if (assignment_method == "multiway") s = diagram.compute_multiway_number_partitioning_assignments(dests, mycells);
+    if      (!strcmp(tree_assignment, "static")) s = diagram.compute_static_cyclic_assignments(dests, mycells);
+    else if (!strcmp(tree_assignment, "multiway")) s = diagram.compute_multiway_number_partitioning_assignments(dests, mycells);
     else throw std::runtime_error("invalid assignments_methods selected!");
     mytime += MPI_Wtime();
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) { printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] computed tree-to-rank assignments\n", maxtime);
+        fflush(stdout);
     }
 
     /*
@@ -152,21 +148,24 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
     GlobalPointVector cell_sendbuf, cell_recvbuf;
     GlobalPointVector ghost_sendbuf, ghost_recvbuf;
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
     diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
     diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
     mytime += MPI_Wtime();
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) { printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] loaded alltoall outbufs\n", maxtime);
+        fflush(stdout);
     }
 
     /*
      * Exchange points alltoall
      */
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
 
     MPI_Request reqs[2];
@@ -183,27 +182,29 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
 
     mytime += MPI_Wtime();
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) { printf("[v1,time=%.3f] alltoall exchange\n", maxtime); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] alltoall exchange\n", maxtime);
+        fflush(stdout);
     }
 
     /*
      * Build local cell vectors
      */
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
 
     IndexVector my_query_sizes(s,0);
     std::vector<PointVector> my_cell_vectors(s, PointVector(dim));
     std::vector<IndexVector> my_cell_indices(s);
 
-    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes, sort_cell_dists);
+    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes, false);
 
     mytime += MPI_Wtime();
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) { printf("[v1,time=%.3f] built local cell vectors\n", maxtime); fflush(stdout); }
@@ -213,6 +214,7 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
      * Build local cover trees
      */
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
 
     std::vector<CoverTree> mytrees(s);
@@ -223,50 +225,55 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         mytrees[i].build(my_cell_vectors[i], cover, leaf_size);
         t += MPI_Wtime();
 
-        if (verbosity > 2) { printf("[v3,rank=%d,time=%.3f] built cover tree [locid=%lld,globid=%lld,points=%lld,vertices=%lld]\n", myrank, t, i, mycells[i], my_cell_vectors[i].num_points(), mytrees[i].num_vertices()); fflush(stdout); }
+        if (verbosity >= 3) printf("[v3,rank=%d,time=%.3f] built cover tree [id=%lld,points=%lld,vertices=%lld]\n", myrank, t, mycells[i], my_cell_vectors[i].num_points(), mytrees[i].num_vertices());
+
+        fflush(stdout);
     }
 
     mytime += MPI_Wtime();
 
-    if (verbosity > 1)
+    if (verbosity >= 2)
     {
-        printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s); fflush(stdout);
+        printf("[v2,rank=%d,time=%.3f] completed %lld local trees\n", myrank, mytime, s);
+        fflush(stdout);
     }
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) { printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] built %lld cover trees\n", maxtime, num_centers);
+        fflush(stdout);
     }
 
     /*
      * Compute epsilon neighbors
      */
 
+    MPI_Barrier(comm);
     mytime = -MPI_Wtime();
     DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, dim, comm, verbosity);
 
-    if      (balancing_method == "static" || nprocs == 1) dist_query.static_balancing();
-    else if (balancing_method == "steal") dist_query.random_stealing(queries_per_tree);
+    if      (!strcmp(query_balancing, "static") || nprocs == 1) dist_query.static_balancing();
+    else if (!strcmp(query_balancing, "steal")) dist_query.random_stealing(queries_per_tree);
     else throw std::runtime_error("Invalid balancing_method selected!");
 
     mytime += MPI_Wtime();
-
     tottime += MPI_Wtime();
 
     Index edges;
     Index myedges = dist_query.my_edges_found();
     MPI_Reduce(&myedges, &edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-
-        if (!myrank) { printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize); fflush(stdout); }
+        if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
+        fflush(stdout);
     }
 
     if (outfile)
     {
+        MPI_Barrier(comm);
         mytime = -MPI_Wtime();
         dist_query.write_to_file(outfile);
         mytime += MPI_Wtime();
@@ -274,13 +281,14 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (verbosity > 0)
         {
             MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-            if (!myrank) { printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile); fflush(stdout); }
+            if (!myrank) printf("[v1,time=%.3f] wrote graph to file '%s'\n", maxtime, outfile);
+            fflush(stdout);
         }
     }
 
     MPI_Reduce(myrank == 0? MPI_IN_PLACE : &tottime, &tottime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
-    if (verbosity > 0)
+    if (verbosity >= 1)
     {
         if (!myrank) printf("\n[total_runtime=%.3f,nprocs=%d]\n\n", tottime, nprocs);
     }
@@ -289,33 +297,16 @@ int main_mpi(const Parameters& parameters, MPI_Comm comm)
         if (!myrank)
         {
             printf("[time=%.3f,nprocs=%d,edges=%lld,radius=%.3f,cover=%.3f,leaf_size=%lld,centers=%lld,queries_per_tree=%lld,assignment=%s,balancing=%s]\n",
-                     tottime, nprocs, edges, radius, cover, leaf_size, num_centers, queries_per_tree, assignment_method.c_str(), balancing_method.c_str());
+                     tottime, nprocs, edges, radius, cover, leaf_size, num_centers, queries_per_tree, tree_assignment, query_balancing);
         }
     }
 
+    fflush(stdout);
     return 0;
 }
 
-Parameters::Parameters()
-    : infile(NULL),
-      outfile(NULL),
-      leaf_size(10),
-      num_centers(50),
-      queries_per_tree(-1),
-      assignment_method("cyclic"),
-      balancing_method("static"),
-      cover(1.3),
-      radius(-1.),
-      verbosity(1),
-      pinned(0),
-      sort_cell_dists(0) {}
-
-void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
+void parse_cmdline(int argc, char *argv[])
 {
-    int myrank, nprocs;
-    MPI_Comm_rank(comm, &myrank);
-    MPI_Comm_size(comm, &nprocs);
-
     auto usage = [&](int err, bool print)
     {
         if (print)
@@ -323,14 +314,13 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
             fprintf(stderr, "Usage: %s [options] -i <points> -r <radius>\n", argv[0]);
             fprintf(stderr, "Options: -c FLOAT cover tree base [%.2f]\n", cover);
             fprintf(stderr, "         -l INT   leaf size [%lld]\n", leaf_size);
-            fprintf(stderr, "         -m INT   centers per processor [%lld]\n", num_centers);
-            fprintf(stderr, "         -M INT   pinned centers (overrides -m)\n");
+            fprintf(stderr, "         -m INT   num centers [%lld]\n", num_centers);
             fprintf(stderr, "         -q INT   queries per tree [%lld]\n", queries_per_tree);
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
-            fprintf(stderr, "         -a STR   cell assignment method (one of: cyclic, multiway) [%s]\n", assignment_method.c_str());
-            fprintf(stderr, "         -b STR   load balancing method (one of: static, steal) [%s]\n", balancing_method.c_str());
-            fprintf(stderr, "         -S       sort cell points by distance\n");
+            fprintf(stderr, "         -A STR   tree assignment method (one of: static, multiway) [%s]\n", tree_assignment);
+            fprintf(stderr, "         -B STR   load balancing method (one of: static, steal) [%s]\n", query_balancing);
+            fprintf(stderr, "         -F       fix total centers\n");
             fprintf(stderr, "         -h       help message\n");
         }
 
@@ -338,24 +328,40 @@ void Parameters::parse_cmdline(int argc, char *argv[], MPI_Comm comm)
         std::exit(err);
     };
 
+    bool fix_num_centers = false;
+
     int c;
-    while ((c = getopt(argc, argv, "c:l:m:M:v:o:i:r:q:a:b:Sh")) >= 0)
+    while ((c = getopt(argc, argv, "c:l:m:Fv:o:i:r:q:A:B:h")) >= 0)
     {
 
         if      (c == 'i') infile = optarg;
         else if (c == 'r') radius = atof(optarg);
         else if (c == 'c') cover = atof(optarg);
         else if (c == 'l') leaf_size = atoi(optarg);
-        else if (c == 'm') num_centers = nprocs * atoi(optarg);
-        else if (c == 'M') { num_centers = atoi(optarg); pinned = 1; }
+        else if (c == 'm') num_centers = atoi(optarg);
         else if (c == 'q') queries_per_tree = atoi(optarg);
         else if (c == 'v') verbosity = atoi(optarg);
         else if (c == 'o') outfile = optarg;
-        else if (c == 'a') assignment_method = std::string(optarg);
-        else if (c == 'b') balancing_method = std::string(optarg);
-        else if (c == 'S') sort_cell_dists = 1;
+        else if (c == 'A') tree_assignment = optarg;
+        else if (c == 'B') query_balancing = optarg;
+        else if (c == 'F') fix_num_centers = true;
         else if (c == 'h') usage(0, myrank == 0);
     }
 
+    if (!fix_num_centers) num_centers *= nprocs;
+
     if (!infile || radius < 0) usage(1, myrank == 0);
+
+    if (strcmp(tree_assignment, "static") && strcmp(tree_assignment, "multiway"))
+    {
+        if (!myrank) fprintf(stderr, "error: '%s' is an invalid tree assignment method!\n", tree_assignment);
+        MPI_Finalize();
+        std::exit(1);
+    }
+    else if (strcmp(query_balancing, "static") && strcmp(query_balancing, "steal"))
+    {
+        if (!myrank) fprintf(stderr, "error: '%s' is an invalid query balancing method!\n", query_balancing);
+        MPI_Finalize();
+        std::exit(1);
+    }
 }
