@@ -38,10 +38,7 @@ class PointVector
         void read_fvecs(const char *fname, Index& myoffset, Index& totsize, MPI_Comm comm);
         void write_fvecs(const char *fname) const;
 
-        PointVector gather(const IndexVector& offsets) const;
-
         std::string repr() const;
-
         AtomVector copy_atoms() const { return atoms; }
 
     protected:

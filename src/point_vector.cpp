@@ -129,20 +129,6 @@ void PointVector::write_fvecs(const char *fname) const
     fclose(f);
 }
 
-PointVector PointVector::gather(const IndexVector& offsets) const
-{
-    Index newsize = offsets.size();
-    AtomVector newatoms(newsize*dim);
-    auto it = newatoms.begin();
-
-    for (Index offset : offsets)
-    {
-        it = std::copy(begin(offset), end(offset), it);
-    }
-
-    return PointVector(newatoms.data(), newsize, dim);
-}
-
 std::string PointVector::repr() const
 {
     char buf[512];
