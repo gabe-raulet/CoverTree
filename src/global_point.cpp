@@ -47,7 +47,7 @@ void global_point_alltoall(const GlobalPointVector& sendbuf, const std::vector<i
                    recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GLOBAL_POINT, comm, request);
 }
 
-void build_local_cell_vectors(GlobalPointVector my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<PointVector>& my_cell_vectors, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes, bool sort_cell_points)
+void build_local_cell_vectors(const GlobalPointVector& my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<PointVector>& my_cell_vectors, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes)
 {
     Index s = my_cell_vectors.size();
     assert((s == my_query_sizes.size()));
@@ -65,7 +65,7 @@ void build_local_cell_vectors(GlobalPointVector my_cell_points, const GlobalPoin
         my_cell_indices[i].reserve(my_vector_sizes[i]);
     }
 
-    if (sort_cell_points) std::sort(my_cell_points.begin(), my_cell_points.end(), [](const auto& lhs, const auto& rhs) { return lhs.dist < rhs.dist; });
+    /* std::sort(my_cell_points.begin(), my_cell_points.end(), [](const auto& lhs, const auto& rhs) { return lhs.dist < rhs.dist; }); */
 
     for (const auto& p : my_cell_points) { my_cell_vectors[p.cell].push_back(p.p); my_cell_indices[p.cell].push_back(p.id); }
     for (const auto& p : my_ghost_points) { my_cell_vectors[p.cell].push_back(p.p); my_cell_indices[p.cell].push_back(p.id); }

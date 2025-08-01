@@ -12,8 +12,9 @@ class RadiusNeighborsGraph
 
         RadiusNeighborsGraph(const char *filename, Real radius, MPI_Comm comm);
 
-        Index brute_force_systolic();
-        Index cover_tree_systolic(Real cover, Index leaf_size);
+        Index brute_force_systolic(int verbosity);
+        Index cover_tree_systolic(Real cover, Index leaf_size, int verbosity);
+        Index cover_tree_voronoi(Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, int verbosity);
 
         Index getmysize() const { return mysize; }
         Index getmyoffset() const { return myoffset; }
