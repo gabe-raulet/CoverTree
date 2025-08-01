@@ -225,56 +225,13 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
         fflush(stdout);
     }
 
-    /*
-     * Gather cell points and find ghost points
-     */
-
-    MPI_Request reqs[2];
-    MPI_Datatype MPI_GLOBAL_POINT;
-    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, mypoints.num_dimensions());
-
-    IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
-
-    MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
-    diagram.gather_local_cell_ids(mycellids, mycellptrs);
-    diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
-    mytime += MPI_Wtime();
-
-    if (verbosity >= 1)
-    {
-        Index my_num_ghosts = myghostids.size(), num_ghosts;
-
-        if (verbosity >= 2) { printf("[v2,rank=%d,time=%.3f] found %lld ghost points [cell_points=%lu]\n", myrank, mytime, my_num_ghosts, mycellids.size()); fflush(stdout); }
-
-        MPI_Reduce(&my_num_ghosts, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-
-        if (!myrank) printf("[v1,time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
-    }
-
-    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
-    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
-    GlobalPointVector cell_sendbuf, cell_recvbuf;
-    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
-
     IndexVector my_query_sizes(s,0);
     std::vector<PointVector> my_cell_vectors(s, PointVector(mypoints.num_dimensions()));
     std::vector<IndexVector> my_cell_indices(s);
 
     MPI_Barrier(comm);
     mytime = -MPI_Wtime();
-
-    diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
-    diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
-    global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, comm, &reqs[0]);
-    global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, MPI_GLOBAL_POINT, ghost_recvbuf, comm, &reqs[1]);
-
-    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
-    MPI_Type_free(&MPI_GLOBAL_POINT);
-
-    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_vectors, my_cell_indices, my_query_sizes);
-
+    gather_assigned_points(diagram, dests, my_cell_vectors, my_cell_indices, my_query_sizes, verbosity);
     mytime += MPI_Wtime();
 
     if (verbosity >= 1)
@@ -345,4 +302,51 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
     }
 
     return edges;
+}
+
+void RadiusNeighborsGraph::gather_assigned_points(const DistVoronoi& diagram, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes, int verbosity) const
+{
+    double mytime, maxtime;
+
+    IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
+    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
+    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
+    GlobalPointVector cell_sendbuf, cell_recvbuf;
+    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
+
+    /*
+     * Gather cell points and find ghost points
+     */
+
+    MPI_Barrier(comm);
+    mytime = -MPI_Wtime();
+    diagram.gather_local_cell_ids(mycellids, mycellptrs);
+    diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
+    mytime += MPI_Wtime();
+
+    if (verbosity >= 1)
+    {
+        Index my_num_ghosts = myghostids.size(), num_ghosts;
+
+        if (verbosity >= 2) { printf("[v2,rank=%d,time=%.3f] found %lld ghost points [cell_points=%lu]\n", myrank, mytime, my_num_ghosts, mycellids.size()); fflush(stdout); }
+
+        MPI_Reduce(&my_num_ghosts, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
+        if (!myrank) printf("[v1,time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
+    }
+
+    MPI_Request reqs[2];
+    MPI_Datatype MPI_GLOBAL_POINT;
+    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, mypoints.num_dimensions());
+
+    diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
+    diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
+    global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, comm, &reqs[0]);
+    global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, MPI_GLOBAL_POINT, ghost_recvbuf, comm, &reqs[1]);
+
+    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+    MPI_Type_free(&MPI_GLOBAL_POINT);
+
+    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_points, my_cell_indices, my_query_sizes);
 }
