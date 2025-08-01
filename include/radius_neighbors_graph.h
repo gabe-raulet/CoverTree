@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include "point_vector.h"
+#include "cover_tree.h"
 #include <mpi.h>
 
 class RadiusNeighborsGraph
@@ -12,6 +13,7 @@ class RadiusNeighborsGraph
         RadiusNeighborsGraph(const char *filename, Real radius, MPI_Comm comm);
 
         Index brute_force_systolic();
+        Index cover_tree_systolic(Real cover, Index leaf_size);
 
         Index getmysize() const { return mysize; }
         Index getmyoffset() const { return myoffset; }

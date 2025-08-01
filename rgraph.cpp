@@ -50,7 +50,8 @@ int main_mpi(int argc, char *argv[])
     RadiusNeighborsGraph rnng(infile, radius, comm);
 
     t = -MPI_Wtime();
-    Index num_edges = rnng.brute_force_systolic();
+    /* Index num_edges = rnng.brute_force_systolic(); */
+    Index num_edges = rnng.cover_tree_systolic(cover, leaf_size);
     t += MPI_Wtime();
     mytime += t;
 
