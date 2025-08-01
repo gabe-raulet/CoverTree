@@ -245,6 +245,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
 
     MPI_Barrier(comm);
     mytime = -MPI_Wtime();
+    diagram.gather_local_cell_ids(mycellids, mycellptrs);
     diagram.gather_local_ghost_ids(radius, myghostids, myghostptrs);
     mytime += MPI_Wtime();
 
@@ -252,7 +253,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
     {
         Index my_num_ghosts = myghostids.size(), num_ghosts;
 
-        if (verbosity >= 2) { printf("[v2,rank=%d,time=%.3f] found %lld ghost points\n", myrank, mytime, my_num_ghosts); fflush(stdout); }
+        if (verbosity >= 2) { printf("[v2,rank=%d,time=%.3f] found %lld ghost points [cell_points=%lu]\n", myrank, mytime, my_num_ghosts, mycellids.size()); fflush(stdout); }
 
         MPI_Reduce(&my_num_ghosts, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
@@ -260,7 +261,6 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
         if (!myrank) printf("[v1,time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
     }
 
-    diagram.gather_local_cell_ids(mycellids, mycellptrs);
     diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
     diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
     global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, MPI_GLOBAL_POINT, cell_recvbuf, comm, &reqs[0]);
