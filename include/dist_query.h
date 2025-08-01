@@ -17,6 +17,11 @@ class DistQuery
 
         Index my_edges_found() const { return num_local_edges_found; }
 
+        IndexVector& getmyneighs() { return myneighs; }
+        IndexVector& getmyqueries() { return myqueries; }
+        IndexVector& getmyptrs() { return myptrs; }
+
+
     private:
 
         Real radius;

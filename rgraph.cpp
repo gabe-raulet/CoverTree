@@ -49,7 +49,8 @@ int main_mpi(int argc, char *argv[])
     Index num_edges;
     double mytime = 0, maxtime, t;
 
-    RadiusNeighborsGraph rnng(infile, radius, comm);
+    DistPointVector points(comm); points.read_fvecs(infile);
+    RadiusNeighborsGraph rnng(points, radius);
 
     t = -MPI_Wtime();
     if (!strcmp(method, "bf"))       num_edges = rnng.brute_force_systolic(verbosity);
@@ -58,7 +59,7 @@ int main_mpi(int argc, char *argv[])
     t += MPI_Wtime();
     mytime += t;
 
-    Index num_points = rnng.gettotsize();
+    Index num_points = points.gettotsize();
     Real density = (num_edges+0.0) / num_points;
 
     if (!myrank) printf("[time=%.3f,nprocs=%d] [method=%s,num_points=%lld,num_edges=%lld,density=%.3f]\n", mytime, nprocs, method, num_points, num_edges, density);

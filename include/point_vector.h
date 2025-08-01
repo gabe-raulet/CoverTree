@@ -35,10 +35,6 @@ class PointVector
         void set(Index offset, const Atom *pt) { std::copy(pt, pt+dim, &atoms[offset*dim]); }
 
         void read_fvecs(const char *fname);
-        void read_fvecs(const char *fname, Index& myoffset, Index& totsize, MPI_Comm comm);
-        void write_fvecs(const char *fname) const;
-
-        std::string repr() const;
         AtomVector copy_atoms() const { return atoms; }
 
     protected:

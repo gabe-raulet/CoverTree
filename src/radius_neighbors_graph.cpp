@@ -5,20 +5,21 @@
 #include "point_vector.h"
 #include <numeric>
 
-RadiusNeighborsGraph::RadiusNeighborsGraph(const char *filename, Real radius, MPI_Comm comm)
-    : comm(comm),
+RadiusNeighborsGraph::RadiusNeighborsGraph(const DistPointVector& points, Real radius)
+    : points(points),
       radius(radius),
-      myptrs({0})
-{
-    MPI_Comm_rank(comm, &myrank);
-    MPI_Comm_size(comm, &nprocs);
-
-    mypoints.read_fvecs(filename, myoffset, totsize, comm);
-    mysize = mypoints.num_points();
-}
+      myptrs({0}) {}
 
 void RadiusNeighborsGraph::write_graph_file(const char *filename) const
 {
+    MPI_Comm comm = points.getcomm();
+    int myrank = points.getmyrank();
+    int nprocs = points.getnprocs();
+
+    Index mysize = points.getmysize();
+    Index myoffset = points.getmyoffset();
+    Index totsize = points.gettotsize();
+
     std::ostringstream ss, ss2;
     Index num_edges, my_num_edges = 0;
     Index my_num_queries = myqueries.size();
@@ -120,13 +121,20 @@ Index RadiusNeighborsGraph::brute_force_systolic(int verbosity)
 
 Index RadiusNeighborsGraph::cover_tree_systolic(Real cover, Index leaf_size, int verbosity)
 {
-    CoverTreeQuery indexer(mypoints, cover, leaf_size);
+    CoverTreeQuery indexer(points, cover, leaf_size);
     return systolic(indexer);
 }
 
 template <class Query>
 Index RadiusNeighborsGraph::systolic(Query& indexer)
 {
+    MPI_Comm comm = points.getcomm();
+    int myrank = points.getmyrank();
+    int nprocs = points.getnprocs();
+
+    Index mysize = points.getmysize();
+    Index myoffset = points.getmyoffset();
+    Index totsize = points.gettotsize();
     IndexVector allsizes(nprocs), alloffsets(nprocs);
     allsizes[myrank] = mysize;
 
@@ -140,10 +148,10 @@ Index RadiusNeighborsGraph::systolic(Query& indexer)
     int prev = (myrank-1+nprocs)%nprocs;
     int cur = myrank;
 
-    AtomVector curpoints = mypoints.copy_atoms();
+    AtomVector curpoints = points.copy_atoms();
     AtomVector nextpoints;
 
-    int dim = mypoints.num_dimensions();
+    int dim = points.num_dimensions();
 
     Index num_edges = 0;
 
@@ -163,7 +171,7 @@ Index RadiusNeighborsGraph::systolic(Query& indexer)
         Index cursize = allsizes[cur];
         Index curoffset = alloffsets[cur];
 
-        num_edges += indexer(mypoints, curpoints, dim, cursize, curoffset, mysize, myoffset, radius, myqueries, myneighs, myptrs);
+        num_edges += indexer(points, curpoints, dim, cursize, curoffset, mysize, myoffset, radius, myqueries, myneighs, myptrs);
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 
@@ -178,6 +186,13 @@ Index RadiusNeighborsGraph::systolic(Query& indexer)
 
 Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, int verbosity)
 {
+    MPI_Comm comm = points.getcomm();
+    int myrank = points.getmyrank();
+    int nprocs = points.getnprocs();
+
+    Index mysize = points.getmysize();
+    Index myoffset = points.getmyoffset();
+    Index totsize = points.gettotsize();
     double tottime, maxtime, mytime, t;
 
     MPI_Barrier(comm);
@@ -188,7 +203,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
      */
 
     mytime = -MPI_Wtime();
-    DistVoronoi diagram(mypoints, 0, comm);
+    DistVoronoi diagram(points, 0, comm);
     diagram.add_next_centers(num_centers);
     mytime += MPI_Wtime();
 
@@ -226,7 +241,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
     }
 
     IndexVector my_query_sizes(s,0);
-    std::vector<PointVector> my_cell_vectors(s, PointVector(mypoints.num_dimensions()));
+    std::vector<PointVector> my_cell_vectors(s, PointVector(points.num_dimensions()));
     std::vector<IndexVector> my_cell_indices(s);
 
     MPI_Barrier(comm);
@@ -281,11 +296,15 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
 
     MPI_Barrier(comm);
     mytime = -MPI_Wtime();
-    DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, mypoints.num_dimensions(), comm, verbosity);
+    DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, points.num_dimensions(), comm, verbosity);
 
     if      (!strcmp(query_balancing, "static") || nprocs == 1) dist_query.static_balancing();
     else if (!strcmp(query_balancing, "steal")) dist_query.random_stealing(-1);
     else throw std::runtime_error("Invalid balancing_method selected!");
+
+    myneighs = std::move(dist_query.getmyneighs());
+    myqueries = std::move(dist_query.getmyqueries());
+    myptrs = std::move(dist_query.getmyptrs());
 
     mytime += MPI_Wtime();
     tottime += MPI_Wtime();
@@ -306,6 +325,14 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
 
 void RadiusNeighborsGraph::gather_assigned_points(const DistVoronoi& diagram, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes, int verbosity) const
 {
+    MPI_Comm comm = points.getcomm();
+    int myrank = points.getmyrank();
+    int nprocs = points.getnprocs();
+
+    Index mysize = points.getmysize();
+    Index myoffset = points.getmyoffset();
+    Index totsize = points.gettotsize();
+
     double mytime, maxtime;
 
     IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
@@ -338,7 +365,7 @@ void RadiusNeighborsGraph::gather_assigned_points(const DistVoronoi& diagram, co
 
     MPI_Request reqs[2];
     MPI_Datatype MPI_GLOBAL_POINT;
-    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, mypoints.num_dimensions());
+    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, points.num_dimensions());
 
     diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
     diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
