@@ -23,8 +23,6 @@ class CoverTree
 
         void allocate(Index num_verts);
 
-        void distributed_query(Real radius, const PointVector& points, IndexVector& myneighs, IndexVector& myqueries, IndexVector& myptrs, MPI_Comm comm, int verbosity) const;
-
         friend class GhostTree;
 
     private:
