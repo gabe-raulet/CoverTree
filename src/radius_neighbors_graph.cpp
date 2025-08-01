@@ -83,28 +83,22 @@ void RadiusNeighborsGraph::write_graph_file(const char *filename) const
     Index my_num_queries = myqueries.size();
 
     for (Index i = 0; i < my_num_queries; ++i)
-    {
-        /* ss2 << (myqueries[i]+1) << " " << (myqueries[i]+1) << "\n"; */
-        /* my_num_edges++; */
-
         for (Index p = myptrs[i]; p < myptrs[i+1]; ++p)
-            if (true)
+            if (myqueries[i] != myneighs[p])
             {
                 ss2 << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
                 my_num_edges++;
             }
 
-        /* for (Index p = myptrs[i]; p < myptrs[i+1]; ++p) */
-            /* if (myqueries[i] != myneighs[p]) */
-            /* { */
-                /* ss2 << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n"; */
-                /* my_num_edges++; */
-            /* } */
+    for (Index i = 0; i < mysize; ++i)
+    {
+        ss2 << (i+myoffset+1) << " " << (i+myoffset+1) << "\n";
+        my_num_edges++;
     }
 
     MPI_Reduce(&my_num_edges, &num_edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
 
-    if (!myrank) ss << totsize << " " << totsize << " " << num_edges << "\n" << ss2.str();
+    if (!myrank) ss << "% " << totsize << " " << totsize << " " << num_edges << "\n" << ss2.str();
     else std::swap(ss, ss2);
 
     auto sbuf = ss.str();
