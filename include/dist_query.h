@@ -17,8 +17,6 @@ class DistQuery
 
         Index my_edges_found() const { return num_local_edges_found; }
 
-        void write_to_file(const char *fname) const;
-
     private:
 
         Real radius;

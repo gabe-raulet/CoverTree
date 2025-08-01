@@ -67,44 +67,6 @@ void DistQuery::report_finished(double mycomptime, double mycommtime)
     fflush(stdout);
 }
 
-void DistQuery::write_to_file(const char *fname) const
-{
-    std::ostringstream ss, ss2;
-    Index num_vertices, num_edges, my_num_edges = 0;
-
-    for (Index i = 0; i < num_local_queries_made; ++i)
-        for (Index p = myptrs[i]; p < myptrs[i+1]; ++p)
-            if (myqueries[i] != myneighs[p])
-            {
-                ss2 << (myqueries[i]+1) << " " << (myneighs[p]+1) << "\n";
-                my_num_edges++;
-            }
-
-    MPI_Reduce(&my_num_edges, &num_edges, 1, MPI_INDEX, MPI_SUM, 0, comm);
-    MPI_Reduce(&num_local_queries_made, &num_vertices, 1, MPI_INDEX, MPI_SUM, 0, comm);
-
-    if (!myrank) ss << num_vertices << " " << num_vertices << " " << num_edges << "\n" << ss2.str();
-    else std::swap(ss, ss2);
-
-    auto sbuf = ss.str();
-    std::vector<char> buf(sbuf.begin(), sbuf.end());
-
-    MPI_Offset mysize = buf.size(), fileoffset, filesize;
-    MPI_Exscan(&mysize, &fileoffset, 1, MPI_OFFSET, MPI_SUM, comm);
-    if (!myrank) fileoffset = 0;
-
-    int truncate = 0;
-
-    MPI_File fh;
-    MPI_File_open(comm, fname, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
-    MPI_File_get_size(fh, &filesize);
-    truncate = (filesize > 0);
-    MPI_Bcast(&truncate, 1, MPI_INT, 0, comm);
-    if (truncate) MPI_File_set_size(fh, 0);
-    MPI_File_write_at_all(fh, fileoffset, buf.data(), static_cast<int>(buf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
-    MPI_File_close(&fh);
-}
-
 void DistQuery::shuffle_queues()
 {
     double t = -MPI_Wtime();
