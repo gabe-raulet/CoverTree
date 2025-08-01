@@ -234,14 +234,6 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
     GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, mypoints.num_dimensions());
 
     IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
-    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
-    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
-    GlobalPointVector cell_sendbuf, cell_recvbuf;
-    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
-
-    IndexVector my_query_sizes(s,0);
-    std::vector<PointVector> my_cell_vectors(s, PointVector(mypoints.num_dimensions()));
-    std::vector<IndexVector> my_cell_indices(s);
 
     MPI_Barrier(comm);
     mytime = -MPI_Wtime();
@@ -260,6 +252,18 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
 
         if (!myrank) printf("[v1,time=%.3f] found %lld ghost points\n", maxtime, num_ghosts);
     }
+
+    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
+    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
+    GlobalPointVector cell_sendbuf, cell_recvbuf;
+    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
+
+    IndexVector my_query_sizes(s,0);
+    std::vector<PointVector> my_cell_vectors(s, PointVector(mypoints.num_dimensions()));
+    std::vector<IndexVector> my_cell_indices(s);
+
+    MPI_Barrier(comm);
+    mytime = -MPI_Wtime();
 
     diagram.load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
     diagram.load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
