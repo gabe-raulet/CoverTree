@@ -13,43 +13,11 @@ RadiusNeighborsGraph::RadiusNeighborsGraph(const char *filename, Real radius, MP
     mysize = mypoints.num_points();
 }
 
-Index RadiusNeighborsGraph::brute_force_systolic()
+struct BruteForceQuery
 {
-    IndexVector allsizes(nprocs), alloffsets(nprocs);
-    allsizes[myrank] = mysize;
-
-    MPI_Allgather(MPI_IN_PLACE, 1, MPI_INDEX, allsizes.data(), 1, MPI_INDEX, comm);
-
-    std::exclusive_scan(allsizes.begin(), allsizes.end(), alloffsets.begin(), (Index)0);
-
-    MPI_Request reqs[2];
-
-    int next = (myrank+1)%nprocs;
-    int prev = (myrank-1+nprocs)%nprocs;
-    int cur = myrank;
-
-    AtomVector curpoints = mypoints.copy_atoms();
-    AtomVector nextpoints;
-
-    int dim = mypoints.num_dimensions();
-
-    Index num_edges = 0;
-
-    for (int step = 0; step < nprocs; ++step)
+    Index operator()(const PointVector& mypoints, const AtomVector& curpoints, int dim, Index cursize, Index curoffset, Index mysize, Index myoffset, Real radius, IndexVector& myqueries, IndexVector& myneighs, IndexVector& myptrs)
     {
-        Index numrecv = allsizes[(cur+1)%nprocs];
-        Index numsend = allsizes[cur];
-
-        int recvcount = numrecv*dim;
-        int sendcount = numsend*dim;
-
-        nextpoints.resize(recvcount);
-
-        MPI_Irecv(nextpoints.data(), recvcount, MPI_ATOM, next, myrank, comm, &reqs[0]);
-        MPI_Isend(curpoints.data(), sendcount, MPI_ATOM, prev, prev, comm, &reqs[1]);
-
-        Index cursize = allsizes[cur];
-        Index curoffset = alloffsets[cur];
+        Index num_edges = 0;
 
         for (Index j = 0; j < cursize; ++j)
         {
@@ -65,18 +33,51 @@ Index RadiusNeighborsGraph::brute_force_systolic()
             myptrs.push_back(myneighs.size());
         }
 
-        MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+        return num_edges;
+    }
+};
 
-        cur = (cur+1)%nprocs;
-        std::swap(curpoints, nextpoints);
+struct CoverTreeQuery
+{
+    CoverTree mytree;
+
+    CoverTreeQuery(const PointVector& mypoints, Real cover, Index leaf_size)
+    {
+        mytree.build(mypoints, cover, leaf_size);
     }
 
-    MPI_Allreduce(MPI_IN_PLACE, &num_edges, 1, MPI_INDEX, MPI_SUM, comm);
+    Index operator()(const PointVector& mypoints, const AtomVector& curpoints, int dim, Index cursize, Index curoffset, Index mysize, Index myoffset, Real radius, IndexVector& myqueries, IndexVector& myneighs, IndexVector& myptrs)
+    {
+        Index num_edges = 0;
 
-    return num_edges;
+        for (Index j = 0; j < cursize; ++j)
+        {
+            myqueries.push_back(j+curoffset);
+
+            IndexVector neighs;
+            num_edges += mytree.radius_query(mypoints, &curpoints[j*dim], radius, neighs);
+            for (Index id : neighs) myneighs.push_back(id+myoffset);
+            myptrs.push_back(myneighs.size());
+        }
+
+        return num_edges;
+    }
+};
+
+Index RadiusNeighborsGraph::brute_force_systolic()
+{
+    BruteForceQuery indexer;
+    return systolic(indexer);
 }
 
 Index RadiusNeighborsGraph::cover_tree_systolic(Real cover, Index leaf_size)
+{
+    CoverTreeQuery indexer(mypoints, cover, leaf_size);
+    return systolic(indexer);
+}
+
+template <class Query>
+Index RadiusNeighborsGraph::systolic(Query& indexer)
 {
     IndexVector allsizes(nprocs), alloffsets(nprocs);
     allsizes[myrank] = mysize;
@@ -98,9 +99,6 @@ Index RadiusNeighborsGraph::cover_tree_systolic(Real cover, Index leaf_size)
 
     Index num_edges = 0;
 
-    CoverTree mytree; mytree.build(mypoints, cover, leaf_size);
-    IndexVector myindices(mysize);
-
     for (int step = 0; step < nprocs; ++step)
     {
         Index numrecv = allsizes[(cur+1)%nprocs];
@@ -117,15 +115,7 @@ Index RadiusNeighborsGraph::cover_tree_systolic(Real cover, Index leaf_size)
         Index cursize = allsizes[cur];
         Index curoffset = alloffsets[cur];
 
-        for (Index j = 0; j < cursize; ++j)
-        {
-            myqueries.push_back(j+curoffset);
-
-            IndexVector neighs;
-            num_edges += mytree.radius_query(mypoints, &curpoints[j*dim], radius, neighs);
-            for (Index id : neighs) myneighs.push_back(id+myoffset);
-            myptrs.push_back(myneighs.size());
-        }
+        num_edges += indexer(mypoints, curpoints, dim, cursize, curoffset, mysize, myoffset, radius, myqueries, myneighs, myptrs);
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 

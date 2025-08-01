@@ -30,6 +30,9 @@ class RadiusNeighborsGraph
         PointVector mypoints;
         Index mysize, myoffset, totsize;
         IndexVector myneighs, myqueries, myptrs;
+
+        template <class Query>
+        Index systolic(Query& indexer);
 };
 
 #endif
