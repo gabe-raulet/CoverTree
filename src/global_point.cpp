@@ -30,23 +30,6 @@ std::string GlobalPoint::repr() const
     return std::string(buf);
 }
 
-void global_point_alltoall(const GlobalPointVector& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, MPI_Datatype MPI_GLOBAL_POINT, GlobalPointVector& recvbuf, MPI_Comm comm, MPI_Request *request)
-{
-    int myrank, nprocs;
-    MPI_Comm_rank(comm, &myrank);
-    MPI_Comm_size(comm, &nprocs);
-
-    std::vector<int> recvcounts(nprocs), rdispls(nprocs);
-
-    MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
-
-    std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0));
-    recvbuf.resize(recvcounts.back()+rdispls.back());
-
-    MPI_Ialltoallv(sendbuf.data(), sendcounts.data(), sdispls.data(), MPI_GLOBAL_POINT,
-                   recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GLOBAL_POINT, comm, request);
-}
-
 void build_local_cell_vectors(const GlobalPointVector& my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<PointVector>& my_cell_vectors, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes)
 {
     Index s = my_cell_vectors.size();
