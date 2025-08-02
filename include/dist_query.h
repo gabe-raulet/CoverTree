@@ -44,7 +44,7 @@ class DistQuery
         bool make_tree_queries(GhostTree& tree, Index count);
 
         void report_finished(double mytime);
-        void report_finished(double mycomptime, double mycommtime);
+        void report_finished(double my_comp_time, double my_steal_time, double my_poll_time, double my_response_time, double my_allreduce_time);
 
         void shuffle_queues();
 };
