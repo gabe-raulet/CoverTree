@@ -21,7 +21,7 @@ class DistPointVector : public PointVector
 
         void read_fvecs(const char *fname);
 
-    private:
+    protected:
 
         MPI_Comm comm;
         int myrank, nprocs;

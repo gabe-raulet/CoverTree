@@ -203,7 +203,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
      */
 
     mytime = -MPI_Wtime();
-    DistVoronoi diagram(points, 0, comm);
+    DistVoronoi diagram(points);
     diagram.add_next_centers(num_centers);
     mytime += MPI_Wtime();
 

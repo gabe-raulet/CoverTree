@@ -14,35 +14,24 @@ void DistVoronoi::mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dt
             inout[i] = in[i];
 }
 
-DistVoronoi::DistVoronoi(const PointVector& mypoints, Index global_seed, MPI_Comm comm)
-    : centers(mypoints.num_dimensions()),
-      mypoints(mypoints),
-      cells(mypoints.num_points(), 0),
-      dists(mypoints.num_points(), std::numeric_limits<Real>::max()),
-      comm(comm),
-      mysize(mypoints.num_points())
+DistVoronoi::DistVoronoi(const DistPointVector& points)
+    : DistPointVector(points),
+      centers(dim),
+      cells(mysize, 0),
+      dists(mysize, std::numeric_limits<Real>::max())
 {
-    MPI_Comm_rank(comm, &myrank);
-    MPI_Comm_size(comm, &nprocs);
-
-    MPI_Allreduce(&mysize, &totsize, 1, MPI_INDEX, MPI_SUM, comm);
-    MPI_Exscan(&mysize, &myoffset, 1, MPI_INDEX, MPI_SUM, comm);
-
-    if (!myrank) myoffset = 0;
-
-    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, mypoints.num_dimensions());
+    GlobalPoint::create_mpi_type(&MPI_GLOBAL_POINT, dim);
     MPI_Op_create(&mpi_argmax, 0, &MPI_ARGMAX);
 
-    if (myoffset <= global_seed && global_seed < myoffset + mysize)
+    if (!myrank)
     {
-        next_center.set_point(mypoints, global_seed-myoffset);
-        next_center.id = global_seed;
+        next_center.set_point(*this, 0);
+        next_center.id = 0;
         next_center.dist = std::numeric_limits<Real>::max();
         next_center.cell = 0;
     }
-    else next_center.dist = 0;
 
-    MPI_Allreduce(MPI_IN_PLACE, &next_center, 1, MPI_GLOBAL_POINT, MPI_ARGMAX, comm);
+    MPI_Bcast(&next_center, 1, MPI_GLOBAL_POINT, 0, comm);
 }
 
 DistVoronoi::~DistVoronoi()
@@ -53,8 +42,6 @@ DistVoronoi::~DistVoronoi()
 
 void DistVoronoi::add_next_center()
 {
-    int dim = mypoints.num_dimensions();
-
     Index cell = num_centers();
     centers.push_back(next_center.p);
     centerids.push_back(next_center.id);
@@ -63,7 +50,7 @@ void DistVoronoi::add_next_center()
 
     for (Index i = 0; i < mysize; ++i)
     {
-        Real dist = mypoints.distance(i, next_center.p);
+        Real dist = PointVector::distance(i, next_center.p);
 
         if (dist < dists[i])
         {
@@ -78,14 +65,13 @@ void DistVoronoi::add_next_center()
         }
     }
 
-    next_center.set_point(mypoints, next_center.id-myoffset);
+    next_center.set_point(*this, next_center.id-myoffset);
 
     MPI_Allreduce(MPI_IN_PLACE, &next_center, 1, MPI_GLOBAL_POINT, MPI_ARGMAX, comm);
 }
 
 void DistVoronoi::add_next_centers(Index count)
 {
-    int dim = mypoints.num_dimensions();
     centers.reserve(centers.num_points() + count);
 
     for (Index i = 0; i < count; ++i)
@@ -135,7 +121,7 @@ void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, I
     for (Index i = 0; i < mysize; ++i)
     {
         IndexVector ghostcells;
-        reptree.radius_query(centers, mypoints[i], dists[i] + 2*radius, ghostcells);
+        reptree.radius_query(centers, (*this)[i], dists[i] + 2*radius, ghostcells);
 
         for (Index ghostcell : ghostcells)
             if (cells[i] != ghostcell)
@@ -200,7 +186,7 @@ void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVecto
             Index id = ids[ptr];
             Index loc = sendptrs[dest]++;
 
-            sendbuf[loc].set_point(mypoints, id);
+            sendbuf[loc].set_point(*this, id);
             sendbuf[loc].id = id+myoffset;
             sendbuf[loc].cell = rank_cell_map[i];
             sendbuf[loc].dist = dists[id];
@@ -286,11 +272,4 @@ Index DistVoronoi::compute_multiway_number_partitioning_assignments(std::vector<
     }
 
     return s;
-}
-
-std::string DistVoronoi::repr() const
-{
-    char buf[512];
-    snprintf(buf, 512, "DistVoronoi(num_centers=%lld,next_center=%lld,separation=%.3f)", num_centers(), next_center_id(), center_separation());
-    return std::string(buf);
 }
