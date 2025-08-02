@@ -6,8 +6,8 @@
 #include <numeric>
 
 RadiusNeighborsGraph::RadiusNeighborsGraph(const DistPointVector& points, Real radius)
-    : points(points),
-      radius(radius),
+    : radius(radius),
+      points(points),
       myptrs({0}) {}
 
 void RadiusNeighborsGraph::write_graph_file(const char *filename) const

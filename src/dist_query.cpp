@@ -6,11 +6,11 @@
 
 DistQuery::DistQuery(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_vectors, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real radius, int dim, MPI_Comm comm, int verbosity)
     : radius(radius),
-      comm(comm),
       myptrs({0}),
       num_local_trees_completed(0),
       num_local_queries_made(0),
       num_local_edges_found(0),
+      comm(comm),
       dim(dim),
       verbosity(verbosity)
 {

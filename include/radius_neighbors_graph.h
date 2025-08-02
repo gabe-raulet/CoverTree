@@ -23,8 +23,8 @@ class RadiusNeighborsGraph
     private:
 
         Real radius;
-        IndexVector myneighs, myqueries, myptrs;
         const DistPointVector points;
+        IndexVector myneighs, myqueries, myptrs;
 
         template <class Query>
         Index systolic(Query& indexer);

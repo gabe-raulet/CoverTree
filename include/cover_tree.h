@@ -23,7 +23,7 @@ class CoverTree
 
         void allocate(Index num_verts);
 
-        friend class GhostTree;
+        friend struct GhostTree;
 
     private:
 

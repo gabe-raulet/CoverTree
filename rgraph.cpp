@@ -46,14 +46,14 @@ int main(int argc, char *argv[])
 
 int main_mpi(int argc, char *argv[])
 {
-    Index num_edges;
+    Index num_edges = 0;
     double mytime = 0, maxtime, t;
 
     DistPointVector points(comm); points.read_fvecs(infile);
     RadiusNeighborsGraph rnng(points, radius);
 
     t = -MPI_Wtime();
-    if (!strcmp(method, "bf"))       num_edges = rnng.brute_force_systolic(verbosity);
+    if      (!strcmp(method, "bf"))  num_edges = rnng.brute_force_systolic(verbosity);
     else if (!strcmp(method, "ct"))  num_edges = rnng.cover_tree_systolic(cover, leaf_size, verbosity);
     else if (!strcmp(method, "vor")) num_edges = rnng.cover_tree_voronoi(cover, leaf_size, num_centers, tree_assignment, query_balancing, verbosity);
     t += MPI_Wtime();
