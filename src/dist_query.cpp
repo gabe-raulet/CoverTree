@@ -56,14 +56,14 @@ bool DistQuery::make_tree_queries(GhostTree& tree, Index count)
 void DistQuery::report_finished(double mytime)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-    printf("[v2,rank=%d,time=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, mytime, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
+    printf("[v2,rank=%d,time=%.3f] completed queries [queries=%lld,edges=%lld,density=%.3f]\n", myrank, mytime, num_local_queries_made, num_local_edges_found, density);
     fflush(stdout);
 }
 
 void DistQuery::report_finished(double my_comp_time, double my_steal_time, double my_poll_time, double my_response_time, double my_allreduce_time)
 {
     Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-    printf("[v2,rank=%d,time:comp=%.3f,steal=%.3f,poll=%.3f,resp=%.3f,iallreduce=%.3f] completed queries [num_local_trees=%lld,num_total_queries=%lld,num_local_edges=%lld,density=%.3f]\n", myrank, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_local_trees_completed, num_local_queries_made, num_local_edges_found, density);
+    printf("[v2,rank=%d,time:comp=%.3f,steal=%.3f,poll=%.3f,resp=%.3f,iallreduce=%.3f] completed queries [queries=%lld,edges=%lld,density=%.3f]\n", myrank, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, num_local_queries_made, num_local_edges_found, density);
 }
 
 void DistQuery::shuffle_queues()
