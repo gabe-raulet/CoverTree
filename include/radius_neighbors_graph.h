@@ -27,7 +27,7 @@ class RadiusNeighborsGraph
         IndexVector myneighs, myqueries, myptrs;
 
         template <class Query>
-        Index systolic(Query& indexer);
+        Index systolic(Query& indexer, int verbosity);
 };
 
 #endif

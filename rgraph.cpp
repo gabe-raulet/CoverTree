@@ -139,7 +139,7 @@ void parse_cmdline(int argc, char *argv[])
 
     if (strcmp(method, "vor") && strcmp(method, "ct") && strcmp(method, "bf"))
     {
-        if (!myrank) fprintf(stderr, "error: '%s' is an algorithm!\n", method);
+        if (!myrank) fprintf(stderr, "error: '%s' is not an algorithm!\n", method);
         MPI_Finalize();
         std::exit(1);
     }

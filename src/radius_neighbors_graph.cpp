@@ -116,17 +116,17 @@ struct CoverTreeQuery
 Index RadiusNeighborsGraph::brute_force_systolic(int verbosity)
 {
     BruteForceQuery indexer;
-    return systolic(indexer);
+    return systolic(indexer, verbosity);
 }
 
 Index RadiusNeighborsGraph::cover_tree_systolic(Real cover, Index leaf_size, int verbosity)
 {
     CoverTreeQuery indexer(points, cover, leaf_size);
-    return systolic(indexer);
+    return systolic(indexer, verbosity);
 }
 
 template <class Query>
-Index RadiusNeighborsGraph::systolic(Query& indexer)
+Index RadiusNeighborsGraph::systolic(Query& indexer, int verbosity)
 {
     MPI_Comm comm = points.getcomm();
     int myrank = points.getmyrank();
@@ -154,9 +154,14 @@ Index RadiusNeighborsGraph::systolic(Query& indexer)
     int dim = points.num_dimensions();
 
     Index num_edges = 0;
+    double mytime, t;
+
+    MPI_Barrier(comm);
+    mytime = -MPI_Wtime();
 
     for (int step = 0; step < nprocs; ++step)
     {
+        t = -MPI_Wtime();
         Index numrecv = allsizes[(cur+1)%nprocs];
         Index numsend = allsizes[cur];
 
@@ -171,12 +176,27 @@ Index RadiusNeighborsGraph::systolic(Query& indexer)
         Index cursize = allsizes[cur];
         Index curoffset = alloffsets[cur];
 
-        num_edges += indexer(points, curpoints, dim, cursize, curoffset, mysize, myoffset, radius, myqueries, myneighs, myptrs);
+        Index found = indexer(points, curpoints, dim, cursize, curoffset, mysize, myoffset, radius, myqueries, myneighs, myptrs);
+        num_edges += found;
+        t += MPI_Wtime();
+
+        if (verbosity >= 3)
+        {
+            printf("[v3,time=%.3f,rank=%d] computed [%lld..%lld] vs [%lld..%lld] [edges=%lld]\n", t, myrank, myoffset, myoffset+mysize-1, curoffset, curoffset+cursize-1, found);
+        }
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 
         cur = (cur+1)%nprocs;
         std::swap(curpoints, nextpoints);
+    }
+
+    mytime += MPI_Wtime();
+
+    if (verbosity >= 2)
+    {
+        Real density = (num_edges+0.0)/mysize;
+        printf("[v2,time=%.3f,rank=%d] computed [%lld..%lld] vs all [edges=%lld,density=%.3f]\n", t, myrank, myoffset, myoffset+mysize-1, num_edges, density);
     }
 
     MPI_Allreduce(MPI_IN_PLACE, &num_edges, 1, MPI_INDEX, MPI_SUM, comm);
