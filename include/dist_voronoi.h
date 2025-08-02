@@ -40,7 +40,7 @@ class DistVoronoi : public DistPointVector
         Index compute_static_cyclic_assignments(std::vector<int>& dests, IndexVector& mycells) const;
         Index compute_multiway_number_partitioning_assignments(std::vector<int>& dests, IndexVector& mycells) const;
 
-        void load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const;
+        void gather_assigned_points(const std::vector<int>& dests, Real radius, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes, int verbosity) const;
 
         void get_stats(Index& mincellsize, Index& maxcellsize, int root) const;
 
@@ -57,6 +57,8 @@ class DistVoronoi : public DistPointVector
         MPI_Op MPI_ARGMAX;
 
         static void mpi_argmax(void*, void*, int*, MPI_Datatype*);
+
+        void load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const;
 };
 
 #endif

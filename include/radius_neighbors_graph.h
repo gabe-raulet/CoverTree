@@ -28,8 +28,6 @@ class RadiusNeighborsGraph
 
         template <class Query>
         Index systolic(Query& indexer);
-
-        void gather_assigned_points(const DistVoronoi& diagram, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes, int verbosity) const;
 };
 
 #endif
