@@ -31,6 +31,4 @@ struct GlobalPoint
 
 using GlobalPointVector = std::vector<GlobalPoint>;
 
-void build_local_cell_vectors(const GlobalPointVector& my_cell_points, const GlobalPointVector& my_ghost_points, std::vector<PointVector>& my_cell_vectors, std::vector<IndexVector>& my_cell_indices, IndexVector& my_query_sizes);
-
 #endif

@@ -316,7 +316,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
     if (verbosity >= 1)
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", mytime, edges, (edges+0.0)/totsize);
+        if (!myrank) printf("[v1,time=%.3f] completed queries [edges=%lld,density=%.3f]\n", maxtime, edges, (edges+0.0)/totsize);
         fflush(stdout);
     }
 

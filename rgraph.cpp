@@ -62,7 +62,12 @@ int main_mpi(int argc, char *argv[])
     Index num_points = points.gettotsize();
     Real density = (num_edges+0.0) / num_points;
 
-    if (!myrank) printf("[time=%.3f,nprocs=%d] [method=%s,num_points=%lld,num_edges=%lld,density=%.3f]\n", mytime, nprocs, method, num_points, num_edges, density);
+    if (verbosity >= 1)
+    {
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        if (!myrank) printf("[v1,time=%.3f,nprocs=%d] [method=%s,num_points=%lld,num_edges=%lld,density=%.3f]\n", mytime, nprocs, method, num_points, num_edges, density);
+    }
+
 
     if (outfile) rnng.write_graph_file(outfile);
 

@@ -315,7 +315,26 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
 
     MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 
-    build_local_cell_vectors(cell_recvbuf, ghost_recvbuf, my_cell_points, my_cell_indices, my_query_sizes);
+    Index s = my_cell_points.size();
+    assert((s == my_query_sizes.size()));
+
+    std::fill(my_query_sizes.begin(), my_query_sizes.end(), 0);
+    IndexVector my_vector_sizes(s, 0);
+
+    for (const auto& [p, id, cell, dist] : cell_recvbuf) { my_query_sizes[cell]++; my_vector_sizes[cell]++; }
+    for (const auto& [p, id, cell, dist] : ghost_recvbuf) { my_vector_sizes[cell]++; }
+
+    for (Index i = 0; i < s; ++i)
+    {
+        my_cell_points[i].clear();
+        my_cell_points[i].reserve(my_vector_sizes[i]);
+        my_cell_indices[i].reserve(my_vector_sizes[i]);
+    }
+
+    /* std::sort(cell_recvbuf.begin(), cell_recvbuf.end(), [](const auto& lhs, const auto& rhs) { return lhs.dist < rhs.dist; }); */
+
+    for (const auto& p : cell_recvbuf) { my_cell_points[p.cell].push_back(p.p); my_cell_indices[p.cell].push_back(p.id); }
+    for (const auto& p : ghost_recvbuf) { my_cell_points[p.cell].push_back(p.p); my_cell_indices[p.cell].push_back(p.id); }
 }
 
 void DistVoronoi::global_point_alltoall(const GlobalPointVector& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, GlobalPointVector& recvbuf, MPI_Request *request) const
