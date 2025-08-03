@@ -25,7 +25,7 @@ Index num_centers = 25;
 int verbosity = 1;
 
 const char *outfile = NULL;
-const char *tree_assignment = "static";
+const char *tree_assignment = "multiway";
 const char *query_balancing = "static";
 const char *method = "vor";
 
