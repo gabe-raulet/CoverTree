@@ -3,6 +3,7 @@
 #include "dist_query.h"
 #include "global_point.h"
 #include "point_vector.h"
+#include <string.h>
 #include <numeric>
 
 RadiusNeighborsGraph::RadiusNeighborsGraph(const DistPointVector& points, Real radius)

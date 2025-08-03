@@ -3,6 +3,7 @@
 #include <iostream>
 #include <numeric>
 #include <string>
+#include <string.h>
 #include <unistd.h>
 
 #include "utils.h"
