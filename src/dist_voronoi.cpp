@@ -120,48 +120,6 @@ Index DistVoronoi::gather_local_ghost_ids(Real radius, std::vector<IndexVector>&
     return total;
 }
 
-void DistVoronoi::load_alltoall_outbufs(const std::vector<IndexVector>& ids, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const
-{
-    Index m = num_centers();
-    assert((ids.size() == m));
-    assert((dests.size() == m));
-
-    sendbuf.clear();
-    sendcounts.resize(nprocs,0), sdispls.resize(nprocs);
-
-    Index totsend = 0;;
-    for (Index i = 0; i < m; ++i)
-    {
-        int dest = dests[i];
-        sendcounts[dest] += ids[i].size();
-        totsend += ids[i].size();
-    }
-
-    std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
-    sendbuf.resize(totsend);
-
-    std::vector<int> sendptrs = sdispls;
-
-    IndexVector rank_cell_map(m), rank_cell_counts(nprocs,0);
-
-    for (Index i = 0; i < m; ++i)
-    {
-        int dest = dests[i];
-        rank_cell_map[i] = rank_cell_counts[dest];
-        rank_cell_counts[dest]++;
-
-        for (Index id : ids[i])
-        {
-            Index loc = sendptrs[dest]++;
-
-            sendbuf[loc].set_point(*this, id);
-            sendbuf[loc].id = id+myoffset;
-            sendbuf[loc].cell = rank_cell_map[i];
-            sendbuf[loc].dist = dists[id];
-        }
-    }
-}
-
 void DistVoronoi::get_stats(Index& mincellsize, Index& maxcellsize, int root) const
 {
     int m = num_centers();
@@ -247,10 +205,7 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
     double mytime, maxtime;
 
     std::vector<IndexVector> mycellids, myghostids;
-    std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
-    std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
-    GlobalPointVector cell_sendbuf, cell_recvbuf;
-    GlobalPointVector ghost_sendbuf, ghost_recvbuf;
+    GlobalPointVector cell_recvbuf, ghost_recvbuf;
 
     /*
      * Gather cell points and find ghost points
@@ -276,10 +231,8 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
 
     MPI_Request reqs[2];
 
-    load_alltoall_outbufs(mycellids, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
-    load_alltoall_outbufs(myghostids, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
-    global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, cell_recvbuf, &reqs[0]);
-    global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, ghost_recvbuf, &reqs[1]);
+    global_point_alltoall(mycellids, dests, cell_recvbuf, &reqs[0]);
+    global_point_alltoall(myghostids, dests, ghost_recvbuf, &reqs[1]);
 
     MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
 
@@ -305,9 +258,45 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
     for (const auto& p : ghost_recvbuf) { my_cell_points[p.cell].push_back(p.p); my_cell_indices[p.cell].push_back(p.id); }
 }
 
-void DistVoronoi::global_point_alltoall(const GlobalPointVector& sendbuf, const std::vector<int>& sendcounts, const std::vector<int>& sdispls, GlobalPointVector& recvbuf, MPI_Request *request) const
+void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, GlobalPointVector& recvbuf, MPI_Request *request) const
 {
-    std::vector<int> recvcounts(nprocs), rdispls(nprocs);
+    std::vector<int> sendcounts(nprocs,0), recvcounts(nprocs), sdispls(nprocs), rdispls(nprocs);
+
+    Index m = num_centers();
+    assert((ids.size() == m));
+    assert((dests.size() == m));
+
+    Index totsend = 0;;
+    for (Index i = 0; i < m; ++i)
+    {
+        int dest = dests[i];
+        sendcounts[dest] += ids[i].size();
+        totsend += ids[i].size();
+    }
+
+    std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
+    GlobalPointVector sendbuf(totsend);
+
+    std::vector<int> sendptrs = sdispls;
+
+    IndexVector rank_cell_map(m), rank_cell_counts(nprocs,0);
+
+    for (Index i = 0; i < m; ++i)
+    {
+        int dest = dests[i];
+        rank_cell_map[i] = rank_cell_counts[dest];
+        rank_cell_counts[dest]++;
+
+        for (Index id : ids[i])
+        {
+            Index loc = sendptrs[dest]++;
+
+            sendbuf[loc].set_point(*this, id);
+            sendbuf[loc].id = id+myoffset;
+            sendbuf[loc].cell = rank_cell_map[i];
+            sendbuf[loc].dist = dists[id];
+        }
+    }
 
     MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
 
