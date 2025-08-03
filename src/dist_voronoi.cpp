@@ -239,10 +239,10 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
     Index s = my_cell_points.size();
     assert((s == my_query_sizes.size()));
 
-    std::fill(my_query_sizes.begin(), my_query_sizes.end(), 0);
     IndexVector my_vector_sizes(s, 0);
 
-    for (const auto& [p, id, cell, dist] : cell_recvbuf) { my_query_sizes[cell]++; my_vector_sizes[cell]++; }
+    for (const auto& [p, id, cell, dist] : cell_recvbuf) { my_vector_sizes[cell]++; }
+    my_query_sizes.assign(my_vector_sizes.begin(), my_vector_sizes.end());
     for (const auto& [p, id, cell, dist] : ghost_recvbuf) { my_vector_sizes[cell]++; }
 
     for (Index i = 0; i < s; ++i)
