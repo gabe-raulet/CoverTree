@@ -78,45 +78,31 @@ void DistVoronoi::add_next_centers(Index count)
         add_next_center();
 }
 
-void DistVoronoi::gather_local_cell_ids(IndexVector& mycellids, IndexVector& ptrs) const
+Index DistVoronoi::gather_local_cell_ids(std::vector<IndexVector>& mycellids) const
 {
     Index m = num_centers();
-    IndexVector w(m, 0);
-    ptrs.resize(m+1);
 
-    for (Index i = 0; i < mysize; ++i)
-        w[cells[i]]++;
-
-    Index nz = 0;
-
-    for (Index i = 0; i < m; ++i)
-    {
-        ptrs[i] = nz;
-        nz += w[i];
-        w[i] = ptrs[i];
-    }
-
-    assert((nz == mysize));
-    ptrs[m] = mysize;
-
-    mycellids.resize(mysize);
+    mycellids.clear();
+    mycellids.resize(m);
 
     for (Index i = 0; i < mysize; ++i)
     {
-        mycellids[w[cells[i]]++] = i;
+        mycellids[cells[i]].push_back(i);
     }
+
+    return mysize;
 }
 
-void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, IndexVector& ptrs) const
+Index DistVoronoi::gather_local_ghost_ids(Real radius, std::vector<IndexVector>& myghostids) const
 {
     Index m = num_centers();
-    IndexVector w(m, 0);
-    ptrs.resize(m+1);
+
+    myghostids.clear();
+    myghostids.resize(m);
 
     CoverTree reptree;
     reptree.build(centers, 1.3, 1);
-
-    IndexPairVector ghostpairs;
+    Index total = 0;
 
     for (Index i = 0; i < mysize; ++i)
     {
@@ -126,44 +112,29 @@ void DistVoronoi::gather_local_ghost_ids(Real radius, IndexVector& myghostids, I
         for (Index ghostcell : ghostcells)
             if (cells[i] != ghostcell)
             {
-                ghostpairs.emplace_back(ghostcell, i);
-                w[ghostcell]++;
+                myghostids[ghostcell].push_back(i);
+                total++;
             }
     }
 
-    Index nz = 0;
-
-    for (Index i = 0; i < m; ++i)
-    {
-        ptrs[i] = nz;
-        nz += w[i];
-        w[i] = ptrs[i];
-    }
-
-    ptrs[m] = nz;
-    myghostids.resize(nz);
-
-    for (const auto& [ghostcell, id] : ghostpairs)
-    {
-        myghostids[w[ghostcell]++] = id;
-    }
+    return total;
 }
 
-void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVector& ptrs, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const
+void DistVoronoi::load_alltoall_outbufs(const std::vector<IndexVector>& ids, const std::vector<int>& dests, GlobalPointVector& sendbuf, std::vector<int>& sendcounts, std::vector<int>& sdispls) const
 {
     Index m = num_centers();
-    assert((ptrs.size() == m+1));
+    assert((ids.size() == m));
     assert((dests.size() == m));
 
     sendbuf.clear();
     sendcounts.resize(nprocs,0), sdispls.resize(nprocs);
 
-    Index totsend = ids.size();
-
+    Index totsend = 0;;
     for (Index i = 0; i < m; ++i)
     {
         int dest = dests[i];
-        sendcounts[dest] += (ptrs[i+1]-ptrs[i]);
+        sendcounts[dest] += ids[i].size();
+        totsend += ids[i].size();
     }
 
     std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
@@ -179,9 +150,8 @@ void DistVoronoi::load_alltoall_outbufs(const IndexVector& ids, const IndexVecto
         rank_cell_map[i] = rank_cell_counts[dest];
         rank_cell_counts[dest]++;
 
-        for (Index ptr = ptrs[i]; ptr < ptrs[i+1]; ++ptr)
+        for (Index id : ids[i])
         {
-            Index id = ids[ptr];
             Index loc = sendptrs[dest]++;
 
             sendbuf[loc].set_point(*this, id);
@@ -276,7 +246,7 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
 {
     double mytime, maxtime;
 
-    IndexVector mycellids, myghostids, mycellptrs, myghostptrs;
+    std::vector<IndexVector> mycellids, myghostids;
     std::vector<int> cell_sendcounts, cell_recvcounts, cell_sdispls, cell_rdispls;
     std::vector<int> ghost_sendcounts, ghost_recvcounts, ghost_sdispls, ghost_rdispls;
     GlobalPointVector cell_sendbuf, cell_recvbuf;
@@ -288,15 +258,15 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
 
     MPI_Barrier(comm);
     mytime = -MPI_Wtime();
-    gather_local_cell_ids(mycellids, mycellptrs);
-    gather_local_ghost_ids(radius, myghostids, myghostptrs);
+    Index my_num_cell_ids = gather_local_cell_ids(mycellids);
+    Index my_num_ghosts = gather_local_ghost_ids(radius, myghostids);
     mytime += MPI_Wtime();
 
     if (verbosity >= 1)
     {
-        Index my_num_ghosts = myghostids.size(), num_ghosts;
+        Index num_ghosts;
 
-        if (verbosity >= 2) { printf("[v2,rank=%d,time=%.3f] found %lld ghost points [cell_points=%lu]\n", myrank, mytime, my_num_ghosts, mycellids.size()); fflush(stdout); }
+        if (verbosity >= 2) { printf("[v2,rank=%d,time=%.3f] found %lld ghost points [cell_points=%lld]\n", myrank, mytime, my_num_ghosts, my_num_cell_ids); fflush(stdout); }
 
         MPI_Reduce(&my_num_ghosts, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
@@ -306,8 +276,8 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
 
     MPI_Request reqs[2];
 
-    load_alltoall_outbufs(mycellids, mycellptrs, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
-    load_alltoall_outbufs(myghostids, myghostptrs, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
+    load_alltoall_outbufs(mycellids, dests, cell_sendbuf, cell_sendcounts, cell_sdispls);
+    load_alltoall_outbufs(myghostids, dests, ghost_sendbuf, ghost_sendcounts, ghost_sdispls);
     global_point_alltoall(cell_sendbuf, cell_sendcounts, cell_sdispls, cell_recvbuf, &reqs[0]);
     global_point_alltoall(ghost_sendbuf, ghost_sendcounts, ghost_sdispls, ghost_recvbuf, &reqs[1]);
 
