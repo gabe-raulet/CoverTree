@@ -58,7 +58,7 @@ class DistVoronoi : public DistPointVector
 
         static void mpi_argmax(void*, void*, int*, MPI_Datatype*);
 
-        void global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, GlobalPointVector& recvbuf, MPI_Request *request) const;
+        void global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes) const;
 };
 
 #endif
