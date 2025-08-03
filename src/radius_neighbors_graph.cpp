@@ -205,7 +205,7 @@ Index RadiusNeighborsGraph::systolic(Query& indexer, int verbosity)
     return num_edges;
 }
 
-Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, int verbosity)
+Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, int verbosity)
 {
     MPI_Comm comm = points.getcomm();
     int myrank = points.getmyrank();
@@ -320,7 +320,7 @@ Index RadiusNeighborsGraph::cover_tree_voronoi(Real cover, Index leaf_size, Inde
     DistQuery dist_query(mytrees, my_cell_vectors, my_cell_indices, my_query_sizes, mycells, radius, points.num_dimensions(), comm, verbosity);
 
     if      (!strcmp(query_balancing, "static") || nprocs == 1) dist_query.static_balancing();
-    else if (!strcmp(query_balancing, "steal")) dist_query.random_stealing(-1);
+    else if (!strcmp(query_balancing, "steal")) dist_query.random_stealing(queries_per_tree);
     else throw std::runtime_error("Invalid balancing_method selected!");
 
     myneighs = std::move(dist_query.getmyneighs());

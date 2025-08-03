@@ -16,7 +16,7 @@ class RadiusNeighborsGraph
 
         Index brute_force_systolic(int verbosity);
         Index cover_tree_systolic(Real cover, Index leaf_size, int verbosity);
-        Index cover_tree_voronoi(Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, int verbosity);
+        Index cover_tree_voronoi(Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, int verbosity);
 
         void write_graph_file(const char *filename) const;
 
