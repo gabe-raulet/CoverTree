@@ -466,6 +466,72 @@ void DistPointVector::find_ghost_points(Real radius, Real cover, const PointVect
     }
 }
 
+Index DistPointVector::compute_assignments(Index num_centers, const IndexVector& cells, const char *tree_assignment, std::vector<int>& dests, IndexVector& mycells, int verbosity) const
+{
+    Timer timer(comm);
+    timer.start();
+
+    Index s = 0;
+    dests.resize(num_centers);
+    mycells.clear();
+
+    if (!strcmp(tree_assignment, "static"))
+    {
+        for (Index i = 0; i < num_centers; ++i)
+        {
+            dests[i] = i % nprocs;
+
+            if (dests[i] == myrank)
+            {
+                mycells.push_back(i);
+                s++;
+            }
+        }
+    }
+    else if (!strcmp(tree_assignment, "multiway"))
+    {
+        IndexVector cellsizes(num_centers, 0);
+        for (Index cell : cells) cellsizes[cell]++;
+
+        MPI_Allreduce(MPI_IN_PLACE, cellsizes.data(), (int)num_centers, MPI_INDEX, MPI_SUM, comm);
+
+        IndexPairVector pairs;
+
+        for (Index i = 0; i < num_centers; ++i)
+        {
+            pairs.emplace_back(cellsizes[i], i);
+        }
+
+        std::sort(pairs.rbegin(), pairs.rend());
+
+        IndexVector bins(nprocs, 0);
+
+        for (const auto& [size, cell] : pairs)
+        {
+            int rank = std::min_element(bins.begin(), bins.end()) - bins.begin();
+            bins[rank] += size;
+            dests[cell] = rank;
+
+            if (rank == myrank)
+            {
+                mycells.push_back(cell);
+                s++;
+            }
+        }
+    }
+
+    timer.stop();
+    timer.wait();
+
+    if (verbosity >= 1)
+    {
+        if (!myrank) printf("[v1,%s] computed assignments [method=%s]\n", timer.repr().c_str(), tree_assignment);
+        fflush(stdout);
+    }
+
+    return s;
+}
+
 void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
     PointVector centers; /* size: num_centers */
@@ -480,4 +546,9 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
     std::vector<IndexVector> myghostids; /* size: num_centers */
 
     find_ghost_points(radius, cover, centers, cells, dists, mycellids, myghostids, verbosity);
+
+    std::vector<int> dests; /* size: num_centers */
+    IndexVector mycells; /* size: s(rank) */
+
+    Index s = compute_assignments(num_centers, cells, tree_assignment, dests, mycells, verbosity);
 }
