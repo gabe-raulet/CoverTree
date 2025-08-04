@@ -68,14 +68,11 @@ int main_mpi(int argc, char *argv[])
     else if (!strcmp(method, "ct")) points.cover_tree_systolic(radius, cover, leaf_size, graph, verbosity);
     mytime += MPI_Wtime();
 
-    if (verbosity >= 1)
-    {
-        Index edges = graph.num_edges(num_vertices);
-        Real density = (edges+0.0)/num_vertices;
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] found neighbors [vertices=%lld,edges=%lld,density=%.3f]\n", maxtime, num_vertices, edges, density);
-        fflush(stdout);
-    }
+    Index edges = graph.num_edges(num_vertices);
+    Real density = (edges+0.0)/num_vertices;
+    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    if (!myrank) printf("[v0,time=%.3f] found neighbors [vertices=%lld,edges=%lld,density=%.3f]\n", maxtime, num_vertices, edges, density);
+    fflush(stdout);
 
     if (outfile)
     {
