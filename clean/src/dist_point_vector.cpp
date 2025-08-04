@@ -4,22 +4,41 @@
 #include <filesystem>
 #include <limits>
 
-void DistPointVector::init_comm()
+DistPointVector::DistPointVector(const char *fname, MPI_Comm comm)
+    : comm(comm)
 {
-    /*
-     * Assumes `comm` has been initialized!
-     */
-
     MPI_Comm_rank(comm, &myrank);
     MPI_Comm_size(comm, &nprocs);
-}
 
-void DistPointVector::init_offsets()
-{
-    /*
-     * Assumes `init_comm` has been called, and that `mysize` and
-     * `PointVector::dim` have been initialized!
-     */
+    MPI_File fh;
+    MPI_Aint extent;
+    MPI_Offset filesize;
+    Index total, myleft;
+
+    MPI_File_open(comm, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+
+    if (!myrank)
+    {
+        MPI_File_get_size(fh, &filesize);
+        MPI_File_read(fh, &dim, 1, MPI_INT, MPI_STATUS_IGNORE);
+    }
+
+    MPI_Bcast(&dim, 1, MPI_INT, 0, comm);
+    MPI_Bcast(&filesize, 1, MPI_OFFSET, 0, comm);
+
+    assert((dim <= MAX_DIM));
+
+    extent = 4 * (dim + 1);
+    total = filesize / extent;
+
+    assert((sizeof(Atom) == 4));
+    assert((filesize % extent == 0));
+
+    mysize = total / nprocs;
+    myleft = total % nprocs;
+
+    if (myrank < myleft)
+        mysize++;
 
     IndexVector sizes(nprocs);
     sizes[myrank] = mysize;
@@ -34,93 +53,21 @@ void DistPointVector::init_offsets()
 
     MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
     MPI_Type_commit(&MPI_POINT);
-}
 
-void DistPointVector::init_window()
-{
-    /*
-     * Assumes `init_comm` and `init_offsets` have been called, and that PointVector::atoms
-     * has been allocated and is consistent with all instance variables (besides `win` and `MPI_POINT`).
-     * Essentially, only call this after every other variable has been initialized in both PointVector
-     * and DistPointVector.
-     */
-
-    int dim = PointVector::dim;
-    MPI_Win_create(data(), mysize*dim*sizeof(Atom), dim*sizeof(Atom), MPI_INFO_NULL, comm, &win);
-}
-
-
-DistPointVector::DistPointVector(const PointVector& mypoints, MPI_Comm comm)
-    : PointVector(mypoints),
-      comm(comm),
-      mysize(mypoints.num_points())
-{
-    assert((PointVector::dim <= MAX_DIM));
-
-    init_comm();
-    init_offsets();
-    init_window();
-}
-
-void DistPointVector::init_from_file(const char *fname, Index& total, size_t& disp, MPI_File *fh)
-{
-    int d;
-    MPI_Offset filesize;
-
-    MPI_File_open(comm, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, fh);
-    MPI_File_get_size(*fh, &filesize);
-
-    if (!myrank)
-    {
-        MPI_File_read(*fh, &d, 1, MPI_INT, MPI_STATUS_IGNORE);
-    }
-
-    MPI_Bcast(&d, 1, MPI_INT, 0, comm);
-    MPI_Bcast(&filesize, 1, MPI_OFFSET, 0, comm);
-
-    assert((d <= MAX_DIM));
-    PointVector::dim = d;
-
-    disp = 4 * (d + 1);
-    total = filesize / disp;
-
-    assert((sizeof(Atom) == 4));
-    assert((filesize % disp == 0));
-}
-
-DistPointVector::DistPointVector(const char* fname, MPI_Comm comm)
-    : comm(comm)
-{
-    size_t disp;
-    Index total, myleft;
-    MPI_File fh;
-
-    init_comm();
-    init_from_file(fname, total, disp, &fh);
-    int dim = PointVector::dim;
-
-    mysize = total / nprocs;
-    myleft = total % nprocs;
-
-    if (myrank < myleft)
-        mysize++;
-
-    init_offsets();
     resize(mysize);
 
-    MPI_Offset fileoffset = myoffset*disp;
-
-    MPI_Datatype filetype;;
-    MPI_Type_create_resized(MPI_POINT, 0, (MPI_Aint)disp, &filetype);
+    MPI_Datatype filetype;
+    MPI_Type_create_resized(MPI_POINT, 0, extent, &filetype);
     MPI_Type_commit(&filetype);
-    MPI_File_set_view(fh, fileoffset+sizeof(int), MPI_POINT, filetype, "native", MPI_INFO_NULL);
-    MPI_File_read(fh, data(), mysize, MPI_POINT, MPI_STATUS_IGNORE);
+
+    MPI_Offset filedisp = myoffset*extent+sizeof(int);
+    MPI_File_set_view(fh, filedisp, MPI_POINT, filetype, "native", MPI_INFO_NULL);
+    MPI_File_read(fh, data(), (int)mysize, MPI_POINT, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
     MPI_Type_free(&filetype);
 
-    init_window();
+    MPI_Win_create(data(), mysize*dim*sizeof(Atom), dim*sizeof(Atom), MPI_INFO_NULL, comm, &win);
 }
-
 
 DistPointVector::~DistPointVector()
 {

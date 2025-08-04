@@ -16,7 +16,6 @@ class DistPointVector : public PointVector
 {
     public:
 
-        DistPointVector(const PointVector& mypoints, MPI_Comm comm);
         DistPointVector(const char *fname, MPI_Comm comm);
         ~DistPointVector();
 
@@ -52,10 +51,7 @@ class DistPointVector : public PointVector
 
     private:
 
-        void init_comm();
-        void init_offsets();
-        void init_window();
-        void init_from_file(const char *fname, Index& total, size_t& disp, MPI_File *fh);
+        using PointVector::dim;
 
         template <class Query>
         void systolic(Real radius, Query& query, DistGraph& graph, int verbosity) const;
