@@ -15,5 +15,7 @@ all: rgraph
 rgraph: rgraph.cpp src/point_vector.cpp src/dist_point_vector.cpp src/global_point.cpp src/cover_tree.cpp src/dist_voronoi.cpp src/dist_query.cpp src/ghost_tree.cpp src/work_stealer.cpp src/utils.cpp src/radius_neighbors_graph.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
+.PHONY: clean
+
 clean:
 	rm -rf *.dSYM *.so rgraph

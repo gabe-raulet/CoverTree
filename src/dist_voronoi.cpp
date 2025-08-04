@@ -239,6 +239,7 @@ void DistVoronoi::gather_assigned_points(const std::vector<int>& dests, Real rad
 
 void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes) const
 {
+    int dim = num_dimensions();
     std::vector<int> sendcounts(nprocs,0), recvcounts(nprocs), sdispls(nprocs), rdispls(nprocs);
 
     Index m = num_centers();
@@ -254,7 +255,10 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
     }
 
     std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
-    GlobalPointVector sendbuf(totsend);
+
+    AtomVector sendbuf_atoms(totsend*dim), recvbuf_atoms;
+    IndexVector sendbuf_ids(totsend), recvbuf_ids;
+    IndexVector sendbuf_cells(totsend), recvbuf_cells;
 
     std::vector<int> sendptrs = sdispls;
 
@@ -270,24 +274,43 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
         {
             Index loc = sendptrs[dest]++;
 
-            sendbuf[loc].set_point(*this, id);
-            sendbuf[loc].id = id+myoffset;
-            sendbuf[loc].cell = rank_cell_map[i];
-            sendbuf[loc].dist = dists[id];
+            std::copy(begin(id), end(id), sendbuf_atoms.begin() + loc*dim);
+            sendbuf_ids[loc] = id+myoffset;
+            sendbuf_cells[loc] = rank_cell_map[i];
         }
     }
+
 
     MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
 
     std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0));
-    GlobalPointVector recvbuf(recvcounts.back()+rdispls.back());
+    Index totrecv = recvcounts.back() + rdispls.back();
 
-    MPI_Alltoallv(sendbuf.data(), sendcounts.data(), sdispls.data(), MPI_GLOBAL_POINT,
-                  recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_GLOBAL_POINT, comm);
+    recvbuf_atoms.resize(totrecv*dim);
+    recvbuf_ids.resize(totrecv);
+    recvbuf_cells.resize(totrecv);
+
+    MPI_Datatype MPI_POINT;
+    MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
+    MPI_Type_commit(&MPI_POINT);
+
+    MPI_Alltoallv(sendbuf_atoms.data(), sendcounts.data(), sdispls.data(), MPI_POINT,
+                  recvbuf_atoms.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm);
+
+    MPI_Alltoallv(sendbuf_ids.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
+                  recvbuf_ids.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm);
+
+    MPI_Alltoallv(sendbuf_cells.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
+                  recvbuf_cells.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm);
+
+    MPI_Type_free(&MPI_POINT);
 
     Index s = my_cell_points.size();
 
-    for (const auto& [p, id, cell, dist] : recvbuf) { my_sizes[cell]++; }
+    for (Index i = 0; i < totrecv; ++i)
+    {
+        my_sizes[recvbuf_cells[i]]++;
+    }
 
     for (Index i = 0; i < s; ++i)
     {
@@ -295,7 +318,13 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
         my_cell_indices[i].reserve(my_cell_indices[i].size() + my_sizes[i]);
     }
 
-    /* std::sort(cell_recvbuf.begin(), cell_recvbuf.end(), [](const auto& lhs, const auto& rhs) { return lhs.dist < rhs.dist; }); */
+    for (Index i = 0; i < totrecv; ++i)
+    {
+        const Atom *pt = &recvbuf_atoms[i*dim];
+        Index cell = recvbuf_cells[i];
+        Index id = recvbuf_ids[i];
 
-    for (const auto& p : recvbuf) { my_cell_points[p.cell].push_back(p.p); my_cell_indices[p.cell].push_back(p.id); }
+        my_cell_points[cell].push_back(pt);
+        my_cell_indices[cell].push_back(id);
+    }
 }
