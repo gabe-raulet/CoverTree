@@ -17,8 +17,8 @@ void DistPointVector::init_comm()
 void DistPointVector::init_offsets()
 {
     /*
-     * Assumes `init_comm` has been called and
-     * `mysize` has been initialized!
+     * Assumes `init_comm` has been called, and that `mysize` and
+     * `PointVector::dim` have been initialized!
      */
 
     IndexVector sizes(nprocs);
@@ -31,6 +31,9 @@ void DistPointVector::init_offsets()
 
     totsize = offsets.back() + sizes.back();
     myoffset = offsets[myrank];
+
+    MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
+    MPI_Type_commit(&MPI_POINT);
 }
 
 void DistPointVector::init_window()
@@ -43,10 +46,7 @@ void DistPointVector::init_window()
      */
 
     int dim = PointVector::dim;
-
     MPI_Win_create(data(), mysize*dim*sizeof(Atom), dim*sizeof(Atom), MPI_INFO_NULL, comm, &win);
-    MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
-    MPI_Type_commit(&MPI_POINT);
 }
 
 
