@@ -262,13 +262,11 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
 
     std::vector<int> sendptrs = sdispls;
 
-    IndexVector rank_cell_map(m), rank_cell_counts(nprocs,0);
+    IndexVector rank_cell_counts(nprocs,0);
 
     for (Index i = 0; i < m; ++i)
     {
         int dest = dests[i];
-        rank_cell_map[i] = rank_cell_counts[dest];
-        rank_cell_counts[dest]++;
 
         for (Index id : ids[i])
         {
@@ -276,8 +274,10 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
 
             std::copy(begin(id), end(id), sendbuf_atoms.begin() + loc*dim);
             sendbuf_ids[loc] = id+myoffset;
-            sendbuf_cells[loc] = rank_cell_map[i];
+            sendbuf_cells[loc] = rank_cell_counts[dest];
         }
+
+        rank_cell_counts[dest]++;
     }
 
     MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
@@ -295,18 +295,16 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
 
     MPI_Request reqs[3];
 
-    MPI_Ialltoallv(sendbuf_atoms.data(), sendcounts.data(), sdispls.data(), MPI_POINT,
-                   recvbuf_atoms.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm, &reqs[0]);
-
     MPI_Ialltoallv(sendbuf_ids.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
-                   recvbuf_ids.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[1]);
+                   recvbuf_ids.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[0]);
 
     MPI_Ialltoallv(sendbuf_cells.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
-                   recvbuf_cells.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[2]);
+                   recvbuf_cells.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[1]);
+
+    MPI_Ialltoallv(sendbuf_atoms.data(), sendcounts.data(), sdispls.data(), MPI_POINT,
+                   recvbuf_atoms.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm, &reqs[2]);
 
     MPI_Waitall(3, reqs, MPI_STATUSES_IGNORE);
-
-    MPI_Type_free(&MPI_POINT);
 
     Index s = my_cell_points.size();
 
@@ -330,4 +328,6 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
         my_cell_points[cell].push_back(pt);
         my_cell_indices[cell].push_back(id);
     }
+
+    MPI_Type_free(&MPI_POINT);
 }
