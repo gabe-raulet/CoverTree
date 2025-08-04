@@ -10,6 +10,7 @@
 #include "point_vector.h"
 #include "dist_point_vector.h"
 #include "dist_graph.h"
+#include "timer.h"
 
 MPI_Comm comm;
 int myrank, nprocs;
@@ -17,7 +18,7 @@ int myrank, nprocs;
 Real radius = -1;
 const char *infile = NULL;
 
-Real cover = 1.3;
+Real cover = 1.55;
 Index leaf_size = 10;
 Index queries_per_tree = -1;
 Index num_centers = 25;
@@ -45,47 +46,48 @@ int main(int argc, char *argv[])
 
 int main_mpi(int argc, char *argv[])
 {
-    double mytime, maxtime, t;
+    Timer timer(comm);
 
-    mytime = -MPI_Wtime();
+    timer.start();
     DistPointVector points(infile, comm);
-    mytime += MPI_Wtime();
+    timer.stop();
+    timer.wait();
 
     Index num_vertices = points.gettotsize();
 
     if (verbosity >= 1)
     {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] Read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, num_vertices, points.num_dimensions());
+        if (!myrank) printf("[v1,%s] Read file '%s' [size=%lld,dim=%d]\n", timer.repr().c_str(), infile, num_vertices, points.num_dimensions());
         fflush(stdout);
     }
 
     DistGraph graph(comm);
 
     MPI_Barrier(comm);
-    mytime = -MPI_Wtime();
+    timer.start();
     if      (!strcmp(method, "bf")) points.brute_force_systolic(radius, graph, verbosity);
     else if (!strcmp(method, "ct")) points.cover_tree_systolic(radius, cover, leaf_size, graph, verbosity);
     else if (!strcmp(method, "vor")) points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, graph, verbosity);
-    mytime += MPI_Wtime();
+    timer.stop();
+    timer.wait();
 
     Index edges = graph.num_edges(num_vertices);
     Real density = (edges+0.0)/num_vertices;
-    MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-    if (!myrank) printf("[v0,time=%.3f] found neighbors [vertices=%lld,edges=%lld,density=%.3f]\n", maxtime, num_vertices, edges, density);
+
+    if (!myrank) printf("[v0,%s] found neighbors [vertices=%lld,edges=%lld,density=%.3f]\n", timer.repr().c_str(), num_vertices, edges, density);
     fflush(stdout);
 
     if (outfile)
     {
         MPI_Barrier(comm);
-        mytime = -MPI_Wtime();
+        timer.start();
         graph.write_edge_file(num_vertices, outfile);
-        mytime += MPI_Wtime();
+        timer.stop();
+        timer.wait();
 
         if (verbosity >= 1)
         {
-            MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-            if (!myrank) printf("[v1,time=%.3f] wrote edges to file '%s'\n", maxtime, outfile);
+            if (!myrank) printf("[v1,%s] wrote edges to file '%s'\n", timer.repr().c_str(), outfile);
             fflush(stdout);
         }
     }

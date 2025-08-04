@@ -1,5 +1,6 @@
 #include "dist_point_vector.h"
 #include "cover_tree.h"
+#include "timer.h"
 #include <assert.h>
 #include <filesystem>
 #include <limits>
@@ -230,22 +231,23 @@ struct CoverTreeQuery
 
 void DistPointVector::cover_tree_systolic(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const
 {
-    double mytime, maxtime;
+    Timer timer(comm);
 
-    mytime = -MPI_Wtime();
+    timer.start();
     CoverTreeQuery query(*this, cover, leaf_size);
-    mytime += MPI_Wtime();
+    timer.stop();
 
     if (verbosity >= 2)
     {
-        printf("[v2,myrank=%d,time=%.3f] built local tree [points=%lld,vertices=%lld]\n", myrank, mytime, mysize, query.tree.num_vertices());
+        printf("[v2,%s] built local tree [points=%lld,vertices=%lld]\n", timer.myrepr().c_str(), mysize, query.tree.num_vertices());
         fflush(stdout);
     }
 
+    timer.wait();
+
     if (verbosity >= 1)
     {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f] built cover trees\n", maxtime);
+        if (!myrank) printf("[v1,time=%s] built cover trees\n", timer.repr().c_str());
         fflush(stdout);
     }
 
@@ -267,14 +269,14 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
 
     MPI_Barrier(comm);
 
-    double mytime, tottime, maxtime;
+    Timer timer(comm), fulltimer(comm);
     Index edges = 0;
 
-    tottime = -MPI_Wtime();
+    fulltimer.start();
 
     for (int step = 0; step < nprocs; ++step)
     {
-        mytime = -MPI_Wtime();
+        timer.start();
 
         int sendcount = get_rank_size(cur);
         int recvcount = get_rank_size((cur+1)%nprocs);
@@ -289,27 +291,30 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
         Index found = query(*this, curpoints, curoffset, myoffset, radius, graph);
         edges += found;
 
-        mytime += MPI_Wtime();
+        timer.stop();
 
         if (verbosity >= 3)
         {
-            printf("[v3,step=%d,rank=%d,time=%.3f] computed [%lld..%lld] vs [%lld..%lld] [edges=%lld]\n", step, myrank, mytime, myoffset, myoffset+mysize-1, curoffset, curoffset+cursize-1, found);
+            printf("[v3,step=%d,%s] computed [%lld..%lld] vs [%lld..%lld] [edges=%lld]\n", step, timer.myrepr().c_str(), myoffset, myoffset+mysize-1, curoffset, curoffset+cursize-1, found);
             fflush(stdout);
         }
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+        timer.wait();
 
         cur = (cur+1)%nprocs;
         curpoints.swap(nextpoints);
     }
 
-    tottime += MPI_Wtime();
+    fulltimer.stop();
 
     if (verbosity >= 2)
     {
-        printf("[v2,rank=%d,time=%.3f] computed [%lld..%lld] vs all [edges=%lld]\n", myrank, tottime, myoffset, myoffset+mysize-1, edges);
+        printf("[v2,%s] computed [%lld..%lld] vs all [edges=%lld]\n", fulltimer.myrepr().c_str(), myoffset, myoffset+mysize-1, edges);
         fflush(stdout);
     }
+
+    fulltimer.wait();
 }
 
 void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
