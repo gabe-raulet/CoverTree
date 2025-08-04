@@ -67,6 +67,8 @@ int main_mpi(int argc, char *argv[])
     {
         MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
         if (!myrank) printf("[v1,time=%.3f,nprocs=%d] [method=%s,num_points=%lld,num_edges=%lld,density=%.3f]\n", mytime, nprocs, method, num_points, num_edges, density);
+        if (!myrank) printf("[end][time=%.3f,nprocs=%d,radius=%.3f,method=%s,cover=%.3f,leaf=%lld,tree=%s,query=%s,q=%lld]\n", mytime, nprocs, radius, method, cover, leaf_size, tree_assignment, query_balancing, queries_per_tree);
+
     }
 
 
