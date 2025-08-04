@@ -646,17 +646,18 @@ void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids,
     }
 }
 
-void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, std::vector<PointVector>& my_cell_points, Real cover, Index leaf_size, int verbosity) const
+void DistPointVector::build_cover_trees(std::vector<GhostTree>& mytrees, const std::vector<PointVector>& my_cell_points, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const
 {
-    Index s = mytrees.size();
-    assert((s == my_cell_points.size()));
+    Index s = my_cell_points.size();
 
     Timer timer(comm);
     timer.start();
 
     for (Index i = 0; i < s; ++i)
     {
-        mytrees[i].build(my_cell_points[i], cover, leaf_size);
+        CoverTree tree;
+        tree.build(my_cell_points[i], cover, leaf_size);
+        mytrees.emplace_back(tree, my_cell_points[i], my_cell_indices[i], my_query_sizes[i], mycells[i]);
     }
 
     timer.stop();
@@ -704,13 +705,35 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
     global_point_alltoall(mycellids, dests, my_cell_points, my_cell_indices, my_query_sizes, verbosity);
     global_point_alltoall(myghostids, dests, my_cell_points, my_cell_indices, my_ghost_sizes, verbosity);
 
-    std::vector<CoverTree> mytrees(s);
+    std::vector<GhostTree> mytrees;
 
-    build_cover_trees(mytrees, my_cell_points, cover, leaf_size, verbosity);
-    find_neighbors(mytrees, my_cell_points, my_cell_indices, my_query_sizes, radius, queries_per_tree, query_balancing, graph, verbosity);
+    build_cover_trees(mytrees, my_cell_points, my_cell_indices, my_query_sizes, mycells, cover, leaf_size, verbosity);
+    find_neighbors(mytrees, radius, queries_per_tree, query_balancing, graph, verbosity);
 }
 
-void DistPointVector::find_neighbors(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_points, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const
+void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const
 {
+    std::deque<GhostTree> myqueue(mytrees.begin(), mytrees.end());
 
+    Index num_local_queries_made = 0;
+    Index num_local_edges_found = 0;
+
+    Timer timer(comm);
+    MPI_Barrier(comm);
+
+    timer.start();
+
+    if (!strcmp(query_balancing, "static"))
+    {
+        for (auto& tree : myqueue)
+        {
+            Index queries_made;
+            Index edges_found = tree.make_queries(-1, radius, graph, queries_made);
+
+            num_local_queries_made += queries_made;
+            num_local_edges_found += edges_found;
+        }
+    }
+
+    timer.stop();
 }

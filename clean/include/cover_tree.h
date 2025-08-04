@@ -21,6 +21,8 @@ class CoverTree
 
         void allocate(Index num_verts);
 
+        friend struct GhostTree;
+
     private:
 
         IndexVector childarr; /* size m-1; children array */
