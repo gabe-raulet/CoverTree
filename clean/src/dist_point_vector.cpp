@@ -62,27 +62,21 @@ DistPointVector::DistPointVector(const PointVector& mypoints, MPI_Comm comm)
     init_window();
 }
 
-void DistPointVector::init_from_file(const char *fname, Index& total, size_t& disp)
+void DistPointVector::init_from_file(const char *fname, Index& total, size_t& disp, MPI_File *fh)
 {
     int d;
-    FILE *f;
-    Index filesize;
-    std::filesystem::path path;
+    MPI_Offset filesize;
+
+    MPI_File_open(comm, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, fh);
+    MPI_File_get_size(*fh, &filesize);
 
     if (!myrank)
     {
-        path = fname;
-        filesize = std::filesystem::file_size(path);
-
-        f = fopen(fname, "rb");
-        fread(&d, sizeof(int), 1, f);
-        fclose(f);
+        MPI_File_read(*fh, &d, 1, MPI_INT, MPI_STATUS_IGNORE);
     }
 
-    MPI_Request reqs[2];
-    MPI_Ibcast(&d, 1, MPI_INT, 0, comm, reqs);
-    MPI_Ibcast(&filesize, 1, MPI_INDEX, 0, comm, reqs+1);
-    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+    MPI_Bcast(&d, 1, MPI_INT, 0, comm);
+    MPI_Bcast(&filesize, 1, MPI_OFFSET, 0, comm);
 
     assert((d <= MAX_DIM));
     PointVector::dim = d;
@@ -99,9 +93,10 @@ DistPointVector::DistPointVector(const char* fname, MPI_Comm comm)
 {
     size_t disp;
     Index total, myleft;
+    MPI_File fh;
 
     init_comm();
-    init_from_file(fname, total, disp);
+    init_from_file(fname, total, disp, &fh);
 
     mysize = total / nprocs;
     myleft = total % nprocs;
@@ -117,8 +112,6 @@ DistPointVector::DistPointVector(const char* fname, MPI_Comm comm)
 
     assert((mybuf.size() <= std::numeric_limits<int>::max()));
 
-    MPI_File fh;
-    MPI_File_open(comm, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     MPI_File_read_at_all(fh, fileoffset, mybuf.data(), static_cast<int>(mybuf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
 
