@@ -312,3 +312,7 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
     }
 }
 
+void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
+{
+
+}

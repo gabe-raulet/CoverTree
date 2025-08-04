@@ -66,6 +66,7 @@ int main_mpi(int argc, char *argv[])
     mytime = -MPI_Wtime();
     if      (!strcmp(method, "bf")) points.brute_force_systolic(radius, graph, verbosity);
     else if (!strcmp(method, "ct")) points.cover_tree_systolic(radius, cover, leaf_size, graph, verbosity);
+    else if (!strcmp(method, "vor")) points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, graph, verbosity);
     mytime += MPI_Wtime();
 
     Index edges = graph.num_edges(num_vertices);
