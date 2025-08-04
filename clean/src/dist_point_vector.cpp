@@ -1,0 +1,234 @@
+#include "dist_point_vector.h"
+#include <assert.h>
+#include <filesystem>
+#include <limits>
+
+void DistPointVector::init_comm()
+{
+    /*
+     * Assumes `comm` has been initialized!
+     */
+
+    MPI_Comm_rank(comm, &myrank);
+    MPI_Comm_size(comm, &nprocs);
+}
+
+void DistPointVector::init_offsets()
+{
+    /*
+     * Assumes `init_comm` has been called and
+     * `mysize` has been initialized!
+     */
+
+    IndexVector sizes(nprocs);
+    sizes[myrank] = mysize;
+
+    MPI_Allgather(MPI_IN_PLACE, 1, MPI_INDEX, sizes.data(), 1, MPI_INDEX, comm);
+
+    offsets.resize(nprocs);
+    std::exclusive_scan(sizes.begin(), sizes.end(), offsets.begin(), (Index)0);
+
+    totsize = offsets.back() + sizes.back();
+    myoffset = offsets[myrank];
+}
+
+void DistPointVector::init_window()
+{
+    /*
+     * Assumes `init_comm` and `init_offsets` have been called, and that PointVector::atoms
+     * has been allocated and is consistent with all instance variables (besides `win` and `MPI_POINT`).
+     * Essentially, only call this after every other variable has been initialized in both PointVector
+     * and DistPointVector.
+     */
+
+    int dim = PointVector::dim;
+
+    MPI_Win_create(data(), mysize*dim*sizeof(Atom), dim*sizeof(Atom), MPI_INFO_NULL, comm, &win);
+    MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
+    MPI_Type_commit(&MPI_POINT);
+}
+
+
+DistPointVector::DistPointVector(const PointVector& mypoints, MPI_Comm comm)
+    : PointVector(mypoints),
+      comm(comm),
+      mysize(mypoints.num_points())
+{
+    assert((PointVector::dim <= MAX_DIM));
+
+    init_comm();
+    init_offsets();
+    init_window();
+}
+
+DistPointVector::DistPointVector(const char* fname, MPI_Comm comm)
+    : comm(comm)
+{
+    init_comm();
+
+    int d;
+    FILE *f;
+    Index filesize, myleft;
+    std::filesystem::path path;
+
+    if (!myrank)
+    {
+        path = fname;
+        filesize = std::filesystem::file_size(path);
+
+        f = fopen(fname, "rb");
+        fread(&d, sizeof(int), 1, f);
+        fclose(f);
+    }
+
+    MPI_Request reqs[2];
+    MPI_Ibcast(&d, 1, MPI_INT, 0, comm, reqs);
+    MPI_Ibcast(&filesize, 1, MPI_INDEX, 0, comm, reqs+1);
+    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+
+    assert((d <= MAX_DIM));
+
+    size_t disp = 4 * (d + 1);
+
+    assert((sizeof(Atom) == 4));
+    assert((filesize % disp == 0));
+
+    totsize = filesize / disp;
+
+    mysize = totsize / nprocs;
+    myleft = totsize % nprocs;
+
+    if (myrank < myleft)
+        mysize++;
+
+    init_offsets();
+
+    MPI_Offset fileoffset = myoffset*disp;
+    std::vector<char> mybuf(mysize*disp);
+
+    assert((mybuf.size() <= std::numeric_limits<int>::max()));
+
+    MPI_File fh;
+    MPI_File_open(comm, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+    MPI_File_read_at_all(fh, fileoffset, mybuf.data(), static_cast<int>(mybuf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
+    MPI_File_close(&fh);
+
+    clear();
+    resize(mysize, d);
+
+    char *ptr = mybuf.data();
+    auto it = PointVector::atoms.begin();
+
+    for (Index i = 0; i < mysize; ++i)
+    {
+        Atom *pt = (Atom *)(ptr + sizeof(int));
+        it = std::copy(pt, pt+dim, it);
+        ptr += disp;
+    }
+
+    init_window();
+}
+
+
+DistPointVector::~DistPointVector()
+{
+    MPI_Type_free(&MPI_POINT);
+    MPI_Win_free(&win);
+}
+
+
+PointVector DistPointVector::allgather(const IndexVector& myindices, IndexVector& indices) const
+{
+    /*
+     * `myindices` contains local indices and `indices` will contain global indices on exit
+     */
+
+    int dim = PointVector::dim;
+    int count = myindices.size();
+    std::vector<int> disps(count);
+    IndexVector send_indices = myindices;
+
+    for (int i = 0; i < count; ++i)
+    {
+        disps[i] = myindices[i];
+        send_indices[i] += myoffset;
+    }
+
+    MPI_Datatype MPI_INDEXED;
+    MPI_Type_create_indexed_block(count, 1, disps.data(), MPI_POINT, &MPI_INDEXED);
+    MPI_Type_commit(&MPI_INDEXED);
+
+    std::vector<int> recvcounts(nprocs), rdispls(nprocs);
+    recvcounts[myrank] = count;
+
+    MPI_Allgather(MPI_IN_PLACE, 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
+
+    std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), 0);
+    int totrecv = recvcounts.back() + rdispls.back();
+
+    indices.resize(totrecv);
+    AtomVector recvbuf(totrecv*dim);
+
+    MPI_Request reqs[2];
+
+    MPI_Iallgatherv(send_indices.data(), count, MPI_INDEX, indices.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[0]);
+    MPI_Iallgatherv(data(), 1, MPI_INDEXED, recvbuf.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm, &reqs[1]);
+
+    MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+
+    MPI_Type_free(&MPI_INDEXED);
+
+    return PointVector(recvbuf, dim);
+}
+
+PointVector DistPointVector::allgather(const IndexVector& indices) const
+{
+    IndexVector myindices, dummy;
+
+    for (Index id : indices)
+        if (myoffset <= id && id < myoffset+mysize)
+            myindices.push_back(id-myoffset);
+
+    return allgather(myindices, dummy);
+}
+
+PointVector DistPointVector::gather_rma(const IndexVector& indices) const
+{
+    int dim = PointVector::dim;
+    std::vector<MPI_Datatype> datatypes(nprocs);
+    std::vector<std::vector<int>> displs(nprocs);
+
+    for (Index id : indices)
+    {
+        int owner = point_owner(id);
+        displs[owner].push_back(id-offsets[owner]);
+    }
+
+    for (int i = 0; i < nprocs; ++i)
+    {
+        int count = displs[i].size();
+        MPI_Type_create_indexed_block(count, 1, displs[i].data(), MPI_POINT, &datatypes[i]);
+        MPI_Type_commit(&datatypes[i]);
+    }
+
+    AtomVector recvbuf(indices.size()*dim);
+    Atom *ptr = recvbuf.data();
+
+    MPI_Win_lock_all(0,win);
+
+    for (int i = 0; i < nprocs; ++i)
+    {
+        int count = displs[i].size();
+        MPI_Get(ptr, count, MPI_POINT, i, 0, 1, datatypes[i], win);
+        ptr += (count*dim);
+    }
+
+    MPI_Win_unlock_all(win);
+
+    for (int i = 0; i < nprocs; ++i)
+    {
+        MPI_Type_free(&datatypes[i]);
+    }
+
+    return PointVector(recvbuf, dim);
+}
