@@ -329,14 +329,18 @@ void mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dtype)
             inout[i] = in[i];
 }
 
-void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
+void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& centers, IndexVector& centerids, IndexVector& cells, RealVector& dists, int verbosity) const
 {
-    PointVector centers; centers.reserve(num_centers, dim);
-    IndexVector centerids; centerids.reserve(num_centers);
+    centers.clear();
+    centerids.clear();
+
+    centers.reserve(num_centers, dim);
+    centerids.reserve(num_centers);
+
     GlobalPoint next_center;
 
-    IndexVector cells(mysize, 0);
-    RealVector dists(mysize, std::numeric_limits<Real>::max());
+    cells.resize(mysize, 0);
+    dists.resize(mysize, std::numeric_limits<Real>::max());
 
     MPI_Op MPI_ARGMAX;
     MPI_Datatype MPI_GLOBAL_POINT;
@@ -410,4 +414,16 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
         Index maxcellsize = *std::max_element(cellsizes.begin(), cellsizes.end());
         printf("[v1,%s] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", timer.repr().c_str(), num_centers, next_center.r, mincellsize, maxcellsize, (totsize+0.0)/num_centers);
     }
+}
+
+void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
+{
+    PointVector centers;
+    IndexVector centerids;
+
+    IndexVector cells;
+    RealVector dists;
+
+    build_voronoi_diagram(num_centers, centers, centerids, cells, dists, verbosity);
+
 }

@@ -56,6 +56,8 @@ class DistPointVector : public PointVector
 
         template <class Query>
         void systolic(Real radius, Query& query, DistGraph& graph, int verbosity) const;
+
+        void build_voronoi_diagram(Index num_centers, PointVector& centers, IndexVector& centerids, IndexVector& cells, RealVector& dists, int verbosity) const;
 };
 
 #endif
