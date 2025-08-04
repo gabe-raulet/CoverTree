@@ -3,6 +3,7 @@
 
 #include "point_vector.h"
 #include "dist_graph.h"
+#include "cover_tree.h"
 #include <mpi.h>
 #include <algorithm>
 
@@ -62,6 +63,7 @@ class DistPointVector : public PointVector
 
         Index compute_assignments(Index num_centers, const IndexVector& cells, const char *tree_assignment, std::vector<int>& dests, IndexVector& mycells, int verbosity) const;
         void global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes, int verbosity) const;
+        void build_cover_trees(std::vector<CoverTree>& mytrees, std::vector<PointVector>& my_cell_points, Real cover, Index leaf_size, int verbosity) const;
 };
 
 #endif

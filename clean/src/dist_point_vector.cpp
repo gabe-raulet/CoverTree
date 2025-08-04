@@ -646,6 +646,37 @@ void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids,
     }
 }
 
+void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, std::vector<PointVector>& my_cell_points, Real cover, Index leaf_size, int verbosity) const
+{
+    Index s = mytrees.size();
+    assert((s == my_cell_points.size()));
+
+    Timer timer(comm);
+    timer.start();
+
+    for (Index i = 0; i < s; ++i)
+    {
+        mytrees[i].build(my_cell_points[i], cover, leaf_size);
+    }
+
+    timer.stop();
+
+    if (verbosity >= 2)
+    {
+        printf("[v2,%s] built %lld local cover trees\n", timer.myrepr().c_str(), s);
+        fflush(stdout);
+    }
+
+    timer.wait();
+
+    if (verbosity >= 1)
+    {
+        if (!myrank) printf("[v1,%s] built all cover trees\n", timer.repr().c_str());
+        fflush(stdout);
+    }
+
+}
+
 void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
     PointVector centers; /* size: num_centers */
@@ -672,4 +703,8 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
 
     global_point_alltoall(mycellids, dests, my_cell_points, my_cell_indices, my_query_sizes, verbosity);
     global_point_alltoall(myghostids, dests, my_cell_points, my_cell_indices, my_ghost_sizes, verbosity);
+
+    std::vector<CoverTree> mytrees(s);
+
+    build_cover_trees(mytrees, my_cell_points, cover, leaf_size, verbosity);
 }
