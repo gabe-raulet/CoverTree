@@ -2,6 +2,7 @@
 #define DIST_POINT_VECTOR_H_
 
 #include "point_vector.h"
+#include "dist_graph.h"
 #include <mpi.h>
 #include <algorithm>
 
@@ -31,6 +32,11 @@ class DistPointVector : public PointVector
         PointVector allgather(const IndexVector& indices) const;
         PointVector gather_rma(const IndexVector& indices) const;
 
+        Index get_rank_offset(int rank) const { return offsets[rank]; }
+        Index get_rank_size(int rank) const { return (rank == nprocs-1)? totsize - offsets[nprocs-1] : offsets[rank+1]-offsets[rank]; }
+
+        void brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const;
+
     protected:
 
         MPI_Comm comm;
@@ -48,6 +54,9 @@ class DistPointVector : public PointVector
         void init_comm();
         void init_offsets();
         void init_window();
+
+        template <class Query>
+        void systolic(Real radius, Query& query, DistGraph& graph, int verbosity) const;
 };
 
 #endif

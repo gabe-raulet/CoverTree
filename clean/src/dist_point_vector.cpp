@@ -232,3 +232,67 @@ PointVector DistPointVector::gather_rma(const IndexVector& indices) const
 
     return PointVector(recvbuf, dim);
 }
+
+template <class Query>
+void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int verbosity) const
+{
+    MPI_Request reqs[2];
+
+    int next = (myrank+1)%nprocs;
+    int prev = (myrank-1+nprocs)%nprocs;
+    int cur = myrank;
+    int dim = PointVector::dim;
+
+    PointVector curpoints(*this);
+    PointVector nextpoints;
+
+    for (int step = 0; step < nprocs; ++step)
+    {
+        int sendcount = get_rank_size(cur);
+        int recvcount = get_rank_size((cur+1)%nprocs);
+
+        nextpoints.resize(recvcount, dim);
+
+        MPI_Irecv(nextpoints.data(), recvcount, MPI_POINT, next, myrank, comm, &reqs[0]);
+        MPI_Isend(curpoints.data(), sendcount, MPI_POINT, prev, prev, comm, &reqs[1]);
+
+        Index curoffset = get_rank_offset(cur);
+        query(*this, curpoints, curoffset, myoffset, radius, graph);
+
+        MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+
+        cur = (cur+1)%nprocs;
+        curpoints.swap(nextpoints);
+    }
+}
+
+struct BruteForceQuery
+{
+    Index operator()(const PointVector& mypoints, const PointVector& curpoints, Index curoffset, Index myoffset, Real radius, DistGraph& graph)
+    {
+        Index mysize = mypoints.num_points();
+        Index cursize = curpoints.num_points();
+        Index edges_found = 0;
+
+        for (Index j = 0; j < cursize; ++j)
+        {
+            IndexVector neighs;
+
+            for (Index i = 0; i < mysize; ++i)
+                if (mypoints.distance(i, curpoints[j]) <= radius)
+                    neighs.push_back(i+myoffset);
+
+            graph.add_neighbors(j+curoffset, neighs);
+            edges_found += neighs.size();
+        }
+
+        return edges_found;
+    }
+};
+
+
+void DistPointVector::brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const
+{
+    BruteForceQuery query;
+    systolic(radius, query, graph, verbosity);
+}

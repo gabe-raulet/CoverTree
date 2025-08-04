@@ -38,6 +38,9 @@ class PointVector
         void clear() { atoms.clear(); size = 0; }
         void push_back(const Atom *pt) { atoms.insert(atoms.end(), pt, pt+dim); ++size; }
 
+        void swap(PointVector& rhs) { std::swap(atoms, rhs.atoms); std::swap(size, rhs.size); std::swap(dim, rhs.dim); }
+
+
     protected:
 
         AtomVector atoms;

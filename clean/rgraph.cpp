@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "point_vector.h"
 #include "dist_point_vector.h"
+#include "dist_graph.h"
 
 MPI_Comm comm;
 int myrank, nprocs;
@@ -50,10 +51,17 @@ int main_mpi(int argc, char *argv[])
     DistPointVector points(infile, comm);
     section_timer.stop();
 
+    Index num_vertices = points.gettotsize();
+
     if (verbosity >= 1 && !myrank)
     {
-        printf("[v1,%s] Read file '%s' [size=%lld,dim=%d]\n", section_timer.repr().c_str(), infile, points.gettotsize(), points.num_dimensions());
+        printf("[v1,%s] Read file '%s' [size=%lld,dim=%d]\n", section_timer.repr().c_str(), infile, num_vertices, points.num_dimensions());
     }
+
+    DistGraph graph(comm);
+    points.brute_force_systolic(radius, graph, 1);
+
+    graph.write_edge_file(num_vertices, "edges.mtx");
 
     return 0;
 }
