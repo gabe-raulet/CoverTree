@@ -97,6 +97,7 @@ DistPointVector::DistPointVector(const char* fname, MPI_Comm comm)
 
     init_comm();
     init_from_file(fname, total, disp, &fh);
+    int dim = PointVector::dim;
 
     mysize = total / nprocs;
     myleft = total % nprocs;
@@ -108,22 +109,14 @@ DistPointVector::DistPointVector(const char* fname, MPI_Comm comm)
     resize(mysize);
 
     MPI_Offset fileoffset = myoffset*disp;
-    std::vector<char> mybuf(mysize*disp);
 
-    assert((mybuf.size() <= std::numeric_limits<int>::max()));
-
-    MPI_File_read_at_all(fh, fileoffset, mybuf.data(), static_cast<int>(mybuf.size()), MPI_CHAR, MPI_STATUS_IGNORE);
+    MPI_Datatype filetype;;
+    MPI_Type_create_resized(MPI_POINT, 0, (MPI_Aint)disp, &filetype);
+    MPI_Type_commit(&filetype);
+    MPI_File_set_view(fh, fileoffset+sizeof(int), MPI_POINT, filetype, "native", MPI_INFO_NULL);
+    MPI_File_read(fh, data(), mysize, MPI_POINT, MPI_STATUS_IGNORE);
     MPI_File_close(&fh);
-
-    char *ptr = mybuf.data();
-    auto it = PointVector::atoms.begin();
-
-    for (Index i = 0; i < mysize; ++i)
-    {
-        Atom *pt = (Atom *)(ptr + sizeof(int));
-        it = std::copy(pt, pt+dim, it);
-        ptr += disp;
-    }
+    MPI_Type_free(&filetype);
 
     init_window();
 }
