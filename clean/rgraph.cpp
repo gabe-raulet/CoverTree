@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #include "utils.h"
-#include "timer.h"
 #include "point_vector.h"
 #include "dist_point_vector.h"
 #include "dist_graph.h"
@@ -27,6 +26,7 @@ int verbosity = 1;
 const char *outfile = NULL;
 const char *tree_assignment = "multiway";
 const char *query_balancing = "static";
+const char *method = "ct";
 
 void parse_cmdline(int argc, char *argv[]);
 int main_mpi(int argc, char *argv[]);
@@ -45,24 +45,52 @@ int main(int argc, char *argv[])
 
 int main_mpi(int argc, char *argv[])
 {
-    Timer section_timer(comm, 0), main_timer(comm, 0);
+    double mytime, maxtime, t;
 
-    section_timer.start();
+    mytime = -MPI_Wtime();
     DistPointVector points(infile, comm);
-    section_timer.stop();
+    mytime += MPI_Wtime();
 
     Index num_vertices = points.gettotsize();
 
-    if (verbosity >= 1 && !myrank)
+    if (verbosity >= 1)
     {
-        printf("[v1,%s] Read file '%s' [size=%lld,dim=%d]\n", section_timer.repr().c_str(), infile, num_vertices, points.num_dimensions());
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        if (!myrank) printf("[v1,time=%.3f] Read file '%s' [size=%lld,dim=%d]\n", maxtime, infile, num_vertices, points.num_dimensions());
+        fflush(stdout);
     }
 
     DistGraph graph(comm);
-    points.brute_force_systolic(radius, graph, 1);
-    /* points.cover_tree_systolic(radius, cover, leaf_size, graph, 1); */
 
-    graph.write_edge_file(num_vertices, "edges.mtx");
+    MPI_Barrier(comm);
+    mytime = -MPI_Wtime();
+    if      (!strcmp(method, "bf")) points.brute_force_systolic(radius, graph, verbosity);
+    else if (!strcmp(method, "ct")) points.cover_tree_systolic(radius, cover, leaf_size, graph, verbosity);
+    mytime += MPI_Wtime();
+
+    if (verbosity >= 1)
+    {
+        Index edges = graph.num_edges(num_vertices);
+        Real density = (edges+0.0)/num_vertices;
+        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+        if (!myrank) printf("[v1,time=%.3f] found neighbors [vertices=%lld,edges=%lld,density=%.3f]\n", maxtime, num_vertices, edges, density);
+        fflush(stdout);
+    }
+
+    if (outfile)
+    {
+        MPI_Barrier(comm);
+        mytime = -MPI_Wtime();
+        graph.write_edge_file(num_vertices, outfile);
+        mytime += MPI_Wtime();
+
+        if (verbosity >= 1)
+        {
+            MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+            if (!myrank) printf("[v1,time=%.3f] wrote edges to file '%s'\n", maxtime, outfile);
+            fflush(stdout);
+        }
+    }
 
     return 0;
 }
@@ -82,6 +110,7 @@ void parse_cmdline(int argc, char *argv[])
             fprintf(stderr, "         -o FILE  output sparse graph\n");
             fprintf(stderr, "         -A STR   tree assignment method (one of: static, multiway) [%s]\n", tree_assignment);
             fprintf(stderr, "         -B STR   load balancing method (one of: static, steal) [%s]\n", query_balancing);
+            fprintf(stderr, "         -M STR   querying method (one of: vor, ct, bf) [%s]\n", method);
             fprintf(stderr, "         -F       fix total centers\n");
             fprintf(stderr, "         -h       help message\n");
         }
@@ -93,7 +122,7 @@ void parse_cmdline(int argc, char *argv[])
     bool fix_num_centers = false;
 
     int c;
-    while ((c = getopt(argc, argv, "c:l:m:Fv:o:i:r:q:A:B:h")) >= 0)
+    while ((c = getopt(argc, argv, "c:l:m:Fv:o:i:r:q:A:B:M:h")) >= 0)
     {
 
         if      (c == 'i') infile = optarg;
@@ -107,6 +136,7 @@ void parse_cmdline(int argc, char *argv[])
         else if (c == 'A') tree_assignment = optarg;
         else if (c == 'B') query_balancing = optarg;
         else if (c == 'F') fix_num_centers = true;
+        else if (c == 'M') method = optarg;
         else if (c == 'h') usage(0, myrank == 0);
     }
 
@@ -124,6 +154,13 @@ void parse_cmdline(int argc, char *argv[])
     if (strcmp(query_balancing, "static") && strcmp(query_balancing, "steal"))
     {
         if (!myrank) fprintf(stderr, "error: '%s' is an invalid query balancing method!\n", query_balancing);
+        MPI_Finalize();
+        std::exit(1);
+    }
+
+    if (strcmp(method, "ct") && strcmp(method, "bf") && strcmp(method, "vor"))
+    {
+        if (!myrank) fprintf(stderr, "error: '%s' is an invalid querying method!\n", method);
         MPI_Finalize();
         std::exit(1);
     }
