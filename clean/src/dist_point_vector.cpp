@@ -532,6 +532,120 @@ Index DistPointVector::compute_assignments(Index num_centers, const IndexVector&
     return s;
 }
 
+void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes, int verbosity) const
+{
+    Timer timer(comm);
+    timer.start();
+
+    Index m = dests.size();
+    std::vector<int> sendcounts(nprocs,0), recvcounts(nprocs), sdispls(nprocs), rdispls(nprocs);
+
+    assert((ids.size() == m));
+    assert((dests.size() == m));
+
+    Index totsend = 0;
+    for (Index i = 0; i < m; ++i)
+    {
+        int dest = dests[i];
+        sendcounts[dest] += ids[i].size();
+        totsend += ids[i].size();
+    }
+
+    std::exclusive_scan(sendcounts.begin(), sendcounts.end(), sdispls.begin(), static_cast<int>(0));
+
+    AtomVector sendbuf_atoms(totsend*dim), recvbuf_atoms;
+    IndexVector sendbuf_ids(totsend), recvbuf_ids;
+    IndexVector sendbuf_cells(totsend), recvbuf_cells;
+
+    std::vector<int> sendptrs = sdispls;
+
+    IndexVector rank_cell_counts(nprocs,0);
+
+    for (Index i = 0; i < m; ++i)
+    {
+        int dest = dests[i];
+
+        for (Index id : ids[i])
+        {
+            Index loc = sendptrs[dest]++;
+
+            std::copy(begin(id), end(id), sendbuf_atoms.begin() + loc*dim);
+            sendbuf_ids[loc] = id+myoffset;
+            sendbuf_cells[loc] = rank_cell_counts[dest];
+        }
+
+        rank_cell_counts[dest]++;
+    }
+
+    MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
+
+    std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0));
+    Index totrecv = recvcounts.back() + rdispls.back();
+
+    recvbuf_atoms.resize(totrecv*dim);
+    recvbuf_ids.resize(totrecv);
+    recvbuf_cells.resize(totrecv);
+
+    MPI_Datatype MPI_POINT;
+    MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
+    MPI_Type_commit(&MPI_POINT);
+
+    MPI_Request reqs[3];
+
+    MPI_Ialltoallv(sendbuf_ids.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
+                   recvbuf_ids.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[0]);
+
+    MPI_Ialltoallv(sendbuf_cells.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
+                   recvbuf_cells.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[1]);
+
+    MPI_Ialltoallv(sendbuf_atoms.data(), sendcounts.data(), sdispls.data(), MPI_POINT,
+                   recvbuf_atoms.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm, &reqs[2]);
+
+    MPI_Waitall(3, reqs, MPI_STATUSES_IGNORE);
+
+    Index s = my_cell_points.size();
+
+    for (Index i = 0; i < totrecv; ++i)
+    {
+        my_sizes[recvbuf_cells[i]]++;
+    }
+
+    for (Index i = 0; i < s; ++i)
+    {
+        my_cell_points[i].reserve(my_cell_points[i].num_points() + my_sizes[i]);
+        my_cell_indices[i].reserve(my_cell_indices[i].size() + my_sizes[i]);
+    }
+
+    for (Index i = 0; i < totrecv; ++i)
+    {
+        const Atom *pt = &recvbuf_atoms[i*dim];
+        Index cell = recvbuf_cells[i];
+        Index id = recvbuf_ids[i];
+
+        my_cell_points[cell].push_back(pt);
+        my_cell_indices[cell].push_back(id);
+    }
+
+
+    timer.stop();
+
+    if (verbosity >= 2)
+    {
+        printf("[v2,%s] received %lld points alltoall\n", timer.myrepr().c_str(), totrecv);
+        fflush(stdout);
+    }
+
+    timer.wait();
+
+    if (verbosity >= 1)
+    {
+        Index totcomm;
+        MPI_Reduce(&totrecv, &totcomm, 1, MPI_INDEX, MPI_SUM, 0, comm);
+        if (!myrank) printf("[v1,%s] communicated %lld points alltoall\n", timer.repr().c_str(), totcomm);
+        fflush(stdout);
+    }
+}
+
 void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
     PointVector centers; /* size: num_centers */
@@ -551,4 +665,11 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
     IndexVector mycells; /* size: s(rank) */
 
     Index s = compute_assignments(num_centers, cells, tree_assignment, dests, mycells, verbosity);
+
+    IndexVector my_query_sizes(s,0), my_ghost_sizes(s,0);
+    std::vector<PointVector> my_cell_points(s, PointVector(0,dim));
+    std::vector<IndexVector> my_cell_indices(s);
+
+    global_point_alltoall(mycellids, dests, my_cell_points, my_cell_indices, my_query_sizes, verbosity);
+    global_point_alltoall(myghostids, dests, my_cell_points, my_cell_indices, my_ghost_sizes, verbosity);
 }

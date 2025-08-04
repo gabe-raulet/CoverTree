@@ -61,6 +61,7 @@ class DistPointVector : public PointVector
         void find_ghost_points(Real radius, Real cover, const PointVector& centers, const IndexVector& cells, const RealVector& dists, std::vector<IndexVector>& mycellids, std::vector<IndexVector>& myghostids, int verbosity) const;
 
         Index compute_assignments(Index num_centers, const IndexVector& cells, const char *tree_assignment, std::vector<int>& dests, IndexVector& mycells, int verbosity) const;
+        void global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes, int verbosity) const;
 };
 
 #endif
