@@ -60,6 +60,7 @@ int main_mpi(int argc, char *argv[])
 
     DistGraph graph(comm);
     points.brute_force_systolic(radius, graph, 1);
+    /* points.cover_tree_systolic(radius, cover, leaf_size, graph, 1); */
 
     graph.write_edge_file(num_vertices, "edges.mtx");
 

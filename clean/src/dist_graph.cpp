@@ -9,14 +9,14 @@ DistGraph::DistGraph(MPI_Comm comm) : comm(comm), myptrs({0})
     MPI_Comm_size(comm, &nprocs);
 }
 
-void DistGraph::add_neighbors(Index query, const IndexVector& neighbors)
+void DistGraph::add_neighbors(Index query, const IndexVector& neighbors, Index offset)
 {
     myqueries.push_back(query);
     myneighs.reserve(myneighs.size() + neighbors.size());
 
     for (Index neighbor : neighbors)
-        if (neighbor != query)
-            myneighs.push_back(neighbor);
+        if (neighbor+offset != query)
+            myneighs.push_back(neighbor+offset);
 
     myptrs.push_back(myneighs.size());
 }

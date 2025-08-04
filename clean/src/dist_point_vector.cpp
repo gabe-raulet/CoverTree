@@ -1,4 +1,5 @@
 #include "dist_point_vector.h"
+#include "cover_tree.h"
 #include <assert.h>
 #include <filesystem>
 #include <limits>
@@ -290,9 +291,40 @@ struct BruteForceQuery
     }
 };
 
-
 void DistPointVector::brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const
 {
     BruteForceQuery query;
+    systolic(radius, query, graph, verbosity);
+}
+
+
+struct CoverTreeQuery
+{
+    CoverTree tree;
+
+    CoverTreeQuery(const PointVector& mypoints, Real cover, Index leaf_size)
+    {
+        tree.build(mypoints, cover, leaf_size);
+    }
+
+    Index operator()(const PointVector& mypoints, const PointVector& curpoints, Index curoffset, Index myoffset, Real radius, DistGraph& graph)
+    {
+        Index cursize = curpoints.num_points();
+        Index edges_found = 0;
+
+        for (Index j = 0; j < cursize; ++j)
+        {
+            IndexVector neighs;
+            edges_found += tree.radius_query(mypoints, curpoints[j], radius, neighs);
+            graph.add_neighbors(j+curoffset, neighs, myoffset);
+        }
+
+        return edges_found;
+    }
+};
+
+void DistPointVector::cover_tree_systolic(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const
+{
+    CoverTreeQuery query(*this, cover, leaf_size);
     systolic(radius, query, graph, verbosity);
 }

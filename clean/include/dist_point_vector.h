@@ -36,6 +36,7 @@ class DistPointVector : public PointVector
         Index get_rank_size(int rank) const { return (rank == nprocs-1)? totsize - offsets[nprocs-1] : offsets[rank+1]-offsets[rank]; }
 
         void brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const;
+        void cover_tree_systolic(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const;
 
     protected:
 

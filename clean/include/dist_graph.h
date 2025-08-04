@@ -14,7 +14,7 @@ class DistGraph
 
         DistGraph(MPI_Comm comm);
 
-        void add_neighbors(Index query, const IndexVector& neighbors);
+        void add_neighbors(Index query, const IndexVector& neighbors, Index offset = 0);
         void write_edge_file(Index num_vertices, const char *filename) const;
 
     private:
