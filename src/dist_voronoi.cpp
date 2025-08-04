@@ -246,7 +246,7 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
     assert((ids.size() == m));
     assert((dests.size() == m));
 
-    Index totsend = 0;;
+    Index totsend = 0;
     for (Index i = 0; i < m; ++i)
     {
         int dest = dests[i];
@@ -280,7 +280,6 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
         }
     }
 
-
     MPI_Alltoall(sendcounts.data(), 1, MPI_INT, recvcounts.data(), 1, MPI_INT, comm);
 
     std::exclusive_scan(recvcounts.begin(), recvcounts.end(), rdispls.begin(), static_cast<int>(0));
@@ -294,14 +293,18 @@ void DistVoronoi::global_point_alltoall(const std::vector<IndexVector>& ids, con
     MPI_Type_contiguous(dim, MPI_ATOM, &MPI_POINT);
     MPI_Type_commit(&MPI_POINT);
 
-    MPI_Alltoallv(sendbuf_atoms.data(), sendcounts.data(), sdispls.data(), MPI_POINT,
-                  recvbuf_atoms.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm);
+    MPI_Request reqs[3];
 
-    MPI_Alltoallv(sendbuf_ids.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
-                  recvbuf_ids.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm);
+    MPI_Ialltoallv(sendbuf_atoms.data(), sendcounts.data(), sdispls.data(), MPI_POINT,
+                   recvbuf_atoms.data(), recvcounts.data(), rdispls.data(), MPI_POINT, comm, &reqs[0]);
 
-    MPI_Alltoallv(sendbuf_cells.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
-                  recvbuf_cells.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm);
+    MPI_Ialltoallv(sendbuf_ids.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
+                   recvbuf_ids.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[1]);
+
+    MPI_Ialltoallv(sendbuf_cells.data(), sendcounts.data(), sdispls.data(), MPI_INDEX,
+                   recvbuf_cells.data(), recvcounts.data(), rdispls.data(), MPI_INDEX, comm, &reqs[2]);
+
+    MPI_Waitall(3, reqs, MPI_STATUSES_IGNORE);
 
     MPI_Type_free(&MPI_POINT);
 
