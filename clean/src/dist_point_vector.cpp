@@ -317,7 +317,97 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
     fulltimer.wait();
 }
 
+struct GlobalPoint { Atom p[MAX_DIM]; Index i; Real r; };
+
+void mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dtype)
+{
+    GlobalPoint *in = (GlobalPoint *)_in;
+    GlobalPoint *inout = (GlobalPoint *)_inout;
+
+    for (int i = 0; i < *len; ++i)
+        if (in[i].r > inout[i].r)
+            inout[i] = in[i];
+}
+
 void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
+    PointVector centers; centers.reserve(num_centers, dim);
+    IndexVector centerids; centerids.reserve(num_centers);
+    GlobalPoint next_center;
 
+    IndexVector cells(mysize, 0);
+    RealVector dists(mysize, std::numeric_limits<Real>::max());
+
+    MPI_Op MPI_ARGMAX;
+    MPI_Datatype MPI_GLOBAL_POINT;
+
+    int blklens[3] = {dim,1,1};
+    MPI_Aint disps[3] = {offsetof(GlobalPoint, p), offsetof(GlobalPoint, i), offsetof(GlobalPoint, r)};
+    MPI_Datatype types[3] = {MPI_ATOM, MPI_INDEX, MPI_REAL};
+    MPI_Type_create_struct(3, blklens, disps, types, &MPI_GLOBAL_POINT);
+    MPI_Type_commit(&MPI_GLOBAL_POINT);
+    MPI_Op_create(&mpi_argmax, 0, &MPI_ARGMAX);
+
+    Timer timer(comm);
+
+    MPI_Barrier(comm);
+    timer.start();
+
+    if (!myrank)
+    {
+        std::copy(begin(0), end(0), next_center.p);
+        next_center.i = 0;
+        next_center.r = std::numeric_limits<Real>::max();
+    }
+
+    MPI_Bcast(&next_center, 1, MPI_GLOBAL_POINT, 0, comm);
+
+    for (Index cell = 0; cell < num_centers; ++cell)
+    {
+        centers.push_back(next_center.p);
+        centerids.push_back(next_center.i);
+
+        next_center.r = 0;
+
+        for (Index i = 0; i < mysize; ++i)
+        {
+            Real dist = distance(i, next_center.p);
+
+            if (dist < dists[i])
+            {
+                dists[i] = dist;
+                cells[i] = cell;
+            }
+
+            if (dists[i] > next_center.r)
+            {
+                next_center.i = i;
+                next_center.r = dists[i];
+            }
+        }
+
+        std::copy(begin(next_center.i), end(next_center.i), next_center.p);
+        next_center.i += myoffset;
+
+        MPI_Allreduce(MPI_IN_PLACE, &next_center, 1, MPI_GLOBAL_POINT, MPI_ARGMAX, comm);
+    }
+
+    MPI_Type_free(&MPI_GLOBAL_POINT);
+    MPI_Op_free(&MPI_ARGMAX);
+
+    timer.stop();
+    timer.wait();
+
+    IndexVector cellsizes(num_centers, 0);
+    for (Index cell : cells) cellsizes[cell]++;
+
+    const void *sendbuf = myrank == 0? MPI_IN_PLACE : cellsizes.data();
+    MPI_Reduce(sendbuf, cellsizes.data(), (int)num_centers, MPI_INDEX, MPI_SUM, 0, comm);
+
+    if (verbosity >= 1 && !myrank)
+    {
+        Index mincellsize = *std::min_element(cellsizes.begin(), cellsizes.end());
+        Index maxcellsize = *std::max_element(cellsizes.begin(), cellsizes.end());
+        printf("[v1,%s] found %lld centers [separation=%.3f,minsize=%lld,maxsize=%lld,avgsize=%.3f]\n", timer.repr().c_str(), num_centers, next_center.r, mincellsize, maxcellsize, (totsize+0.0)/num_centers);
+    }
 }
