@@ -12,7 +12,6 @@ DistGraph::DistGraph(MPI_Comm comm) : comm(comm), myptrs({0})
 void DistGraph::add_neighbors(Index query, const IndexVector& neighbors, Index offset)
 {
     myqueries.push_back(query);
-    myneighs.reserve(myneighs.size() + neighbors.size());
 
     for (Index neighbor : neighbors)
         if (neighbor+offset != query)
