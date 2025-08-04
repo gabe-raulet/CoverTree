@@ -58,6 +58,7 @@ class DistPointVector : public PointVector
         void systolic(Real radius, Query& query, DistGraph& graph, int verbosity) const;
 
         void build_voronoi_diagram(Index num_centers, PointVector& centers, IndexVector& centerids, IndexVector& cells, RealVector& dists, int verbosity) const;
+        void find_ghost_points(Real radius, Real cover, const PointVector& centers, const IndexVector& cells, const RealVector& dists, std::vector<IndexVector>& mycellids, std::vector<IndexVector>& myghostids, int verbosity) const;
 };
 
 #endif

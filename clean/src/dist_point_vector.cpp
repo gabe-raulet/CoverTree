@@ -416,14 +416,68 @@ void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& cent
     }
 }
 
+void DistPointVector::find_ghost_points(Real radius, Real cover, const PointVector& centers, const IndexVector& cells, const RealVector& dists, std::vector<IndexVector>& mycellids, std::vector<IndexVector>& myghostids, int verbosity) const
+{
+    Timer timer(comm);
+    timer.start();
+
+    CoverTree reptree;
+    reptree.build(centers, cover, 1);
+    Index total = 0;
+
+    Index num_centers = centers.num_points();
+
+    myghostids.clear(), mycellids.clear();
+    myghostids.resize(num_centers), mycellids.resize(num_centers);
+
+    for (Index i = 0; i < mysize; ++i)
+    {
+        IndexVector ghostcells;
+        reptree.radius_query(centers, (*this)[i], dists[i] + 2*radius, ghostcells);
+
+        for (Index ghostcell : ghostcells)
+            if (cells[i] != ghostcell)
+            {
+                myghostids[ghostcell].push_back(i);
+                total++;
+            }
+
+        mycellids[cells[i]].push_back(i);
+    }
+
+    timer.stop();
+
+    if (verbosity >= 2)
+    {
+        printf("[v2,%s] found %lld local ghost points\n", timer.myrepr().c_str(), total);
+        fflush(stdout);
+    }
+
+    timer.wait();
+
+    if (verbosity >= 1)
+    {
+        Index num_ghosts;
+        MPI_Reduce(&total, &num_ghosts, 1, MPI_INDEX, MPI_SUM, 0, comm);
+
+        if (!myrank) printf("[v1,%s] found %lld total ghost points\n", timer.repr().c_str(), num_ghosts);
+
+        fflush(stdout);
+    }
+}
+
 void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
-    PointVector centers;
-    IndexVector centerids;
+    PointVector centers; /* size: num_centers */
+    IndexVector centerids; /* size: num_centers */
 
-    IndexVector cells;
-    RealVector dists;
+    IndexVector cells; /* size: mysize(rank) */
+    RealVector dists; /* size: mysize(rank) */
 
     build_voronoi_diagram(num_centers, centers, centerids, cells, dists, verbosity);
 
+    std::vector<IndexVector> mycellids; /* size: num_centers */
+    std::vector<IndexVector> myghostids; /* size: num_centers */
+
+    find_ghost_points(radius, cover, centers, cells, dists, mycellids, myghostids, verbosity);
 }
