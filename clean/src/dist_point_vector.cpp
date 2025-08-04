@@ -707,4 +707,10 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
     std::vector<CoverTree> mytrees(s);
 
     build_cover_trees(mytrees, my_cell_points, cover, leaf_size, verbosity);
+    find_neighbors(mytrees, my_cell_points, my_cell_indices, my_query_sizes, radius, queries_per_tree, query_balancing, graph, verbosity);
+}
+
+void DistPointVector::find_neighbors(const std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_points, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const
+{
+
 }
