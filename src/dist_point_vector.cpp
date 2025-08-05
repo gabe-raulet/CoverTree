@@ -274,23 +274,82 @@ void DistPointVector::cover_tree_systolic(Real radius, Real cover, Index leaf_si
 
 void DistPointVector::cover_tree_rma(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const
 {
-    Timer timer(comm);
+    double t;
 
-    timer.start();
+    Timer fulltimer(comm), timer(comm);
+
+    fulltimer.start();
+    t = -MPI_Wtime();
     CoverTreeQuery query(*this, cover, leaf_size);
-    timer.stop();
+    t += MPI_Wtime();
+    fulltimer.stop();
+
+    my_comp_time += t;
 
     if (verbosity >= 2)
     {
-        printf("[v2,%s] built local tree [points=%lld,vertices=%lld]\n", timer.myrepr().c_str(), mysize, query.tree.num_vertices());
+        printf("[v2,%s] built local tree [points=%lld,vertices=%lld]\n", fulltimer.myrepr().c_str(), mysize, query.tree.num_vertices());
         fflush(stdout);
     }
 
-    timer.wait();
+    fulltimer.wait();
 
     if (verbosity >= 1)
     {
-        if (!myrank) printf("[v1,time=%s] built cover trees\n", timer.repr().c_str());
+        if (!myrank) printf("[v1,time=%s] built cover trees\n", fulltimer.repr().c_str());
+        fflush(stdout);
+    }
+
+    fulltimer.start();
+
+    Index edges = 0;
+
+    int target_rank = myrank+1;
+
+    for (int step = 0; step < nprocs; ++step, ++target_rank)
+    {
+        target_rank = target_rank % nprocs;
+
+        Index found;
+        timer.start();
+
+        Index target_offset = get_rank_offset(target_rank);
+
+        if (target_rank == myrank)
+        {
+            t = -MPI_Wtime();
+            found = query(*this, *this, myoffset, myoffset, radius, graph);
+            t += MPI_Wtime();
+            my_comp_time += t;
+        }
+        else
+        {
+            t = -MPI_Wtime();
+            PointVector target_points = gather_rma_block(target_rank);
+            t += MPI_Wtime();
+            my_comm_time += t;
+
+            t = -MPI_Wtime();
+            found = query(*this, target_points, target_offset, myoffset, radius, graph);
+            t += MPI_Wtime();
+            my_comp_time += t;
+        }
+
+        edges += found;
+        timer.stop();
+
+        if (verbosity >= 3)
+        {
+            printf("[v3,target=%d,%s] computed [%lld..%lld] vs [%lld..%lld] [edges=%lld]\n", target_rank, timer.myrepr().c_str(), myoffset, myoffset+mysize-1, target_offset, target_offset+get_rank_size(target_rank)-1, found);
+            fflush(stdout);
+        }
+    }
+
+    fulltimer.stop();
+
+    if (verbosity >= 2)
+    {
+        printf("[v2,%s] computed [%lld..%lld] vs all [edges=%lld]\n", fulltimer.myrepr().c_str(), myoffset, myoffset+mysize-1, edges);
         fflush(stdout);
     }
 }
