@@ -18,6 +18,12 @@ class DistPointVector : public PointVector
 {
     public:
 
+        static inline double my_comp_time = 0;
+        static inline double my_comm_time = 0;
+
+        /*
+         * Work stealing timings
+         */
         static inline double my_steal_comp_time = 0;
         static inline double my_steal_time = 0;
         static inline double my_poll_time = 0;
