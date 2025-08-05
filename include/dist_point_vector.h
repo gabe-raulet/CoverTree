@@ -38,8 +38,8 @@ class DistPointVector : public PointVector
 
         void brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const;
         void cover_tree_systolic(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const;
+        void ghost_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
         void cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
-        void cover_tree_voronoi2(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
 
     protected:
 
@@ -67,9 +67,9 @@ class DistPointVector : public PointVector
         void global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes, int verbosity) const;
         void build_ghost_trees(std::vector<GhostTree>& mytrees, const std::vector<PointVector>& my_cell_points, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const;
         void build_cover_trees(std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_points, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const;
-        void find_neighbors(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const;
+        void find_neighbors_ghost(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const;
 
-        void find_neighbors2
+        void find_neighbors_cover
         (
             const std::vector<CoverTree>& mytrees,
             const std::vector<PointVector>& my_cell_points,

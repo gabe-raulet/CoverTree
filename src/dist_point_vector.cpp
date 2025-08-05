@@ -720,7 +720,7 @@ void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, const s
 
 }
 
-void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
+void DistPointVector::ghost_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
     PointVector centers; /* size: num_centers */
     IndexVector centerids; /* size: num_centers */
@@ -750,10 +750,10 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
     std::vector<GhostTree> mytrees;
 
     build_ghost_trees(mytrees, my_cell_points, my_cell_indices, my_query_sizes, mycells, cover, leaf_size, verbosity);
-    find_neighbors(mytrees, radius, queries_per_tree, query_balancing, graph, verbosity);
+    find_neighbors_ghost(mytrees, radius, queries_per_tree, query_balancing, graph, verbosity);
 }
 
-void DistPointVector::cover_tree_voronoi2(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
+void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const
 {
     PointVector centers; /* size: num_centers */
     IndexVector centerids; /* size: num_centers */
@@ -783,10 +783,10 @@ void DistPointVector::cover_tree_voronoi2(Real radius, Real cover, Index leaf_si
     std::vector<CoverTree> mytrees;
 
     build_cover_trees(mytrees, my_cell_points, mycells, cover, leaf_size, verbosity);
-    find_neighbors2(mytrees, my_cell_points, my_ghost_points, my_cell_indices, my_ghost_indices, radius, graph, verbosity);
+    find_neighbors_cover(mytrees, my_cell_points, my_ghost_points, my_cell_indices, my_ghost_indices, radius, graph, verbosity);
 }
 
-void DistPointVector::find_neighbors2
+void DistPointVector::find_neighbors_cover
 (
     const std::vector<CoverTree>& mytrees,
     const std::vector<PointVector>& my_cell_points,
@@ -850,7 +850,7 @@ void DistPointVector::find_neighbors2
     }
 }
 
-void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const
+void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const
 {
     std::deque<GhostTree> myqueue(mytrees.begin(), mytrees.end());
 
