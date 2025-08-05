@@ -8,6 +8,8 @@ class PointVector
 {
     public:
 
+        static inline Index dist_comps = 0;
+
         PointVector() : size(0), dim(1) {}
         PointVector(const AtomVector& atoms, int dim) : atoms(atoms), size(atoms.size()/dim), dim(dim) { assert((atoms.size() % dim == 0)); }
         PointVector(const Atom *atoms, Index size, int dim) : atoms(atoms, atoms + size*dim), size(size), dim(dim) {}

@@ -13,6 +13,8 @@ Real PointVector::distance(const Atom *p, const Atom *q) const
         val += delta*delta;
     }
 
+    dist_comps++;
+
     return std::sqrt(val);
 }
 

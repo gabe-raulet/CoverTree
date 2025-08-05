@@ -68,7 +68,8 @@ void bind_dist_point_vector(py::module_& m)
                 }
             )
         .def("totsize", [](const DistPointVector& points) { return points.gettotsize(); })
-        .def("num_dimensions", &DistPointVector::num_dimensions);
+        .def("num_dimensions", &DistPointVector::num_dimensions)
+        .def("dist_comps", [](const DistPointVector& points) { return points.dist_comps; });
 }
 
 PYBIND11_MODULE(metricspace, m)

@@ -118,6 +118,9 @@ if __name__ == "__main__":
 
     sys.stdout.flush()
 
+    sys.stdout.write(f"[rank={myrank},dist_comps={points.dist_comps()}]\n")
+    sys.stdout.flush()
+
     if outfile:
 
         t = -MPI.Wtime()
