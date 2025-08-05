@@ -10,12 +10,16 @@ endif
 COMPILER=mpic++
 INCLUDES=-I./include
 
-all: rgraph
+.PHONY: clean bindings
+
+
+all: rgraph bindings
 
 rgraph: rgraph.cpp src/cover_tree.cpp src/dist_point_vector.cpp src/point_vector.cpp src/dist_graph.cpp src/utils.cpp src/timer.cpp src/ghost_tree.cpp src/work_stealer.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
-.PHONY: clean
+bindings: bindings/metricspace.cpp src/cover_tree.cpp src/dist_point_vector.cpp src/point_vector.cpp src/dist_graph.cpp src/utils.cpp src/timer.cpp src/ghost_tree.cpp src/work_stealer.cpp
+	$(COMPILER) $(FLAGS) $(INCLUDES) -shared -undefined dynamic_lookup -fPIC -I/Users/gabrielraulet/miniconda3/include/python3.11 -I/Users/gabrielraulet/miniconda3/lib/python3.11/site-packages/pybind11/include -I/Users/gabrielraulet/miniconda3/lib/python3.11/site-packages/mpi4py/include $^ -o metricspace.cpython-311-darwin.so
 
 clean:
 	rm -rf *.dSYM *.so rgraph
