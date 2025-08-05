@@ -851,4 +851,13 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
             fflush(stdout);
         }
     }
+
+    timer.wait();
+
+    if (verbosity >= 1 && !myrank)
+    {
+        printf("[v1,%s] completed all queries\n", timer.repr().c_str());
+    }
+
+    fflush(stdout);
 }
