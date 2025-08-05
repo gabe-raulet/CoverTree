@@ -1,5 +1,5 @@
 D?=0
-MAXDIM?=128
+MAXDIM?=200
 
 ifeq ($(D),1)
 FLAGS=-O0 -g -fsanitize=address -fno-omit-frame-pointer -std=c++20 -DMAX_DIM=$(MAXDIM)
@@ -10,10 +10,15 @@ endif
 COMPILER=CC
 INCLUDES=-I./include
 
-all: rgraph
+.PHONY: clean bindings
+
+all: rgraph bindings
 
 rgraph: rgraph.cpp src/cover_tree.cpp src/dist_point_vector.cpp src/point_vector.cpp src/dist_graph.cpp src/utils.cpp src/timer.cpp src/ghost_tree.cpp src/work_stealer.cpp
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
+
+bindings: bindings/metricspace.cpp src/cover_tree.cpp src/dist_point_vector.cpp src/point_vector.cpp src/dist_graph.cpp src/utils.cpp src/timer.cpp src/ghost_tree.cpp src/work_stealer.cpp
+	$(COMPILER) $(FLAGS) $(INCLUDES) -shared -fPIC -I$(INCLUDE_DIR) -I$(INCLUDE_DIR)/include -I$(MPI4PY_DIR) $^ -o metricspace.so
 
 clean:
 	rm -rf *.dSYM *.so rgraph

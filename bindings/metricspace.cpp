@@ -39,7 +39,7 @@ void bind_dist_point_vector(py::module_& m)
 {
     py::class_<DistPointVector>(m, "DistPointVector")
         .def(py::init([](std::string fname, py::object py_comm) { return std::make_unique<DistPointVector>(fname.c_str(), *get_py_comm(py_comm)); }))
-        .def("brute_tree_systolic", [](const DistPointVector& points, Real radius, int verbosity)
+        .def("brute_force_systolic", [](const DistPointVector& points, Real radius, int verbosity)
                 {
                     DistGraph graph(points.getcomm());
                     points.brute_force_systolic(radius, graph, verbosity);

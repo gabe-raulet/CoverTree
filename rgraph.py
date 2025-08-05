@@ -105,8 +105,8 @@ if __name__ == "__main__":
 
     if method == "bf": graph = points.brute_force_systolic(radius, verbosity)
     elif method == "ct": graph = points.cover_tree_systolic(radius, cover, leaf_size, verbosity)
-    elif method == "gvor": graph = points.ghost_tree_systolic(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity)
-    elif method == "cvor": graph = points.cover_tree_systolic(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity)
+    elif method == "gvor": graph = points.ghost_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity)
+    elif method == "cvor": graph = points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity)
 
     t += MPI.Wtime()
     maxtime = comm.reduce(t, op=MPI.MAX, root=0)
