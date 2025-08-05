@@ -68,7 +68,18 @@ class DistPointVector : public PointVector
         void build_ghost_trees(std::vector<GhostTree>& mytrees, const std::vector<PointVector>& my_cell_points, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const;
         void build_cover_trees(std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_points, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const;
         void find_neighbors(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const;
-        /* void find_neighbors2(const std::vector<CoverTree>& mytrees, Real radius, DistGraph& graph, int verbosity) const; */
+
+        void find_neighbors2
+        (
+            const std::vector<CoverTree>& mytrees,
+            const std::vector<PointVector>& my_cell_points,
+            const std::vector<PointVector>& my_ghost_points,
+            const std::vector<IndexVector>& my_cell_indices,
+            const std::vector<IndexVector>& my_ghost_indices,
+            Real radius,
+            DistGraph& graph,
+            int verbosity
+        ) const;
 };
 
 #endif

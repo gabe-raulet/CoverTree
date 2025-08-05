@@ -783,6 +783,28 @@ void DistPointVector::cover_tree_voronoi2(Real radius, Real cover, Index leaf_si
     std::vector<CoverTree> mytrees;
 
     build_cover_trees(mytrees, my_cell_points, mycells, cover, leaf_size, verbosity);
+    find_neighbors2(mytrees, my_cell_points, my_ghost_points, my_cell_indices, my_ghost_indices, radius, graph, verbosity);
+}
+
+void DistPointVector::find_neighbors2
+(
+    const std::vector<CoverTree>& mytrees,
+    const std::vector<PointVector>& my_cell_points,
+    const std::vector<PointVector>& my_ghost_points,
+    const std::vector<IndexVector>& my_cell_indices,
+    const std::vector<IndexVector>& my_ghost_indices,
+    Real radius,
+    DistGraph& graph,
+    int verbosity
+) const
+{
+    Index s = mytrees.size();
+
+    Index num_local_queries_made = 0;
+    Index num_local_edges_found = 0;
+
+    Timer timer(comm);
+    timer.start();
 
     for (Index i = 0; i < s; ++i)
     {
@@ -794,6 +816,9 @@ void DistPointVector::cover_tree_voronoi2(Real radius, Real cover, Index leaf_si
             IndexVector neighs;
             Index edges_found = mytrees[i].radius_query_indexed(my_cell_points[i], my_cell_indices[i], query, radius, neighs);
             graph.add_neighbors(my_cell_indices[i][query], neighs);
+
+            num_local_edges_found += edges_found;
+            num_local_queries_made++;
         }
 
         for (Index query = 0; query < ghost_size; ++query)
@@ -801,7 +826,27 @@ void DistPointVector::cover_tree_voronoi2(Real radius, Real cover, Index leaf_si
             IndexVector neighs;
             Index edges_found = mytrees[i].radius_query_indexed(my_cell_points[i], my_cell_indices[i], my_ghost_points[i][query], radius, neighs);
             graph.add_neighbors(my_ghost_indices[i][query], neighs);
+
+            num_local_edges_found += edges_found;
+            num_local_queries_made++;
         }
+    }
+
+    timer.stop();
+
+    if (verbosity >= 2)
+    {
+        Real density = (num_local_edges_found+0.0)/num_local_queries_made;
+        printf("[v2,%s] completed queries [queries=%lld,edges=%lld,density=%.3f]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, density);
+        fflush(stdout);
+    }
+
+
+    timer.wait();
+
+    if (verbosity >= 1 && !myrank)
+    {
+        printf("[v1,%s] completed all queries\n", timer.repr().c_str());
     }
 }
 
