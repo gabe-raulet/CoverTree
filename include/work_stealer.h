@@ -25,6 +25,7 @@ class WorkStealer
         Index steal_attempts;
         Index steal_successes;
         Index steal_services;
+        Index queries_remaining;
 
     private:
 

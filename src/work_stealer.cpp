@@ -6,6 +6,7 @@ WorkStealer::WorkStealer(std::deque<GhostTree> *myqueue, int dim, MPI_Comm comm)
       steal_in_progress(false),
       request(MPI_REQUEST_NULL),
       steal_attempts(0), steal_successes(0), steal_services(0),
+      queries_remaining(0),
       dim(dim),
       myqueue(myqueue)
 {
@@ -13,6 +14,11 @@ WorkStealer::WorkStealer(std::deque<GhostTree> *myqueue, int dim, MPI_Comm comm)
     MPI_Comm_size(comm, &nprocs);
 
     GhostTreeHeader::create_header_type(&MPI_GHOST_TREE_HEADER);
+
+    for (auto it = myqueue->begin(); it != myqueue->end(); ++it)
+    {
+        queries_remaining += it->header.queries_remaining();
+    }
 }
 
 WorkStealer::~WorkStealer()
@@ -61,7 +67,10 @@ void WorkStealer::poll_incoming_requests(double& my_poll_time, double& my_respon
                 std::vector<GhostTreeHeader> headers(num_trees_send);
 
                 for (int i = 0; i < num_trees_send; ++i)
+                {
                     headers[i] = (*myqueue)[queue_size-i-1].header;
+                    queries_remaining -= headers[i].queries_remaining();
+                }
 
                 MPI_Send(headers.data(), num_trees_send, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm);
 
@@ -99,7 +108,10 @@ void WorkStealer::poll_incoming_requests(double& my_poll_time, double& my_respon
                     myqueue->emplace_front();
 
                 for (int i = 0; i < num_trees_recv; ++i)
+                {
                     (*myqueue)[i].allocate(headers[i], dim);
+                    queries_remaining += headers[i].queries_remaining();
+                }
 
                 for (int i = 0; i < num_trees_recv; ++i)
                     (*myqueue)[i].irecv(source, comm, recvreqs);

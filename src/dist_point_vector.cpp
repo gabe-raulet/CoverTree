@@ -728,7 +728,7 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
     Timer timer(comm);
     MPI_Barrier(comm);
 
-    auto make_tree_queries = [&](GhostTree& tree)
+    auto make_tree_queries = [&](GhostTree& tree) -> Index
     {
         double t;
 
@@ -747,6 +747,8 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
             printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,made=%lld,left=%lld,found=%lld,calls=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.queries_remaining(), edges_found, tree.header.called);
             fflush(stdout);
         }
+
+        return queries_made;
     };
 
     timer.start();
@@ -809,7 +811,8 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
             {
                 t = -MPI_Wtime();
 
-                make_tree_queries(myqueue.front());
+                Index queries_made = make_tree_queries(myqueue.front());
+                work_stealer.queries_remaining -= queries_made;
 
                 if (myqueue.front().finished())
                 {
@@ -836,6 +839,7 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
             if (flag)
             {
                 t = -MPI_Wtime();
+
                 if (recvbuf >= totsize)
                     break;
 
