@@ -721,17 +721,44 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
     Timer timer(comm);
     MPI_Barrier(comm);
 
+    auto make_tree_queries = [&](GhostTree& tree)
+    {
+        double t;
+
+        t = -MPI_Wtime();
+
+        Index queries_made;
+        Index edges_found = tree.make_queries(queries_per_tree, radius, graph, queries_made);
+
+        num_local_queries_made += queries_made;
+        num_local_edges_found += edges_found;
+
+        t += MPI_Wtime();
+
+        if (verbosity >= 3)
+        {
+            printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,made=%lld,left=%lld,found=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.num_queries - tree.header.cur_query, edges_found);
+            fflush(stdout);
+        }
+    };
+
     timer.start();
 
     if (!strcmp(query_balancing, "static"))
     {
-        for (auto& tree : myqueue)
+        while (!myqueue.empty())
         {
-            Index queries_made;
-            Index edges_found = tree.make_queries(-1, radius, graph, queries_made);
+            auto it = myqueue.begin();
 
-            num_local_queries_made += queries_made;
-            num_local_edges_found += edges_found;
+            while (it != myqueue.end())
+            {
+                make_tree_queries(*it);
+
+                if (it->finished())
+                    it = myqueue.erase(it);
+                else
+                    it++;
+            }
         }
     }
 
