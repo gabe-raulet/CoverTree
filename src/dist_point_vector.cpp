@@ -783,6 +783,26 @@ void DistPointVector::cover_tree_voronoi2(Real radius, Real cover, Index leaf_si
     std::vector<CoverTree> mytrees;
 
     build_cover_trees(mytrees, my_cell_points, mycells, cover, leaf_size, verbosity);
+
+    for (Index i = 0; i < s; ++i)
+    {
+        Index query_size = my_cell_indices[i].size();
+        Index ghost_size = my_ghost_indices[i].size();
+
+        for (Index query = 0; query < query_size; ++query)
+        {
+            IndexVector neighs;
+            Index edges_found = mytrees[i].radius_query_indexed(my_cell_points[i], my_cell_indices[i], query, radius, neighs);
+            graph.add_neighbors(my_cell_indices[i][query], neighs);
+        }
+
+        for (Index query = 0; query < ghost_size; ++query)
+        {
+            IndexVector neighs;
+            Index edges_found = mytrees[i].radius_query_indexed(my_cell_points[i], my_cell_indices[i], my_ghost_points[i][query], radius, neighs);
+            graph.add_neighbors(my_ghost_indices[i][query], neighs);
+        }
+    }
 }
 
 void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const

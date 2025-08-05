@@ -256,6 +256,14 @@ Index CoverTree::radius_query_indexed(const PointVector& points, const IndexVect
     return found;
 }
 
+Index CoverTree::radius_query_indexed(const PointVector& points, const IndexVector& indices, const Atom *query, Real radius, IndexVector& neighs) const
+{
+    IndexVector tmpneighs;
+    Index found = radius_query(points, query, radius, tmpneighs);
+    std::transform(tmpneighs.begin(), tmpneighs.end(), std::back_inserter(neighs), [&indices](Index id) { return indices[id]; });
+    return found;
+}
+
 void CoverTree::allocate(Index num_verts)
 {
     childarr.resize(num_verts-1);

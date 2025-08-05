@@ -18,6 +18,7 @@ class CoverTree
         Index radius_query(const PointVector& points, const Atom *query, Real radius, IndexVector& neighs) const;
         Index radius_query(const PointVector& points, Index query, Real radius, IndexVector& neighs) const { return radius_query(points, points[query], radius, neighs); }
         Index radius_query_indexed(const PointVector& points, const IndexVector& indices, Index query, Real radius, IndexVector& neighs) const;
+        Index radius_query_indexed(const PointVector& points, const IndexVector& indices, const Atom *query, Real radius, IndexVector& neighs) const;
 
         void allocate(Index num_verts);
 
