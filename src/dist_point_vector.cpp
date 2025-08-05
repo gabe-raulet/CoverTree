@@ -779,7 +779,7 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
     }
     else if (!strcmp(query_balancing, "steal"))
     {
-        WorkStealer work_stealer(dim, comm);
+        WorkStealer work_stealer(&myqueue, dim, comm);
 
         Index totsize = myqueue.size();
         MPI_Allreduce(MPI_IN_PLACE, &totsize, 1, MPI_INDEX, MPI_SUM, comm);
@@ -803,7 +803,7 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
 
         while (true)
         {
-            work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time);
+            work_stealer.poll_incoming_requests(my_poll_time, my_response_time);
 
             if (!myqueue.empty())
             {
@@ -823,7 +823,7 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
             else
             {
                 t = -MPI_Wtime();
-                work_stealer.random_steal(myqueue);
+                work_stealer.random_steal();
                 t += MPI_Wtime();
                 my_steal_time += t;
             }

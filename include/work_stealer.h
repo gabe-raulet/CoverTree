@@ -15,12 +15,12 @@ class WorkStealer
 {
     public:
 
-        WorkStealer(int dim, MPI_Comm comm);
+        WorkStealer(std::deque<GhostTree> *myqueue, int dim, MPI_Comm comm);
         ~WorkStealer();
 
         bool finished();
-        void poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time);
-        void random_steal(std::deque<GhostTree>& myqueue);
+        void poll_incoming_requests(double& my_poll_time, double& my_response_time);
+        void random_steal();
 
         Index steal_attempts;
         Index steal_successes;
@@ -36,6 +36,8 @@ class WorkStealer
         MPI_Datatype MPI_GHOST_TREE_HEADER;
 
         int dim; /* this pesky dim! */
+
+        std::deque<GhostTree> *myqueue;
 };
 
 #endif

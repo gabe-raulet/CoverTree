@@ -1,12 +1,13 @@
 #include "work_stealer.h"
 #include <algorithm>
 
-WorkStealer::WorkStealer(int dim, MPI_Comm comm)
+WorkStealer::WorkStealer(std::deque<GhostTree> *myqueue, int dim, MPI_Comm comm)
     : comm(comm),
       steal_in_progress(false),
       request(MPI_REQUEST_NULL),
       steal_attempts(0), steal_successes(0), steal_services(0),
-      dim(dim)
+      dim(dim),
+      myqueue(myqueue)
 {
     MPI_Comm_rank(comm, &myrank);
     MPI_Comm_size(comm, &nprocs);
@@ -16,10 +17,11 @@ WorkStealer::WorkStealer(int dim, MPI_Comm comm)
 
 WorkStealer::~WorkStealer()
 {
+    myqueue = nullptr;
     MPI_Type_free(&MPI_GHOST_TREE_HEADER);
 }
 
-void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time)
+void WorkStealer::poll_incoming_requests(double& my_poll_time, double& my_response_time)
 {
     /* SORT THE QUEUES BY WORK ESTIMATE */
 
@@ -42,15 +44,15 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
         {
             MPI_Recv(MPI_BOTTOM, 0, MPI_BYTE, source, STEAL_REQUEST_TAG, comm, MPI_STATUS_IGNORE);
 
-            if (myqueue.size() <= 1)
+            if (myqueue->size() <= 1)
             {
                 MPI_Send(MPI_BOTTOM, 0, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm);
             }
             else
             {
-                std::sort(myqueue.begin(), myqueue.end(), [](const auto& a, const auto& b) { return a.tree.num_vertices() > b.tree.num_vertices(); });
+                std::sort(myqueue->begin(), myqueue->end(), [](const auto& a, const auto& b) { return a.tree.num_vertices() > b.tree.num_vertices(); });
 
-                int queue_size = myqueue.size();
+                int queue_size = myqueue->size();
                 int num_trees_send = 1;
                 /* int num_trees_send = std::max(1, queue_size/3); */
 
@@ -59,19 +61,19 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                 std::vector<GhostTreeHeader> headers(num_trees_send);
 
                 for (int i = 0; i < num_trees_send; ++i)
-                    headers[i] = myqueue[queue_size-i-1].header;
+                    headers[i] = (*myqueue)[queue_size-i-1].header;
 
                 MPI_Send(headers.data(), num_trees_send, MPI_GHOST_TREE_HEADER, source, STEAL_RESPONSE_TAG, comm);
 
                 sendreqs.reserve(6*num_trees_send);
 
                 for (int i = 0; i < num_trees_send; ++i)
-                    myqueue[queue_size-i-1].isend(source, comm, sendreqs);
+                    (*myqueue)[queue_size-i-1].isend(source, comm, sendreqs);
 
                 MPI_Waitall(6*num_trees_send, sendreqs.data(), MPI_STATUSES_IGNORE);
 
                 for (int i = 0; i < num_trees_send; ++i)
-                    myqueue.pop_back();
+                    myqueue->pop_back();
 
                 steal_services++;
             }
@@ -94,13 +96,13 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                 recvreqs.reserve(6*num_trees_recv);
 
                 for (int i = 0; i < num_trees_recv; ++i)
-                    myqueue.emplace_front();
+                    myqueue->emplace_front();
 
                 for (int i = 0; i < num_trees_recv; ++i)
-                    myqueue[i].allocate(headers[i], dim);
+                    (*myqueue)[i].allocate(headers[i], dim);
 
                 for (int i = 0; i < num_trees_recv; ++i)
-                    myqueue[i].irecv(source, comm, recvreqs);
+                    (*myqueue)[i].irecv(source, comm, recvreqs);
 
                 MPI_Waitall(6*num_trees_recv, recvreqs.data(), MPI_STATUSES_IGNORE);
 
@@ -119,7 +121,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
     my_response_time += response_time;
 }
 
-void WorkStealer::random_steal(std::deque<GhostTree>& myqueue)
+void WorkStealer::random_steal()
 {
     if (steal_in_progress)
         return;
