@@ -18,6 +18,12 @@ class DistPointVector : public PointVector
 {
     public:
 
+        static inline double my_steal_comp_time = 0;
+        static inline double my_steal_time = 0;
+        static inline double my_poll_time = 0;
+        static inline double my_response_time = 0;
+        static inline double my_allreduce_time = 0;
+
         DistPointVector(const char *fname, MPI_Comm comm);
         ~DistPointVector();
 
