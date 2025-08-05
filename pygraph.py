@@ -19,4 +19,5 @@ nprocs = comm.Get_size()
 
 points = DistPointVector("scratch/datasets/corel.fvecs", comm)
 #  points.cover_tree_systolic(0.1, 1.5, 10, 2)
-points.cover_tree_voronoi(0.1, 1.5, 10, 25*nprocs, "multiway", "static", -1, 1)
+graph = points.cover_tree_voronoi(0.1, 1.5, 10, 25*nprocs, "multiway", "static", -1, 1)
+graph.write_edge_file(points.totsize(), "output.mtx")

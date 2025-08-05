@@ -65,7 +65,8 @@ void bind_dist_point_vector(py::module_& m)
                     points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment.c_str(), query_balancing.c_str(), queries_per_tree, graph, verbosity);
                     return graph;
                 }
-            );
+            )
+        .def("totsize", [](const DistPointVector& points) { return points.gettotsize(); });
 }
 
 PYBIND11_MODULE(metricspace, m)
