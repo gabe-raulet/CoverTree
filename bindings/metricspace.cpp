@@ -31,7 +31,8 @@ void bind_dist_graph(py::module_& m)
 {
     py::class_<DistGraph>(m, "DistGraph")
         .def(py::init([](py::object py_comm) { return DistGraph(*get_py_comm(py_comm)); }))
-        .def("write_edge_file", &DistGraph::write_edge_file);
+        .def("write_edge_file", &DistGraph::write_edge_file)
+        .def("num_edges", &DistGraph::num_edges);
 }
 
 void bind_dist_point_vector(py::module_& m)
@@ -66,7 +67,8 @@ void bind_dist_point_vector(py::module_& m)
                     return graph;
                 }
             )
-        .def("totsize", [](const DistPointVector& points) { return points.gettotsize(); });
+        .def("totsize", [](const DistPointVector& points) { return points.gettotsize(); })
+        .def("num_dimensions", &DistPointVector::num_dimensions);
 }
 
 PYBIND11_MODULE(metricspace, m)
