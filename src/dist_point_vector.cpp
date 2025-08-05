@@ -260,7 +260,11 @@ void DistPointVector::cover_tree_systolic(Real radius, Real cover, Index leaf_si
 template <class Query>
 void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int verbosity) const
 {
+    double t;
+
     MPI_Request reqs[2];
+
+    t = -MPI_Wtime();
 
     int next = (myrank+1)%nprocs;
     int prev = (myrank-1+nprocs)%nprocs;
@@ -269,6 +273,9 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
 
     PointVector curpoints(*this);
     PointVector nextpoints;
+
+    t += MPI_Wtime();
+    my_comp_time += t;
 
     MPI_Barrier(comm);
 
@@ -281,18 +288,31 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
     {
         timer.start();
 
+        t = -MPI_Wtime();
+
         int sendcount = get_rank_size(cur);
         int recvcount = get_rank_size((cur+1)%nprocs);
 
         nextpoints.resize(recvcount, dim);
 
+        t += MPI_Wtime();
+        my_comp_time += t;
+
+        t = -MPI_Wtime();
         MPI_Irecv(nextpoints.data(), recvcount, MPI_POINT, next, myrank, comm, &reqs[0]);
         MPI_Isend(curpoints.data(), sendcount, MPI_POINT, prev, prev, comm, &reqs[1]);
+        t += MPI_Wtime();
+        my_comm_time += t;
 
+        t = -MPI_Wtime();
         Index cursize = get_rank_size(cur);
         Index curoffset = get_rank_offset(cur);
         Index found = query(*this, curpoints, curoffset, myoffset, radius, graph);
         edges += found;
+        t += MPI_Wtime();
+        my_comp_time += t;
+
+        t = -MPI_Wtime();
 
         timer.stop();
 
@@ -303,6 +323,9 @@ void DistPointVector::systolic(Real radius, Query& query, DistGraph& graph, int 
         }
 
         MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+        t += MPI_Wtime();
+        my_comm_time += t;
+
         timer.wait();
 
         cur = (cur+1)%nprocs;

@@ -119,10 +119,12 @@ if __name__ == "__main__":
     sys.stdout.flush()
 
     dist_comps = comm.gather(points.dist_comps(), root=0)
+    comm_times = comm.gather(points.my_comm_time(), root=0)
+    comp_times = comm.gather(points.my_comp_time(), root=0)
 
     if myrank == 0:
         for i in range(nprocs):
-            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])}]\n")
+            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comm_time={comm_times[i]:.3f},comp_time={comp_times[i]:.3f}]\n")
         sys.stdout.write(f"[dist_comps={format_large_number(sum(dist_comps))}]\n")
 
     sys.stdout.flush()
