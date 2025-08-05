@@ -135,6 +135,21 @@ PointVector DistPointVector::allgather(const IndexVector& indices) const
     return allgather(myindices, dummy);
 }
 
+PointVector DistPointVector::gather_rma_block(int target_rank) const
+{
+    int dim = PointVector::dim;
+
+    int target_size = get_rank_size(target_rank);
+
+    AtomVector recvbuf(target_size*dim);
+
+    MPI_Win_lock(MPI_LOCK_SHARED, target_rank, 0, win);
+    MPI_Get(recvbuf.data(), target_size, MPI_POINT, target_rank, 0, target_size, MPI_POINT, win);
+    MPI_Win_unlock(target_rank, win);
+
+    return PointVector(recvbuf, dim);
+}
+
 PointVector DistPointVector::gather_rma(const IndexVector& indices) const
 {
     int dim = PointVector::dim;
@@ -255,6 +270,29 @@ void DistPointVector::cover_tree_systolic(Real radius, Real cover, Index leaf_si
     }
 
     systolic(radius, query, graph, verbosity);
+}
+
+void DistPointVector::cover_tree_rma(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const
+{
+    Timer timer(comm);
+
+    timer.start();
+    CoverTreeQuery query(*this, cover, leaf_size);
+    timer.stop();
+
+    if (verbosity >= 2)
+    {
+        printf("[v2,%s] built local tree [points=%lld,vertices=%lld]\n", timer.myrepr().c_str(), mysize, query.tree.num_vertices());
+        fflush(stdout);
+    }
+
+    timer.wait();
+
+    if (verbosity >= 1)
+    {
+        if (!myrank) printf("[v1,time=%s] built cover trees\n", timer.repr().c_str());
+        fflush(stdout);
+    }
 }
 
 template <class Query>

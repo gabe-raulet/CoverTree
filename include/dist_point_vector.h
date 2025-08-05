@@ -45,12 +45,14 @@ class DistPointVector : public PointVector
         PointVector allgather(const IndexVector& myindices, IndexVector& indices) const;
         PointVector allgather(const IndexVector& indices) const;
         PointVector gather_rma(const IndexVector& indices) const;
+        PointVector gather_rma_block(int target_rank) const;
 
         Index get_rank_offset(int rank) const { return offsets[rank]; }
         Index get_rank_size(int rank) const { return (rank == nprocs-1)? totsize - offsets[nprocs-1] : offsets[rank+1]-offsets[rank]; }
 
         void brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const;
         void cover_tree_systolic(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const;
+        void cover_tree_rma(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const;
         void ghost_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
         void cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
 

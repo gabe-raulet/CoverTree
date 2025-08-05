@@ -38,7 +38,7 @@ def usage():
         sys.stderr.write(f"         -o FILE  output sparse graph\n")
         sys.stderr.write(f"         -A STR   tree assignment method (one of: static, multiway) [{tree_assignment}]\n")
         sys.stderr.write(f"         -B STR   load balancing method (one of: static, steal) [{query_balancing}]\n")
-        sys.stderr.write(f"         -M STR   querying method (one of: gvor, cvor, ct, bf) [{method}]\n")
+        sys.stderr.write(f"         -M STR   querying method (one of: gvor, cvor, ct, bf, ctrma) [{method}]\n")
         sys.stderr.write(f"         -F       fix total centers\n")
         sys.stderr.write(f"         -h       help message\n")
         sys.stderr.flush()
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         sys.stdout.flush()
         sys.exit(1)
 
-    if not method in ("ct", "bf", "gvor", "cvor"):
+    if not method in ("ct", "bf", "gvor", "cvor", "ctrma"):
         sys.stderr.write(f"error: '{method}' is an invalid query method!\n")
         sys.stdout.flush()
         sys.exit(1)
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     elif method == "ct": graph = points.cover_tree_systolic(radius, cover, leaf_size, verbosity)
     elif method == "gvor": graph = points.ghost_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity)
     elif method == "cvor": graph = points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity)
+    elif method == "ctrma": graph = points.cover_tree_rma(radius, cover, leaf_size, verbosity)
 
     t += MPI.Wtime()
     maxtime = comm.reduce(t, op=MPI.MAX, root=0)

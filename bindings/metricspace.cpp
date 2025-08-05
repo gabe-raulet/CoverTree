@@ -67,6 +67,13 @@ void bind_dist_point_vector(py::module_& m)
                     return graph;
                 }
             )
+        .def("cover_tree_rma", [](const DistPointVector& points, Real radius, Real cover, Index leaf_size, int verbosity)
+                {
+                    DistGraph graph(points.getcomm());
+                    points.cover_tree_rma(radius, cover, leaf_size, graph, verbosity);
+                    return graph;
+                }
+            )
         .def("totsize", [](const DistPointVector& points) { return points.gettotsize(); })
         .def("num_dimensions", &DistPointVector::num_dimensions)
         .def("dist_comps", [](const DistPointVector& points) { return points.dist_comps; })
