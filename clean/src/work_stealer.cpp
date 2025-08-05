@@ -47,6 +47,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
             }
             else
             {
+                std::sort(myqueue.begin(), myqueue.end(), [](const auto& a, const auto& b) { return a.tree.num_vertices() > b.tree.num_vertices(); });
 
                 int queue_size = myqueue.size();
                 int num_trees_send = 1;
@@ -101,13 +102,14 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                     myqueue[i].irecv(source, comm, recvreqs);
 
                 MPI_Waitall(6*num_trees_recv, recvreqs.data(), MPI_STATUSES_IGNORE);
+
+                steal_successes++;
             }
 
             t += MPI_Wtime();
             response_time += t;
 
             steal_in_progress = false;
-            steal_successes++;
         }
     }
 
