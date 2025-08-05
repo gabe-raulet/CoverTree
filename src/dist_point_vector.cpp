@@ -653,6 +653,8 @@ void DistPointVector::build_cover_trees(std::vector<GhostTree>& mytrees, const s
 {
     Index s = my_cell_points.size();
 
+    Index my_num_vertices = 0, num_vertices;
+
     Timer timer(comm);
     timer.start();
 
@@ -660,6 +662,7 @@ void DistPointVector::build_cover_trees(std::vector<GhostTree>& mytrees, const s
     {
         CoverTree tree;
         tree.build(my_cell_points[i], cover, leaf_size);
+        my_num_vertices += tree.num_vertices();
         mytrees.emplace_back(tree, my_cell_points[i], my_cell_indices[i], my_query_sizes[i], mycells[i]);
     }
 
@@ -667,7 +670,7 @@ void DistPointVector::build_cover_trees(std::vector<GhostTree>& mytrees, const s
 
     if (verbosity >= 2)
     {
-        printf("[v2,%s] built %lld local cover trees\n", timer.myrepr().c_str(), s);
+        printf("[v2,%s] built %lld local cover trees [num_vertices=%lld]\n", timer.myrepr().c_str(), s, my_num_vertices);
         fflush(stdout);
     }
 
@@ -675,7 +678,8 @@ void DistPointVector::build_cover_trees(std::vector<GhostTree>& mytrees, const s
 
     if (verbosity >= 1)
     {
-        if (!myrank) printf("[v1,%s] built all cover trees\n", timer.repr().c_str());
+        MPI_Reduce(&my_num_vertices, &num_vertices, 1, MPI_INDEX, MPI_SUM, 0, comm);
+        if (!myrank) printf("[v1,%s] built all cover trees [num_vertices=%lld]\n", timer.repr().c_str(), num_vertices);
         fflush(stdout);
     }
 
