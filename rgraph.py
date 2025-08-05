@@ -111,6 +111,19 @@ if __name__ == "__main__":
     t += MPI.Wtime()
     maxtime = comm.reduce(t, op=MPI.MAX, root=0)
 
+    dist_comps = comm.gather(points.dist_comps(), root=0)
+    comm_times = comm.gather(points.my_comm_time(), root=0)
+    comp_times = comm.gather(points.my_comp_time(), root=0)
+    idle_times = comm.gather(points.my_idle_time(), root=0)
+
+    if myrank == 0:
+        for i in range(nprocs):
+            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comm_time={comm_times[i]:.3f},comp_time={comp_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")
+        sys.stdout.write(f"[dist_comps={format_large_number(sum(dist_comps))}]\n")
+
+    sys.stdout.flush()
+    comm.barrier()
+
     edges = graph.num_edges(num_vertices,0)
     density = edges/num_vertices
 
@@ -118,17 +131,6 @@ if __name__ == "__main__":
 
     sys.stdout.flush()
 
-    dist_comps = comm.gather(points.dist_comps(), root=0)
-    comm_times = comm.gather(points.my_comm_time(), root=0)
-    comp_times = comm.gather(points.my_comp_time(), root=0)
-
-    if myrank == 0:
-        for i in range(nprocs):
-            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comm_time={comm_times[i]:.3f},comp_time={comp_times[i]:.3f}]\n")
-        sys.stdout.write(f"[dist_comps={format_large_number(sum(dist_comps))}]\n")
-
-    sys.stdout.flush()
-    comm.barrier()
 
     if outfile:
 

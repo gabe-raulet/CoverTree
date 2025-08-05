@@ -357,6 +357,10 @@ void mpi_argmax(void *_in, void *_inout, int *len, MPI_Datatype *dtype)
 
 void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& centers, IndexVector& centerids, IndexVector& cells, RealVector& dists, int verbosity) const
 {
+    double t;
+
+    t = -MPI_Wtime();
+
     centers.clear();
     centerids.clear();
 
@@ -378,10 +382,15 @@ void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& cent
     MPI_Type_commit(&MPI_GLOBAL_POINT);
     MPI_Op_create(&mpi_argmax, 0, &MPI_ARGMAX);
 
+    t += MPI_Wtime();
+    my_comp_time += t;
+
     Timer timer(comm);
 
     MPI_Barrier(comm);
     timer.start();
+
+    t = -MPI_Wtime();
 
     if (!myrank)
     {
@@ -390,10 +399,18 @@ void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& cent
         next_center.r = std::numeric_limits<Real>::max();
     }
 
+    t += MPI_Wtime();
+    my_comp_time += t;
+
+    t = -MPI_Wtime();
     MPI_Bcast(&next_center, 1, MPI_GLOBAL_POINT, 0, comm);
+    t += MPI_Wtime();
+    my_comm_time += t;
 
     for (Index cell = 0; cell < num_centers; ++cell)
     {
+        t = -MPI_Wtime();
+
         centers.push_back(next_center.p);
         centerids.push_back(next_center.i);
 
@@ -419,7 +436,13 @@ void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& cent
         std::copy(begin(next_center.i), end(next_center.i), next_center.p);
         next_center.i += myoffset;
 
+        t += MPI_Wtime();
+        my_comp_time += t;
+
+        t = -MPI_Wtime();
         MPI_Allreduce(MPI_IN_PLACE, &next_center, 1, MPI_GLOBAL_POINT, MPI_ARGMAX, comm);
+        t += MPI_Wtime();
+        my_comm_time += t;
     }
 
     MPI_Type_free(&MPI_GLOBAL_POINT);
@@ -444,8 +467,12 @@ void DistPointVector::build_voronoi_diagram(Index num_centers, PointVector& cent
 
 void DistPointVector::find_ghost_points(Real radius, Real cover, const PointVector& centers, const IndexVector& cells, const RealVector& dists, std::vector<IndexVector>& mycellids, std::vector<IndexVector>& myghostids, int verbosity) const
 {
+    double t;
+
     Timer timer(comm);
     timer.start();
+
+    t = -MPI_Wtime();
 
     CoverTree reptree;
     reptree.build(centers, cover, 1);
@@ -471,6 +498,11 @@ void DistPointVector::find_ghost_points(Real radius, Real cover, const PointVect
         mycellids[cells[i]].push_back(i);
     }
 
+    t += MPI_Wtime();
+    my_comp_time += t;
+
+    t = -MPI_Wtime();
+
     timer.stop();
 
     if (verbosity >= 2)
@@ -480,6 +512,9 @@ void DistPointVector::find_ghost_points(Real radius, Real cover, const PointVect
     }
 
     timer.wait();
+
+    t += MPI_Wtime();
+    my_idle_time += t;
 
     if (verbosity >= 1)
     {
@@ -494,6 +529,8 @@ void DistPointVector::find_ghost_points(Real radius, Real cover, const PointVect
 
 Index DistPointVector::compute_assignments(Index num_centers, const IndexVector& cells, const char *tree_assignment, std::vector<int>& dests, IndexVector& mycells, int verbosity) const
 {
+    double t;
+
     Timer timer(comm);
     timer.start();
 
@@ -503,6 +540,8 @@ Index DistPointVector::compute_assignments(Index num_centers, const IndexVector&
 
     if (!strcmp(tree_assignment, "static"))
     {
+        t = -MPI_Wtime();
+
         for (Index i = 0; i < num_centers; ++i)
         {
             dests[i] = i % nprocs;
@@ -513,14 +552,24 @@ Index DistPointVector::compute_assignments(Index num_centers, const IndexVector&
                 s++;
             }
         }
+
+        t += MPI_Wtime();
+        my_comp_time += t;
     }
     else if (!strcmp(tree_assignment, "multiway"))
     {
+        t = -MPI_Wtime();
         IndexVector cellsizes(num_centers, 0);
         for (Index cell : cells) cellsizes[cell]++;
+        t += MPI_Wtime();
+        my_comp_time += t;
 
+        t = -MPI_Wtime();
         MPI_Allreduce(MPI_IN_PLACE, cellsizes.data(), (int)num_centers, MPI_INDEX, MPI_SUM, comm);
+        t += MPI_Wtime();
+        my_comm_time += t;
 
+        t = -MPI_Wtime();
         IndexPairVector pairs;
 
         for (Index i = 0; i < num_centers; ++i)
@@ -544,6 +593,9 @@ Index DistPointVector::compute_assignments(Index num_centers, const IndexVector&
                 s++;
             }
         }
+
+        t += MPI_Wtime();
+        my_comp_time += t;
     }
 
     timer.stop();
@@ -560,8 +612,12 @@ Index DistPointVector::compute_assignments(Index num_centers, const IndexVector&
 
 void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids, const std::vector<int>& dests, std::vector<PointVector>& my_cell_points, std::vector<IndexVector>& my_cell_indices, IndexVector& my_sizes, int verbosity) const
 {
+    double t;
+
     Timer timer(comm);
     timer.start();
+
+    t = -MPI_Wtime();
 
     Index m = dests.size();
     std::vector<int> sendcounts(nprocs,0), recvcounts(nprocs), sdispls(nprocs), rdispls(nprocs);
@@ -652,8 +708,12 @@ void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids,
         my_cell_indices[cell].push_back(id);
     }
 
+    t += MPI_Wtime();
+    my_comm_time += t;
 
     timer.stop();
+
+    t = -MPI_Wtime();
 
     if (verbosity >= 2)
     {
@@ -662,6 +722,8 @@ void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids,
     }
 
     timer.wait();
+    t += MPI_Wtime();
+    my_idle_time += t;
 
     if (verbosity >= 1)
     {
@@ -674,12 +736,16 @@ void DistPointVector::global_point_alltoall(const std::vector<IndexVector>& ids,
 
 void DistPointVector::build_ghost_trees(std::vector<GhostTree>& mytrees, const std::vector<PointVector>& my_cell_points, const std::vector<IndexVector>& my_cell_indices, const IndexVector& my_query_sizes, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const
 {
+    double t;
+
     Index s = my_cell_points.size();
 
     Index my_num_vertices = 0, num_vertices;
 
     Timer timer(comm);
     timer.start();
+
+    t = -MPI_Wtime();
 
     for (Index i = 0; i < s; ++i)
     {
@@ -689,7 +755,11 @@ void DistPointVector::build_ghost_trees(std::vector<GhostTree>& mytrees, const s
         mytrees.emplace_back(tree, my_cell_points[i], my_cell_indices[i], my_query_sizes[i], mycells[i]);
     }
 
+    t += MPI_Wtime();
+    my_comp_time += t;
     timer.stop();
+
+    t = -MPI_Wtime();
 
     if (verbosity >= 2)
     {
@@ -698,6 +768,8 @@ void DistPointVector::build_ghost_trees(std::vector<GhostTree>& mytrees, const s
     }
 
     timer.wait();
+    t += MPI_Wtime();
+    my_idle_time += t;
 
     if (verbosity >= 1)
     {
@@ -709,6 +781,8 @@ void DistPointVector::build_ghost_trees(std::vector<GhostTree>& mytrees, const s
 
 void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, const std::vector<PointVector>& my_cell_points, const IndexVector& mycells, Real cover, Index leaf_size, int verbosity) const
 {
+    double t;
+
     mytrees.clear();
     Index s = my_cell_points.size();
 
@@ -717,6 +791,8 @@ void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, const s
     Timer timer(comm);
     timer.start();
 
+    t = -MPI_Wtime();
+
     for (Index i = 0; i < s; ++i)
     {
         mytrees.emplace_back();
@@ -724,7 +800,11 @@ void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, const s
         my_num_vertices += mytrees.back().num_vertices();
     }
 
+    t += MPI_Wtime();
+    my_comp_time += t;
     timer.stop();
+
+    t = -MPI_Wtime();
 
     if (verbosity >= 2)
     {
@@ -733,6 +813,9 @@ void DistPointVector::build_cover_trees(std::vector<CoverTree>& mytrees, const s
     }
 
     timer.wait();
+
+    t += MPI_Wtime();
+    my_idle_time += t;
 
     if (verbosity >= 1)
     {
@@ -821,6 +904,9 @@ void DistPointVector::find_neighbors_cover
     int verbosity
 ) const
 {
+
+    double t;
+
     Index s = mytrees.size();
 
     Index num_local_queries_made = 0;
@@ -828,6 +914,8 @@ void DistPointVector::find_neighbors_cover
 
     Timer timer(comm);
     timer.start();
+
+    t = -MPI_Wtime();
 
     for (Index i = 0; i < s; ++i)
     {
@@ -855,7 +943,12 @@ void DistPointVector::find_neighbors_cover
         }
     }
 
+    t += MPI_Wtime();
+    my_comp_time += t;
+
     timer.stop();
+
+    t = -MPI_Wtime();
 
     if (verbosity >= 2)
     {
@@ -864,8 +957,10 @@ void DistPointVector::find_neighbors_cover
         fflush(stdout);
     }
 
-
     timer.wait();
+
+    t += MPI_Wtime();
+    my_idle_time += t;
 
     if (verbosity >= 1 && !myrank)
     {
@@ -875,6 +970,8 @@ void DistPointVector::find_neighbors_cover
 
 void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees, Real radius, Index queries_per_tree, const char *query_balancing, DistGraph& graph, int verbosity) const
 {
+    double t;
+
     std::deque<GhostTree> myqueue(mytrees.begin(), mytrees.end());
 
     Index num_local_queries_made = 0;
@@ -910,6 +1007,8 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
 
     if (!strcmp(query_balancing, "static"))
     {
+        t = -MPI_Wtime();
+
         while (!myqueue.empty())
         {
             auto it = myqueue.begin();
@@ -925,7 +1024,12 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
             }
         }
 
+        t += MPI_Wtime();
+        my_comp_time += t;
+
         timer.stop();
+
+        t = -MPI_Wtime();
 
         if (verbosity >= 2)
         {
@@ -1000,7 +1104,12 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
             }
         }
 
+        my_comp_time += my_steal_comp_time;
+        my_comm_time += (my_steal_time + my_poll_time + my_response_time + my_allreduce_time);
+
         timer.stop();
+
+        t = -MPI_Wtime();
 
         if (verbosity >= 2)
         {
@@ -1011,6 +1120,8 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
     }
 
     timer.wait();
+    t += MPI_Wtime();
+    my_idle_time += t;
 
     if (verbosity >= 1 && !myrank)
     {

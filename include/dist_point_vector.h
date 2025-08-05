@@ -20,6 +20,7 @@ class DistPointVector : public PointVector
 
         static inline double my_comp_time = 0;
         static inline double my_comm_time = 0;
+        static inline double my_idle_time = 0;
 
         /*
          * Work stealing timings
