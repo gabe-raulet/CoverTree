@@ -3,6 +3,14 @@ import sys
 import numpy as np
 import os
 
+def format_large_number(n):
+    units = ["", "K", "M", "B", "T", "P"]
+    for unit in units:
+        if abs(n) < 1000:
+            return f"{n:.1f}{unit}"
+        n /= 1000
+    return f"{n:.2f}E"
+
 def sizeof_fmt(num, suffix="B"):
     """
     Reference: https://stackoverflow.com/questions/1094841/get-a-human-readable-version-of-a-file-size
