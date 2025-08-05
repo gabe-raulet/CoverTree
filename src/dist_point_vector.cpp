@@ -2,6 +2,8 @@
 #include "cover_tree.h"
 #include "work_stealer.h"
 #include "timer.h"
+#include <math.h>
+#include <string.h>
 #include <assert.h>
 #include <filesystem>
 #include <limits>

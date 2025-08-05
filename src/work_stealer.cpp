@@ -1,4 +1,5 @@
 #include "work_stealer.h"
+#include <algorithm>
 
 WorkStealer::WorkStealer(int dim, MPI_Comm comm)
     : comm(comm),
