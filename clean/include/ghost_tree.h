@@ -11,6 +11,7 @@ struct GhostTreeHeader
     Index num_queries;
     Index num_points;
     Index num_vertices;
+    Index called;
 
     static void create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER);
 };

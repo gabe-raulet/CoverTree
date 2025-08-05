@@ -737,7 +737,7 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
 
         if (verbosity >= 3)
         {
-            printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,made=%lld,left=%lld,found=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.num_queries - tree.header.cur_query, edges_found);
+            printf("[v3,rank=%d,time=%.3f] queried ghost tree [id=%lld,made=%lld,left=%lld,found=%lld,calls=%lld]\n", myrank, t, tree.header.id, queries_made, tree.header.num_queries - tree.header.cur_query, edges_found, tree.header.called);
             fflush(stdout);
         }
     };

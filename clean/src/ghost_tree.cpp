@@ -3,9 +3,9 @@
 void GhostTreeHeader::create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER)
 {
     GhostTreeHeader dummy;
-    int blklens[5] = {1,1,1,1,1};
-    MPI_Datatype types[5] = {MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX};
-    MPI_Aint disps[5];
+    int blklens[6] = {1,1,1,1,1,1};
+    MPI_Datatype types[5] = {MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX};
+    MPI_Aint disps[6];
 
     MPI_Aint base_address;
     MPI_Get_address(&dummy, &base_address);
@@ -14,9 +14,10 @@ void GhostTreeHeader::create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER)
     MPI_Get_address(&(dummy.num_queries), &disps[2]);
     MPI_Get_address(&(dummy.num_points), &disps[3]);
     MPI_Get_address(&(dummy.num_vertices), &disps[4]);
+    MPI_Get_address(&(dummy.called), &disps[5]);
 
-    for (int i = 0; i < 5; ++i) disps[i] -= base_address;
-    MPI_Type_create_struct(5, blklens, disps, types, MPI_GHOST_TREE_HEADER);
+    for (int i = 0; i < 6; ++i) disps[i] -= base_address;
+    MPI_Type_create_struct(6, blklens, disps, types, MPI_GHOST_TREE_HEADER);
     MPI_Type_commit(MPI_GHOST_TREE_HEADER);
 }
 
@@ -39,6 +40,7 @@ Index GhostTree::make_queries(Index count, Real radius, DistGraph& graph, Index&
         edges_found += found;
     }
 
+    header.called++;
     return edges_found;
 }
 
@@ -46,8 +48,7 @@ GhostTree::GhostTree(const CoverTree& tree, const PointVector& points, const Ind
     : tree(tree),
       points(points),
       indices(indices),
-      header(id, 0, num_queries, points.num_points(), tree.num_vertices()) {}
-
+      header(id, 0, num_queries, points.num_points(), tree.num_vertices(), 0) {}
 
 void GhostTree::allocate(const GhostTreeHeader& recv_header, int dim)
 {
