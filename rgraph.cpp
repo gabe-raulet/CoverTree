@@ -68,6 +68,7 @@ int main_mpi(int argc, char *argv[])
     if      (!strcmp(method, "bf")) points.brute_force_systolic(radius, graph, verbosity);
     else if (!strcmp(method, "ct")) points.cover_tree_systolic(radius, cover, leaf_size, graph, verbosity);
     else if (!strcmp(method, "vor")) points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, graph, verbosity);
+    else if (!strcmp(method, "vor2")) points.cover_tree_voronoi2(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, graph, verbosity);
     timer.stop();
     timer.wait();
 
@@ -110,7 +111,7 @@ void parse_cmdline(int argc, char *argv[])
             fprintf(stderr, "         -o FILE  output sparse graph\n");
             fprintf(stderr, "         -A STR   tree assignment method (one of: static, multiway) [%s]\n", tree_assignment);
             fprintf(stderr, "         -B STR   load balancing method (one of: static, steal) [%s]\n", query_balancing);
-            fprintf(stderr, "         -M STR   querying method (one of: vor, ct, bf) [%s]\n", method);
+            fprintf(stderr, "         -M STR   querying method (one of: vor, vor2, ct, bf) [%s]\n", method);
             fprintf(stderr, "         -F       fix total centers\n");
             fprintf(stderr, "         -h       help message\n");
         }
@@ -158,7 +159,7 @@ void parse_cmdline(int argc, char *argv[])
         std::exit(1);
     }
 
-    if (strcmp(method, "ct") && strcmp(method, "bf") && strcmp(method, "vor"))
+    if (strcmp(method, "ct") && strcmp(method, "bf") && strcmp(method, "vor") && strcmp(method, "vor2"))
     {
         if (!myrank) fprintf(stderr, "error: '%s' is an invalid querying method!\n", method);
         MPI_Finalize();

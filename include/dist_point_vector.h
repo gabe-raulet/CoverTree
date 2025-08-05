@@ -39,6 +39,7 @@ class DistPointVector : public PointVector
         void brute_force_systolic(Real radius, DistGraph& graph, int verbosity) const;
         void cover_tree_systolic(Real radius, Real cover, Index leaf_size, DistGraph& graph, int verbosity) const;
         void cover_tree_voronoi(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
+        void cover_tree_voronoi2(Real radius, Real cover, Index leaf_size, Index num_centers, const char *tree_assignment, const char *query_balancing, Index queries_per_tree, DistGraph& graph, int verbosity) const;
 
     protected:
 
