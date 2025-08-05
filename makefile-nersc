@@ -10,6 +10,10 @@ endif
 COMPILER=CC
 INCLUDES=-I./include
 
+PY_INCLUDES=-I/global/common/software/nersc/pe/conda-envs/24.1.0/python-3.11/nersc-python/include/python3.11 \
+			-I/global/common/software/nersc/pe/conda-envs/24.1.0/python-3.11/nersc-python/lib/python3.11/site-packages/mpi4py/include
+PY_FLAGS=-shared -fPIC
+
 .PHONY: clean bindings
 
 all: rgraph bindings
@@ -18,7 +22,7 @@ rgraph: rgraph.cpp src/cover_tree.cpp src/dist_point_vector.cpp src/point_vector
 	$(COMPILER) -o $@ $(INCLUDES) $(FLAGS) $^
 
 bindings: bindings/metricspace.cpp src/cover_tree.cpp src/dist_point_vector.cpp src/point_vector.cpp src/dist_graph.cpp src/utils.cpp src/timer.cpp src/ghost_tree.cpp src/work_stealer.cpp
-	$(COMPILER) $(FLAGS) $(INCLUDES) -shared -fPIC -I$(INCLUDE_DIR) -I$(INCLUDE_DIR)/include -I$(MPI4PY_DIR) $^ -o metricspace.so
+	$(COMPILER) $(FLAGS) $(PY_FLAGS) $(INCLUDES) $(PY_INCLUDES) $^ -o metricspace.so
 
 clean:
 	rm -rf *.dSYM *.so rgraph
