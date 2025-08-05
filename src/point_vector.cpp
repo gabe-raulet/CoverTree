@@ -1,7 +1,6 @@
 #include "point_vector.h"
 #include <filesystem>
 #include <math.h>
-#include <assert.h>
 
 Real PointVector::distance(const Atom *p, const Atom *q) const
 {
@@ -17,7 +16,7 @@ Real PointVector::distance(const Atom *p, const Atom *q) const
     return std::sqrt(val);
 }
 
-void PointVector::read_fvecs(const char *fname)
+PointVector::PointVector(const char *fname)
 {
     Index filesize, n;
     int d;

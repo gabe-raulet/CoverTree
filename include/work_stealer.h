@@ -7,12 +7,6 @@
 
 #define STEAL_REQUEST_TAG 0
 #define STEAL_RESPONSE_TAG 1
-#define TOKEN_TAG 2
-#define SHUTDOWN_TAG 3
-
-#define WHITE_TOKEN 4
-#define BLACK_TOKEN 5
-#define NULL_TOKEN 6
 
 static std::random_device rd;
 static std::default_random_engine gen(rd());
@@ -27,18 +21,16 @@ class WorkStealer
         bool finished();
         void poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time);
         void random_steal(std::deque<GhostTree>& myqueue);
-        void poll_global_termination();
+
+        Index steal_attempts;
+        Index steal_successes;
+        Index steal_services;
 
     private:
 
         MPI_Comm comm;
         int myrank, nprocs;
 
-        int token;
-        int color;
-        int dest;
-        bool done;
-        bool first;
         bool steal_in_progress;
         MPI_Request request;
         MPI_Datatype MPI_GHOST_TREE_HEADER;

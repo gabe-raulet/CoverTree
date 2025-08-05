@@ -2,25 +2,13 @@
 
 WorkStealer::WorkStealer(int dim, MPI_Comm comm)
     : comm(comm),
-      token(NULL_TOKEN),
-      color(WHITE_TOKEN),
-      done(false),
-      first(true),
       steal_in_progress(false),
       request(MPI_REQUEST_NULL),
+      steal_attempts(0), steal_successes(0), steal_services(0),
       dim(dim)
 {
     MPI_Comm_rank(comm, &myrank);
     MPI_Comm_size(comm, &nprocs);
-
-    /*
-     * Root rank starts out with the token,
-     * set to the color white.
-     */
-    if (!myrank)
-        token = WHITE_TOKEN;
-
-    dest = (myrank+1)%nprocs;
 
     GhostTreeHeader::create_header_type(&MPI_GHOST_TREE_HEADER);
 }
@@ -29,12 +17,6 @@ WorkStealer::~WorkStealer()
 {
     MPI_Type_free(&MPI_GHOST_TREE_HEADER);
 }
-
-bool WorkStealer::finished()
-{
-    return done;
-}
-
 
 void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double& my_poll_time, double& my_response_time)
 {
@@ -65,9 +47,11 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
             }
             else
             {
+                std::sort(myqueue.begin(), myqueue.end(), [](const auto& a, const auto& b) { return a.tree.num_vertices() > b.tree.num_vertices(); });
 
                 int queue_size = myqueue.size();
-                int num_trees_send = std::max(1, queue_size/3);
+                int num_trees_send = 1;
+                /* int num_trees_send = std::max(1, queue_size/3); */
 
                 std::vector<MPI_Request> sendreqs;
 
@@ -88,10 +72,7 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                 for (int i = 0; i < num_trees_send; ++i)
                     myqueue.pop_back();
 
-                if (source < myrank)
-                {
-                    color = BLACK_TOKEN;
-                }
+                steal_services++;
             }
         }
 
@@ -99,7 +80,6 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
         {
             MPI_Wait(&request, MPI_STATUS_IGNORE);
 
-            /* TIME START HERE (This is where actual communication is happening) */
             t = -MPI_Wtime();
             int num_trees_recv;
             MPI_Get_count(&status, MPI_GHOST_TREE_HEADER, &num_trees_recv);
@@ -121,27 +101,15 @@ void WorkStealer::poll_incoming_requests(std::deque<GhostTree>& myqueue, double&
                 for (int i = 0; i < num_trees_recv; ++i)
                     myqueue[i].irecv(source, comm, recvreqs);
 
-
                 MPI_Waitall(6*num_trees_recv, recvreqs.data(), MPI_STATUSES_IGNORE);
-            }
 
-            /* TIME END */
+                steal_successes++;
+            }
 
             t += MPI_Wtime();
             response_time += t;
 
             steal_in_progress = false;
-        }
-
-        if (tag == TOKEN_TAG)
-        {
-            MPI_Recv(&token, 1, MPI_INT, source, TOKEN_TAG, comm, MPI_STATUS_IGNORE);
-        }
-
-        if (tag == SHUTDOWN_TAG)
-        {
-            MPI_Recv(MPI_BOTTOM, 0, MPI_BYTE, source, SHUTDOWN_TAG, comm, MPI_STATUS_IGNORE);
-            done = true;
         }
     }
 
@@ -164,60 +132,5 @@ void WorkStealer::random_steal(std::deque<GhostTree>& myqueue)
     MPI_Isend(MPI_BOTTOM, 0, MPI_BYTE, victim, STEAL_REQUEST_TAG, comm, &request);
 
     steal_in_progress = true;
-}
-
-void WorkStealer::poll_global_termination()
-{
-    if (nprocs == 1)
-    {
-        done = true;
-    }
-    else
-    {
-        if (!myrank && token == WHITE_TOKEN && color == WHITE_TOKEN)
-        {
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                std::vector<MPI_Request> reqs(nprocs-1);
-
-                for (int i = 1; i < nprocs; ++i)
-                {
-                    MPI_Isend(MPI_BOTTOM, 0, MPI_BYTE, i, SHUTDOWN_TAG, comm, &reqs[i-1]);
-                }
-
-                MPI_Waitall(nprocs-1, reqs.data(), MPI_STATUSES_IGNORE);
-                done = true;
-            }
-        }
-
-        if (token != NULL_TOKEN)
-        {
-            if (!myrank)
-            {
-                color = token = WHITE_TOKEN;
-                MPI_Send(&token, 1, MPI_INT, dest, TOKEN_TAG, comm);
-                token = NULL_TOKEN;
-
-            }
-            else
-            {
-                if (color == WHITE_TOKEN)
-                {
-                    MPI_Send(&token, 1, MPI_INT, dest, TOKEN_TAG, comm);
-                    token = NULL_TOKEN;
-                }
-                else if (color == BLACK_TOKEN)
-                {
-                    token = BLACK_TOKEN;
-                    color = WHITE_TOKEN;
-                    MPI_Send(&token, 1, MPI_INT, dest, TOKEN_TAG, comm);
-                    token = NULL_TOKEN;
-                }
-            }
-        }
-    }
+    steal_attempts++;
 }

@@ -2,6 +2,7 @@
 #define GHOST_TREE_H_
 
 #include "cover_tree.h"
+#include "dist_graph.h"
 
 struct GhostTreeHeader
 {
@@ -10,6 +11,7 @@ struct GhostTreeHeader
     Index num_queries;
     Index num_points;
     Index num_vertices;
+    Index called;
 
     static void create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER);
 };
@@ -25,7 +27,7 @@ struct GhostTree
     GhostTree(const CoverTree& tree, const PointVector& points, const IndexVector& indices, Index num_queries, Index id);
 
     bool finished() const { return header.cur_query >= header.num_queries; }
-    Index make_queries(Index count, Real radius, IndexVector& neighs, IndexVector& queries, IndexVector& ptrs, Index& queries_made);
+    Index make_queries(Index count, Real radius, DistGraph& graph, Index& queries_made);
 
     void allocate(const GhostTreeHeader& recv_header, int dim);
 

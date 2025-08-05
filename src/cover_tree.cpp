@@ -248,7 +248,7 @@ Index CoverTree::radius_query(const PointVector& points, const Atom *query, Real
     return found;
 }
 
-Index CoverTree::radius_query_indexed(const PointVector& points, Index query, Real radius, IndexVector& neighs, const IndexVector& indices) const
+Index CoverTree::radius_query_indexed(const PointVector& points, const IndexVector& indices, Index query, Real radius, IndexVector& neighs) const
 {
     IndexVector tmpneighs;
     Index found = radius_query(points, points[query], radius, tmpneighs);
@@ -262,11 +262,4 @@ void CoverTree::allocate(Index num_verts)
     childptrs.resize(num_verts+1);
     centers.resize(num_verts);
     radii.resize(num_verts);
-}
-
-std::string CoverTree::repr() const
-{
-    char buf[512];
-    snprintf(buf, 512, "CoverTree(vertices=%lld)", num_vertices());
-    return std::string(buf);
 }

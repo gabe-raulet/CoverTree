@@ -24,6 +24,7 @@ using IndexPair = std::tuple<Index, Index>;
 using IndexVector = std::vector<Index>;
 using RealVector = std::vector<Real>;
 using AtomVector = std::vector<Atom>;
+using MemVector = std::vector<void*>;
 using IndexQueue = std::deque<Index>;
 using IndexMap = std::unordered_map<Index, Index>;
 using TupleVector = std::vector<Tuple>;

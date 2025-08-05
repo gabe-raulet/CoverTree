@@ -8,9 +8,9 @@
 
 #include "utils.h"
 #include "point_vector.h"
-#include "dist_voronoi.h"
-#include "dist_query.h"
-#include "radius_neighbors_graph.h"
+#include "dist_point_vector.h"
+#include "dist_graph.h"
+#include "timer.h"
 
 MPI_Comm comm;
 int myrank, nprocs;
@@ -18,7 +18,7 @@ int myrank, nprocs;
 Real radius = -1;
 const char *infile = NULL;
 
-Real cover = 1.3;
+Real cover = 1.55;
 Index leaf_size = 10;
 Index queries_per_tree = -1;
 Index num_centers = 25;
@@ -27,10 +27,9 @@ int verbosity = 1;
 const char *outfile = NULL;
 const char *tree_assignment = "multiway";
 const char *query_balancing = "static";
-const char *method = "vor";
+const char *method = "ct";
 
 void parse_cmdline(int argc, char *argv[]);
-
 int main_mpi(int argc, char *argv[]);
 int main(int argc, char *argv[])
 {
@@ -47,32 +46,51 @@ int main(int argc, char *argv[])
 
 int main_mpi(int argc, char *argv[])
 {
-    Index num_edges = 0;
-    double mytime = 0, maxtime, t;
+    Timer timer(comm);
 
-    DistPointVector points(comm); points.read_fvecs(infile);
-    RadiusNeighborsGraph rnng(points, radius);
+    timer.start();
+    DistPointVector points(infile, comm);
+    timer.stop();
+    timer.wait();
 
-    t = -MPI_Wtime();
-    if      (!strcmp(method, "bf"))  num_edges = rnng.brute_force_systolic(verbosity);
-    else if (!strcmp(method, "ct"))  num_edges = rnng.cover_tree_systolic(cover, leaf_size, verbosity);
-    else if (!strcmp(method, "vor")) num_edges = rnng.cover_tree_voronoi(cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, verbosity);
-    t += MPI_Wtime();
-    mytime += t;
-
-    Index num_points = points.gettotsize();
-    Real density = (num_edges+0.0) / num_points;
+    Index num_vertices = points.gettotsize();
 
     if (verbosity >= 1)
     {
-        MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-        if (!myrank) printf("[v1,time=%.3f,nprocs=%d] [method=%s,num_points=%lld,num_edges=%lld,density=%.3f]\n", mytime, nprocs, method, num_points, num_edges, density);
-        if (!myrank) printf("[end][time=%.3f,nprocs=%d,radius=%.3f,method=%s,cover=%.3f,leaf=%lld,tree=%s,query=%s,q=%lld]\n", mytime, nprocs, radius, method, cover, leaf_size, tree_assignment, query_balancing, queries_per_tree);
-
+        if (!myrank) printf("[v1,%s] Read file '%s' [size=%lld,dim=%d]\n", timer.repr().c_str(), infile, num_vertices, points.num_dimensions());
+        fflush(stdout);
     }
 
+    DistGraph graph(comm);
 
-    if (outfile) rnng.write_graph_file(outfile);
+    MPI_Barrier(comm);
+    timer.start();
+    if      (!strcmp(method, "bf")) points.brute_force_systolic(radius, graph, verbosity);
+    else if (!strcmp(method, "ct")) points.cover_tree_systolic(radius, cover, leaf_size, graph, verbosity);
+    else if (!strcmp(method, "vor")) points.cover_tree_voronoi(radius, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, graph, verbosity);
+    timer.stop();
+    timer.wait();
+
+    Index edges = graph.num_edges(num_vertices);
+    Real density = (edges+0.0)/num_vertices;
+
+    if (!myrank) printf("[v0,%s] found neighbors [vertices=%lld,edges=%lld,density=%.3f]\n", timer.repr().c_str(), num_vertices, edges, density);
+    fflush(stdout);
+
+    if (outfile)
+    {
+        MPI_Barrier(comm);
+        timer.start();
+        graph.write_edge_file(num_vertices, outfile);
+        timer.stop();
+        timer.wait();
+
+        if (verbosity >= 1)
+        {
+            if (!myrank) printf("[v1,%s] wrote edges to file '%s'\n", timer.repr().c_str(), outfile);
+            fflush(stdout);
+        }
+    }
 
     return 0;
 }
@@ -90,9 +108,9 @@ void parse_cmdline(int argc, char *argv[])
             fprintf(stderr, "         -q INT   queries per tree [%lld]\n", queries_per_tree);
             fprintf(stderr, "         -v INT   verbosity level [%d]\n", verbosity);
             fprintf(stderr, "         -o FILE  output sparse graph\n");
-            fprintf(stderr, "         -M STR   method (one of: vor, ct, bf) [%s]\n", method);
             fprintf(stderr, "         -A STR   tree assignment method (one of: static, multiway) [%s]\n", tree_assignment);
             fprintf(stderr, "         -B STR   load balancing method (one of: static, steal) [%s]\n", query_balancing);
+            fprintf(stderr, "         -M STR   querying method (one of: vor, ct, bf) [%s]\n", method);
             fprintf(stderr, "         -F       fix total centers\n");
             fprintf(stderr, "         -h       help message\n");
         }
@@ -109,7 +127,6 @@ void parse_cmdline(int argc, char *argv[])
 
         if      (c == 'i') infile = optarg;
         else if (c == 'r') radius = atof(optarg);
-        else if (c == 'M') method = optarg;
         else if (c == 'c') cover = atof(optarg);
         else if (c == 'l') leaf_size = atoi(optarg);
         else if (c == 'm') num_centers = atoi(optarg);
@@ -119,6 +136,7 @@ void parse_cmdline(int argc, char *argv[])
         else if (c == 'A') tree_assignment = optarg;
         else if (c == 'B') query_balancing = optarg;
         else if (c == 'F') fix_num_centers = true;
+        else if (c == 'M') method = optarg;
         else if (c == 'h') usage(0, myrank == 0);
     }
 
@@ -140,9 +158,9 @@ void parse_cmdline(int argc, char *argv[])
         std::exit(1);
     }
 
-    if (strcmp(method, "vor") && strcmp(method, "ct") && strcmp(method, "bf"))
+    if (strcmp(method, "ct") && strcmp(method, "bf") && strcmp(method, "vor"))
     {
-        if (!myrank) fprintf(stderr, "error: '%s' is not an algorithm!\n", method);
+        if (!myrank) fprintf(stderr, "error: '%s' is an invalid querying method!\n", method);
         MPI_Finalize();
         std::exit(1);
     }
