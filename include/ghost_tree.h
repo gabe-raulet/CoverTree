@@ -14,6 +14,8 @@ struct GhostTreeHeader
     Index called;
 
     static void create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER);
+
+    Index queries_remaining() const { return num_queries - cur_query; }
 };
 
 struct GhostTree
