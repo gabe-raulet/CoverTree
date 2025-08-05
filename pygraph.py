@@ -5,12 +5,6 @@ from dataset_io import *
 import numpy as np
 import math
 import sys
-#  import getopt
-#  import time
-#  import json
-#  from datetime import datetime
-#  from scipy.io import mmwrite
-#  from scipy.sparse import csr_array
 from metricspace import DistPointVector, DistGraph
 
 comm = MPI.COMM_WORLD
@@ -18,6 +12,17 @@ myrank = comm.Get_rank()
 nprocs = comm.Get_size()
 
 points = DistPointVector("scratch/datasets/corel.fvecs", comm)
-#  points.cover_tree_systolic(0.1, 1.5, 10, 2)
-graph = points.cover_tree_voronoi(0.1, 1.5, 10, 25*nprocs, "multiway", "static", -1, 1)
+
+comm.barrier()
+
+t = -MPI.Wtime()
+graph = points.cover_tree_voronoi(0.1, 1.5, 10, 25*nprocs, "multiway", "steal", -1, 2)
+t += MPI.Wtime()
+maxtime = comm.reduce(t, op=MPI.MAX, root=0)
+
+if myrank == 0:
+    print(f"Finished in {maxtime:.3f} seconds")
+
+
+
 graph.write_edge_file(points.totsize(), "output.mtx")
