@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     if myrank == 0:
         for i in range(nprocs):
-            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comm_time={comm_times[i]:.3f},comp_time={comp_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")
+            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comp_time={comp_times[i]:.3f},comm_time={comm_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")
         sys.stdout.write(f"[dist_comps={format_large_number(sum(dist_comps))}]\n")
 
     sys.stdout.flush()
