@@ -4,7 +4,7 @@ void GhostTreeHeader::create_header_type(MPI_Datatype *MPI_GHOST_TREE_HEADER)
 {
     GhostTreeHeader dummy;
     int blklens[6] = {1,1,1,1,1,1};
-    MPI_Datatype types[5] = {MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX};
+    MPI_Datatype types[6] = {MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX, MPI_INDEX};
     MPI_Aint disps[6];
 
     MPI_Aint base_address;

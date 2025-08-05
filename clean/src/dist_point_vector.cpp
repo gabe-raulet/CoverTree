@@ -1,5 +1,6 @@
 #include "dist_point_vector.h"
 #include "cover_tree.h"
+#include "work_stealer.h"
 #include "timer.h"
 #include <assert.h>
 #include <filesystem>
@@ -760,7 +761,92 @@ void DistPointVector::find_neighbors(const std::vector<GhostTree>& mytrees, Real
                     it++;
             }
         }
-    }
 
-    timer.stop();
+        timer.stop();
+
+        if (verbosity >= 2)
+        {
+            Real density = (num_local_edges_found+0.0)/num_local_queries_made;
+            printf("[v2,%s] completed queries [queries=%lld,edges=%lld,density=%.3f]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, density);
+            fflush(stdout);
+        }
+    }
+    else if (!strcmp(query_balancing, "steal"))
+    {
+        WorkStealer work_stealer(dim, comm);
+
+        Index totsize = myqueue.size();
+        MPI_Allreduce(MPI_IN_PLACE, &totsize, 1, MPI_INDEX, MPI_SUM, comm);
+
+        double t;
+        double my_comp_time = 0;
+        double my_steal_time = 0;
+        double my_poll_time = 0;
+        double my_response_time = 0;
+        double my_allreduce_time = 0;
+
+        int flag;
+        Index mycount = 0;
+        Index sendbuf = 0, recvbuf;
+        MPI_Request request;
+
+        t = -MPI_Wtime();
+        MPI_Iallreduce(&sendbuf, &recvbuf, 1, MPI_INDEX, MPI_SUM, comm, &request);
+        t += MPI_Wtime();
+        my_allreduce_time += t;
+
+        while (true)
+        {
+            work_stealer.poll_incoming_requests(myqueue, my_poll_time, my_response_time);
+
+            if (!myqueue.empty())
+            {
+                t = -MPI_Wtime();
+
+                make_tree_queries(myqueue.front());
+
+                if (myqueue.front().finished())
+                {
+                    myqueue.pop_front();
+                    mycount++;
+                }
+
+                t += MPI_Wtime();
+                my_comp_time += t;
+            }
+            else
+            {
+                t = -MPI_Wtime();
+                work_stealer.random_steal(myqueue);
+                t += MPI_Wtime();
+                my_steal_time += t;
+            }
+
+            t = -MPI_Wtime();
+            MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+            t += MPI_Wtime();
+            my_allreduce_time += t;
+
+            if (flag)
+            {
+                t = -MPI_Wtime();
+                if (recvbuf >= totsize)
+                    break;
+
+                sendbuf = mycount;
+                MPI_Iallreduce(&sendbuf, &recvbuf, 1, MPI_INDEX, MPI_SUM, comm, &request);
+                t += MPI_Wtime();
+                my_allreduce_time += t;
+            }
+        }
+
+        timer.stop();
+
+        if (verbosity >= 2)
+        {
+            Real density = (num_local_edges_found+0.0)/num_local_queries_made;
+            printf("[v2,%s] completed queries [queries=%lld,edges=%lld,density=%.3f][comp=%.3f,steal=%.3f,poll=%.3f,resp=%.3f,term=%.3f][attempts=%lld,successes=%lld,serviced=%lld]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, density, my_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, work_stealer.steal_attempts, work_stealer.steal_successes, work_stealer.steal_services);
+            fflush(stdout);
+        }
+    }
 }
