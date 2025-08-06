@@ -1049,8 +1049,7 @@ void DistPointVector::find_neighbors_cover
 
     if (verbosity >= 2)
     {
-        Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-        printf("[v2,%s] completed queries [queries=%lld,edges=%lld,density=%.3f]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, density);
+        printf("[v2,%s] completed queries [queries=%lld,edges=%lld]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found);
         fflush(stdout);
     }
 
@@ -1130,8 +1129,7 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
 
         if (verbosity >= 2)
         {
-            Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-            printf("[v2,%s] completed queries [queries=%lld,edges=%lld,density=%.3f]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, density);
+            printf("[v2,%s] completed queries [queries=%lld,edges=%lld]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found);
             fflush(stdout);
         }
     }
@@ -1210,8 +1208,7 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
 
         if (verbosity >= 2)
         {
-            Real density = (num_local_edges_found+0.0)/num_local_queries_made;
-            printf("[v2,%s] completed queries [queries=%lld,edges=%lld,density=%.3f][comp=%.3f,steal=%.3f,poll=%.3f,resp=%.3f,term=%.3f][attempts=%lld,successes=%lld,serviced=%lld]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, density, my_steal_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, work_stealer.steal_attempts, work_stealer.steal_successes, work_stealer.steal_services);
+            printf("[v2,%s] completed queries [queries=%lld,edges=%lld][comp=%.3f,steal=%.3f,poll=%.3f,resp=%.3f,term=%.3f][attempts=%lld,successes=%lld,serviced=%lld]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, my_steal_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, work_stealer.steal_attempts, work_stealer.steal_successes, work_stealer.steal_services);
             fflush(stdout);
         }
     }
