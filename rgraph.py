@@ -19,7 +19,7 @@ outfile=None
 method="cvor" # or gvor or bf or ct
 cover=1.55
 leaf_size=10
-num_centers=25
+num_centers=10
 verbosity=1
 stats = {}
 stats_file=None
@@ -139,10 +139,9 @@ if __name__ == "__main__":
     stats["idle_times"] = idle_times
     stats["runtime"] = maxtime
 
-    if myrank == 0:
-        for i in range(nprocs):
-            sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comp_time={comp_times[i]:.3f},comm_time={comm_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")
-        sys.stdout.write(f"[dist_comps={format_large_number(sum(dist_comps))}]\n")
+    #if myrank == 0:
+    #    for i in range(nprocs):
+    #        sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comp_time={comp_times[i]:.3f},comm_time={comm_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")
 
     sys.stdout.flush()
     comm.barrier()
@@ -154,7 +153,17 @@ if __name__ == "__main__":
     stats["num_edges"] = edges
     stats["num_procs"] = nprocs
 
-    if myrank == 0: sys.stdout.write(f"[v0,time={maxtime:.3f}] found neighbors [vertices={num_vertices},edges={edges},density={density:.3f}]\n")
+    if myrank == 0:
+        if method == "ct":
+            sys.stdout.write(f"[v0,time={maxtime:.3f},p={nprocs}] found neighbors [v={num_vertices},e={edges},e/v={density:.3f},d={format_large_number(sum(dist_comps))},c={cover:.2f},l={leaf_size},M={method}]\n")
+        elif method == "ctrma":
+            sys.stdout.write(f"[v0,time={maxtime:.3f},p={nprocs}] found neighbors [v={num_vertices},e={edges},e/v={density:.3f},d={format_large_number(sum(dist_comps))},c={cover:.2f},l={leaf_size},M={method}]\n")
+        elif method == "bf":
+            sys.stdout.write(f"[v0,time={maxtime:.3f},p={nprocs}] found neighbors [v={num_vertices},e={edges},e/v={density:.3f},d={format_large_number(sum(dist_comps))},M={method}]\n")
+        elif method == "gvor":
+            sys.stdout.write(f"[v0,time={maxtime:.3f},p={nprocs}] found neighbors [v={num_vertices},e={edges},e/v={density:.3f},d={format_large_number(sum(dist_comps))},c={cover:.2f},l={leaf_size},m={num_centers},M={method},A={tree_assignment},B={query_balancing},q={queries_per_tree}]\n")
+        elif method == "cvor":
+            sys.stdout.write(f"[v0,time={maxtime:.3f},p={nprocs}] found neighbors [v={num_vertices},e={edges},e/v={density:.3f},d={format_large_number(sum(dist_comps))},c={cover:.2f},l={leaf_size},m={num_centers},M={method},A={tree_assignment},B={query_balancing},q={queries_per_tree}]\n")
 
     sys.stdout.flush()
 
