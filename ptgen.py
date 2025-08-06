@@ -16,8 +16,8 @@ def random_rotation_matrix(d):
     return Q
 
 def main(n, dim, ambient, centers, fname):
-    #p1 = make_blobs(n_samples=n, n_features=dim, centers=centers)[0]
-    p1 = np.random.normal(0, 1, size=(n,dim))
+    p1 = make_blobs(n_samples=n, n_features=dim, centers=centers)[0]
+    #p1 = np.random.normal(0, 1, size=(n,dim))
     p2 = np.zeros((n, ambient-dim))
     A = np.hstack([p1,p2])
     R = random_rotation_matrix(ambient)
