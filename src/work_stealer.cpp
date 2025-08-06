@@ -135,7 +135,7 @@ void WorkStealer::poll_incoming_requests(double& my_poll_time, double& my_respon
 
 void WorkStealer::random_steal()
 {
-    if (steal_in_progress)
+    if (steal_in_progress || nprocs == 1)
         return;
 
     std::uniform_int_distribution<int> dist{0,nprocs-1};

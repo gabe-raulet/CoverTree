@@ -139,6 +139,16 @@ if __name__ == "__main__":
     stats["idle_times"] = idle_times
     stats["runtime"] = maxtime
 
+    if method == "gvor" and query_balancing == "steal":
+        stats["steal_attempts"] = comm.gather(points.steal_attempts(), root=0)
+        stats["steal_successes"] = comm.gather(points.steal_successes(), root=0)
+        stats["steal_services"] = comm.gather(points.steal_services(), root=0)
+        stats["my_steal_comp_time"] = comm.gather(points.my_steal_comp_time(), root=0)
+        stats["my_steal_time"] = comm.gather(points.my_steal_time(), root=0)
+        stats["my_poll_time"] = comm.gather(points.my_poll_time(), root=0)
+        stats["my_response_time"] = comm.gather(points.my_response_time(), root=0)
+        stats["my_allreduce_time"] = comm.gather(points.my_allreduce_time(), root=0)
+
     #if myrank == 0:
     #    for i in range(nprocs):
     #        sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comp_time={comp_times[i]:.3f},comm_time={comm_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")

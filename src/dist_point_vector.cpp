@@ -1217,6 +1217,10 @@ void DistPointVector::find_neighbors_ghost(const std::vector<GhostTree>& mytrees
             printf("[v2,%s] completed queries [queries=%lld,edges=%lld][comp=%.3f,steal=%.3f,poll=%.3f,resp=%.3f,term=%.3f][attempts=%lld,successes=%lld,serviced=%lld]\n", timer.myrepr().c_str(), num_local_queries_made, num_local_edges_found, my_steal_comp_time, my_steal_time, my_poll_time, my_response_time, my_allreduce_time, work_stealer.steal_attempts, work_stealer.steal_successes, work_stealer.steal_services);
             fflush(stdout);
         }
+
+        steal_attempts = work_stealer.steal_attempts;
+        steal_successes = work_stealer.steal_successes;
+        steal_services = work_stealer.steal_services;
     }
 
     timer.wait();

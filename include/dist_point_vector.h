@@ -24,6 +24,10 @@ class DistPointVector : public PointVector
         static inline double my_comm_time = 0;
         static inline double my_idle_time = 0;
 
+        static inline Index steal_attempts = 0;
+        static inline Index steal_successes = 0;
+        static inline Index steal_services = 0;
+
         /*
          * Work stealing timings
          */

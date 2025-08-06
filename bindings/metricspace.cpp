@@ -81,7 +81,15 @@ void bind_dist_point_vector(py::module_& m)
         .def("ghost_sizes", [](const DistPointVector& points) { return points.ghost_sizes; })
         .def("my_comp_time", [](const DistPointVector& points) { return points.my_comp_time; })
         .def("my_comm_time", [](const DistPointVector& points) { return points.my_comm_time; })
-        .def("my_idle_time", [](const DistPointVector& points) { return points.my_idle_time; });
+        .def("my_idle_time", [](const DistPointVector& points) { return points.my_idle_time; })
+        .def("my_steal_comp_time", [](const DistPointVector& points) { return points.my_steal_comp_time; })
+        .def("my_steal_time", [](const DistPointVector& points) { return points.my_steal_time; })
+        .def("my_poll_time", [](const DistPointVector& points) { return points.my_poll_time; })
+        .def("my_response_time", [](const DistPointVector& points) { return points.my_response_time; })
+        .def("my_allreduce_time", [](const DistPointVector& points) { return points.my_allreduce_time; })
+        .def("steal_attempts", [](const DistPointVector& points) { return points.steal_attempts; })
+        .def("steal_successes", [](const DistPointVector& points) { return points.steal_successes; })
+        .def("steal_services", [](const DistPointVector& points) { return points.steal_services; });
 }
 
 PYBIND11_MODULE(metricspace, m)
