@@ -950,6 +950,9 @@ void DistPointVector::ghost_tree_voronoi(Real radius, Real cover, Index leaf_siz
     global_point_alltoall(mycellids, dests, my_cell_points, my_cell_indices, my_query_sizes, verbosity);
     global_point_alltoall(myghostids, dests, my_cell_points, my_cell_indices, my_ghost_sizes, verbosity);
 
+    query_sizes.assign(my_query_sizes.begin(), my_query_sizes.end());
+    ghost_sizes.assign(my_ghost_sizes.begin(), my_ghost_sizes.end());
+
     std::vector<GhostTree> mytrees;
 
     build_ghost_trees(mytrees, my_cell_points, my_cell_indices, my_query_sizes, mycells, cover, leaf_size, verbosity);
@@ -982,6 +985,9 @@ void DistPointVector::cover_tree_voronoi(Real radius, Real cover, Index leaf_siz
 
     global_point_alltoall(mycellids, dests, my_cell_points, my_cell_indices, my_query_sizes, verbosity);
     global_point_alltoall(myghostids, dests, my_ghost_points, my_ghost_indices, my_ghost_sizes, verbosity);
+
+    query_sizes.assign(my_query_sizes.begin(), my_query_sizes.end());
+    ghost_sizes.assign(my_ghost_sizes.begin(), my_ghost_sizes.end());
 
     std::vector<CoverTree> mytrees;
 

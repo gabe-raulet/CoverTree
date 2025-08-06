@@ -21,13 +21,15 @@ cover=1.55
 leaf_size=10
 num_centers=25
 verbosity=1
+stats = {}
+stats_file=None
 
 tree_assignment="multiway"
 query_balancing="static"
 queries_per_tree=-1
 
 def usage():
-    global outfile, method, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree
+    global outfile, method, cover, leaf_size, num_centers, tree_assignment, query_balancing, queries_per_tree, stats_file
     if myrank == 0:
         sys.stderr.write(f"Usage: {sys.argv[0]} [options] -i <points> -r <radius>\n")
         sys.stderr.write(f"Options: -c FLOAT cover tree base [{cover:.3f}]\n")
@@ -39,6 +41,7 @@ def usage():
         sys.stderr.write(f"         -A STR   tree assignment method (one of: static, multiway) [{tree_assignment}]\n")
         sys.stderr.write(f"         -B STR   load balancing method (one of: static, steal) [{query_balancing}]\n")
         sys.stderr.write(f"         -M STR   querying method (one of: gvor, cvor, ct, bf, ctrma) [{method}]\n")
+        sys.stderr.write(f"         -j FILE  stats file\n")
         sys.stderr.write(f"         -F       fix total centers\n")
         sys.stderr.write(f"         -h       help message\n")
         sys.stderr.flush()
@@ -51,7 +54,7 @@ if __name__ == "__main__":
 
     fix_num_centers = False
 
-    try: opts, args = getopt.getopt(sys.argv[1:], "c:l:m:Fv:o:i:r:q:A:B:M:h")
+    try: opts, args = getopt.getopt(sys.argv[1:], "c:l:m:Fv:o:i:r:q:A:B:M:j:h")
     except getopt.GetoptError as err: usage()
 
     for o, a in opts:
@@ -66,6 +69,7 @@ if __name__ == "__main__":
         elif o == "-A": tree_assignment = a
         elif o == "-B": query_balancing = a
         elif o == "-F": fix_num_centers = True
+        elif o == "-j": stats_file = a
         elif o == "-M": method = a
         elif o == "-h": usage()
         else: assert False, "unhandled option"
@@ -101,6 +105,18 @@ if __name__ == "__main__":
         if myrank == 0: sys.stdout.write(f"[v1,time={maxtime:.3f}] Read file '{infile}' [size={num_vertices},dim={points.num_dimensions()}]\n")
         sys.stdout.flush()
 
+    parameters = {}
+    parameters["infile"] = infile
+    parameters["method"] = method
+    parameters["cover"] = cover
+    parameters["leaf_size"] = leaf_size
+    parameters["num_centers"] = num_centers
+    parameters["tree_assignment"] = tree_assignment
+    parameters["query_balancing"] = query_balancing
+    parameters["queries_per_tree"] = queries_per_tree
+
+    stats["parameters"] = parameters
+
     t = -MPI.Wtime()
 
     if method == "bf": graph = points.brute_force_systolic(radius, verbosity)
@@ -117,6 +133,12 @@ if __name__ == "__main__":
     comp_times = comm.gather(points.my_comp_time(), root=0)
     idle_times = comm.gather(points.my_idle_time(), root=0)
 
+    stats["dist_comps"] = dist_comps
+    stats["comm_times"] = comm_times
+    stats["comp_times"] = comp_times
+    stats["idle_times"] = idle_times
+    stats["runtime"] = maxtime
+
     if myrank == 0:
         for i in range(nprocs):
             sys.stdout.write(f"[rank={i},dist_comps={format_large_number(dist_comps[i])},comp_time={comp_times[i]:.3f},comm_time={comm_times[i]:.3f},idle_time={idle_times[i]:.3f}]\n")
@@ -127,6 +149,10 @@ if __name__ == "__main__":
 
     edges = graph.num_edges(num_vertices,0)
     density = edges/num_vertices
+
+    stats["num_points"] = num_vertices
+    stats["num_edges"] = edges
+    stats["num_procs"] = nprocs
 
     if myrank == 0: sys.stdout.write(f"[v0,time={maxtime:.3f}] found neighbors [vertices={num_vertices},edges={edges},density={density:.3f}]\n")
 
@@ -144,5 +170,9 @@ if __name__ == "__main__":
             if myrank == 0:
                 sys.stdout.write(f"[v1,time={maxtime:.3f}] wrote edges to file '{outfile}'\n")
             sys.stdout.flush()
+
+    if myrank == 0 and stats_file:
+        with open(stats_file, "w") as f:
+            json.dump(stats, f, indent=4)
 
     sys.exit(0)

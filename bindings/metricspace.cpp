@@ -77,6 +77,8 @@ void bind_dist_point_vector(py::module_& m)
         .def("totsize", [](const DistPointVector& points) { return points.gettotsize(); })
         .def("num_dimensions", &DistPointVector::num_dimensions)
         .def("dist_comps", [](const DistPointVector& points) { return points.dist_comps; })
+        .def("query_sizes", [](const DistPointVector& points) { return points.query_sizes; })
+        .def("ghost_sizes", [](const DistPointVector& points) { return points.ghost_sizes; })
         .def("my_comp_time", [](const DistPointVector& points) { return points.my_comp_time; })
         .def("my_comm_time", [](const DistPointVector& points) { return points.my_comm_time; })
         .def("my_idle_time", [](const DistPointVector& points) { return points.my_idle_time; });
