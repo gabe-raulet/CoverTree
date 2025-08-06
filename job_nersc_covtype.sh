@@ -12,6 +12,7 @@ export MPICH_MPIIO_DVS_MAXNODES=1
 
 INFILE=$SCRATCH/scratch/datasets/covtype.fvecs
 
+rm -rf $SCRATCH/covtype_results
 mkdir -p $SCRATCH/covtype_results
 
 RADIUS=150
@@ -25,7 +26,6 @@ do
     srun -N 1 -n $NUM_PROCS ./rgraph.py -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -M cvor -v2 -j $SCRATCH/covtype_results/cvor.n$NUM_PROCS.json
     srun -N 1 -n $NUM_PROCS ./rgraph.py -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -M gvor -B static -v2 -j $SCRATCH/covtype_results/gvor.static.n$NUM_PROCS.json
     srun -N 1 -n $NUM_PROCS ./rgraph.py -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -M gvor -B steal -v2 -j $SCRATCH/covtype_results/gvor.steal.n$NUM_PROCS.json
-    printf "\n"
 done
 
 for NUM_NODES in 2 4 8
@@ -34,5 +34,4 @@ do
     srun -N $NUM_NODES --ntasks-per-node=128 ./rgraph.py -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -M cvor -v2 -j $SCRATCH/covtype_results/cvor.n$((128*NUM_NODES)).json
     srun -N $NUM_NODES --ntasks-per-node=128 ./rgraph.py -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -M gvor -B static -v2 -j $SCRATCH/covtype_results/gvor.static.n$((128*NUM_NODES)).json
     srun -N $NUM_NODES --ntasks-per-node=128 ./rgraph.py -i $INFILE -r $RADIUS -m $CENTERS_PER_PROC -M gvor -B steal -v2 -j $SCRATCH/covtype_results/gvor.steal.n$((128*NUM_NODES)).json
-    printf "\n"
 done
